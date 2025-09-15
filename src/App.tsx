@@ -18,6 +18,8 @@ import SectionsPage from '@/pages/SectionsPage';
 import NewSectionPage from '@/pages/NewSectionPage';
 import TimeSlotsPage from '@/pages/TimeSlotsPage';
 import NewTimeSlotPage from '@/pages/NewTimeSlotPage';
+import NewUserPage from '@/pages/NewUserPage'; // Importar NewUserPage
+
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,7 @@ function AppContent() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="users/new" element={<NewUserPage />} /> {/* Añadir esta línea */}
           <Route path="staff" element={<StaffPage />} />
           <Route path="staff/new" element={<NewStaffPage />} />
           <Route path="schedules" element={<SchedulesPage />} />

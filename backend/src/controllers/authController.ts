@@ -17,32 +17,47 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       return next(ApiError.badRequest('Error de validación', errors.array()));
     }
 
-    const { name, email, password, role, dni } = req.body;
+    const { firstName, lastName, email, password, role, dni, gender, birthdate } = req.body;
 
-    // Verificar si el usuario ya existe
-    const userExists = await User.findOne({ $or: [{ email }, { dni }] });
-    if (userExists) {
-      return next(ApiError.badRequest('El usuario ya existe'));
+    // Verificar si el usuario ya existe por DNI
+    const userExistsDni = await User.findOne({ dni });
+    if (userExistsDni) {
+      return next(ApiError.badRequest('Ya existe un usuario con este DNI'));
+    }
+
+    // Verificar si el usuario ya existe por email si se proporciona
+    if (email) {
+      const userExistsEmail = await User.findOne({ email });
+      if (userExistsEmail) {
+        return next(ApiError.badRequest('Ya existe un usuario con este email'));
+      }
     }
 
     // Crear nuevo usuario
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password,
       role,
       dni,
+      gender,
+      birthdate,
       status: 'active',
     });
 
-    // Generar token
-    const token = user.generateAuthToken();
+    // Generar token solo si el usuario tiene email y password
+    let token;
+    if (user.email && user.password) {
+      token = user.generateAuthToken();
+    }
 
     res.status(201).json({
       success: true,
       data: {
         id: user._id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
         dni: user.dni,
@@ -74,6 +89,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       return next(ApiError.unauthorized('Credenciales inválidas'));
     }
 
+    // Si el usuario no tiene contraseña, no puede iniciar sesión con contraseña
+    if (!user.password) {
+      return next(ApiError.unauthorized('Este usuario no tiene una contraseña configurada para iniciar sesión.'));
+    }
+
     // Verificar si la contraseña es correcta
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
@@ -92,7 +112,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       success: true,
       data: {
         id: user._id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
         dni: user.dni,
@@ -140,7 +161,7 @@ export const loginWithQR = async (req: Request, res: Response, next: NextFunctio
       token,
       user: {
         id: user._id,
-        name: user.name,
+        name: user.firstName + ' ' + user.lastName,
         email: user.email,
         role: user.role,
       }
@@ -151,7 +172,7 @@ export const loginWithQR = async (req: Request, res: Response, next: NextFunctio
       token,
       user: {
         id: user._id,
-        name: user.name,
+        name: user.firstName + ' ' + user.lastName,
         email: user.email,
         role: user.role,
       }
@@ -215,7 +236,19 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
     res.status(200).json({
       success: true,
       data: {
-        user,
+        user: {
+          id: user?._id,
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          email: user?.email,
+          role: user?.role,
+          dni: user?.dni,
+          gender: user?.gender,
+          birthdate: user?.birthdate,
+          status: user?.status,
+          createdAt: user?.createdAt,
+          updatedAt: user?.updatedAt,
+        },
         staffProfile,
       },
     });
@@ -245,6 +278,9 @@ export const updatePassword = async (req: Request, res: Response, next: NextFunc
     }
 
     // Verificar contraseña actual
+    if (!user.password) {
+      return next(ApiError.badRequest('Este usuario no tiene una contraseña configurada.'));
+    }
     const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) {
       return next(ApiError.badRequest('Contraseña actual incorrecta'));

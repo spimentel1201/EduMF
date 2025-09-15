@@ -31,12 +31,11 @@ const startServer = async () => {
     await connectDB();
     
     // Verificar y ejecutar seed si es necesario
-    /*const needsSeeding = await shouldSeed();
+    const needsSeeding = await shouldSeed();
     if (needsSeeding) {
       console.log('🌱 Ejecutando seed de datos iniciales...');
       await seedData();
     }
-*/
     // Middleware
     //app.use(cors());
     app.use(cors({
@@ -48,7 +47,7 @@ const startServer = async () => {
     
     // Rutas de la API
     app.use('/api/auth', authRoutes);
-    app.use('/api/users', userRoutes);
+    app.use('/api/users', userRoutes); // Usar las rutas de usuario
     app.use('/api/staff', staffRoutes);
     app.use('/api/school-years', schoolYearRoutes);
     app.use('/api/sections', sectionRoutes);

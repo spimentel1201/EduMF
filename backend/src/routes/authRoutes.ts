@@ -7,9 +7,14 @@ const router = express.Router();
 
 // Validaciones para registro
 const registerValidation = [
-  body('name').notEmpty().withMessage('El nombre es requerido'),
-  body('email').isEmail().withMessage('Email inválido'),
+  body('firstName').notEmpty().withMessage('El nombre es requerido'),
+  body('lastName').notEmpty().withMessage('El apellido es requerido'),
+  body('email')
+    .optional() // Hace que el campo email sea opcional para la validación
+    .isEmail()
+    .withMessage('Email inválido'),
   body('password')
+    .optional() // Hace que el campo password sea opcional para la validación
     .isLength({ min: 6 })
     .withMessage('La contraseña debe tener al menos 6 caracteres'),
   body('role')

@@ -8,6 +8,7 @@ import {
   ArrowLeftOnRectangleIcon,
   HomeIcon,
   UserGroupIcon,
+  UserPlusIcon,
   ClipboardDocumentCheckIcon,
   ClockIcon,
   AcademicCapIcon
@@ -17,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
   { name: 'Usuarios', href: '/users', icon: UserGroupIcon, current: false },
+  { name: 'Nuevo Usuario', href: '/users/new', icon: UserPlusIcon, current: false },
   { name: 'Personal', href: '/staff', icon: UserGroupIcon, current: false },
   { name: 'Horarios', href: '/schedules', icon: ClockIcon, current: false },
   { name: 'Franjas Horarias', href: '/time-slots', icon: ClockIcon, current: false },

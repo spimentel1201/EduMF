@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import {userService} from '../services/userService';
+import { userService } from '../services/userService';
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,7 +14,7 @@ export default function UsersPage() {
     queryFn: userService.getAll,
   });
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'All Roles' || user.role === selectedRole;
@@ -109,7 +109,7 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {filteredUsers.map((user) => (
+            {filteredUsers.map((user: any) => (
               <tr key={user.id}>
                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                   {user.name}

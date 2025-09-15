@@ -1,46 +1,52 @@
 import { api } from './api';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'teacher' | 'student';
+interface RegisterUserData {
+  firstName: string;
+  lastName: string;
   dni: string;
-  status: 'Activo' | 'Inactivo';
-  createdAt?: Date;
-  updatedAt?: Date;
+  gender: string;
+  birthdate: string;
+  email?: string;
+  password?: string;
 }
 
-export interface CreateUserData {
-  name: string;
-  email: string;
-  password: string;
-  role: 'admin' | 'teacher' | 'student';
-  dni: string;
+interface BulkRegisterUserResponse {
+  msg: string;
+  totalProcessed: number;
+  successCount: number;
+  errors: any[];
 }
-
 export const userService = {
-  getAll: async (): Promise<User[]> => {
+  registerUser: async (userData: RegisterUserData) => {
+    try {
+      const response = await api.post('/users/register', userData);
+      return response.data;
+    } catch (error: any) {
+      throw error.response.data;
+    }
+  },
+
+  bulkRegisterUsers: async (file: File): Promise<BulkRegisterUserResponse> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/users/bulk-register', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response.data;
+    }
+  },
+
+  getAll: async () => {
     const response = await api.get('/users');
-    return response.data.data; // Extraer del objeto data
-  },
-
-  getById: async (id: string): Promise<User> => {
-    const response = await api.get(`/users/${id}`);
-    return response.data.data; // Extraer del objeto data
-  },
-
-  create: async (user: CreateUserData): Promise<User> => {
-    const response = await api.post('/users', user);
-    return response.data.data; // Extraer del objeto data
-  },
-
-  update: async (id: string, user: Partial<User>): Promise<User> => {
-    const response = await api.put(`/users/${id}`, user);
-    return response.data.data; // Extraer del objeto data
-  },
-
-  delete: async (id: string): Promise<void> => {
-    await api.delete(`/users/${id}`);
+    return response.data.data.map((user: any) => ({
+      ...user,
+      name: `${user.firstName} ${user.lastName}`,
+      status: user.status === 'active' ? 'Activo' : 'Inactivo',
+    }));
   },
 };

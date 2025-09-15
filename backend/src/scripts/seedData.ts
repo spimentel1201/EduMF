@@ -16,7 +16,10 @@ const seedData = async () => {
 
     // 1. Crear usuario administrador
     const adminUser = await User.create({
-      name: 'Administrador Principal',
+      firstName: 'Administrador',
+      lastName: 'Principal',
+      gender: 'M',
+      birthdate: new Date('2000-01-01'),
       email: 'admin@school.edu',
       password: 'admin123',
       role: 'admin',
@@ -27,7 +30,10 @@ const seedData = async () => {
 
     // 2. Crear usuarios de ejemplo
     const teacherUser = await User.create({
-      name: 'Profesor Ejemplo',
+      firstName: 'Profesor',
+      lastName: 'Ejemplo',
+      gender: 'M',
+      birthdate: new Date('2000-01-01'),
       email: 'teacher@school.edu',
       password: 'teacher123',
       role: 'teacher',
@@ -36,7 +42,10 @@ const seedData = async () => {
     });
 
     const studentUser = await User.create({
-      name: 'Estudiante Ejemplo',
+      firstName: 'Estudiante',
+      lastName: 'Ejemplo',
+      gender: 'M',
+      birthdate: new Date('2014-01-01'),
       email: 'student@school.edu',
       password: 'student123',
       role: 'student',
@@ -83,9 +92,9 @@ const seedData = async () => {
     // 5. Crear secciones
     const sections = await Section.create([
       {
-        name: '5A Primaria',
-        level: 'Primaria',
-        grade: 5,
+        name: '1A Secundaria',
+        level: 'Secundaria',
+        grade: 1,
         section: 'A',
         maxStudents: 30,
         currentStudents: 25,
@@ -94,11 +103,11 @@ const seedData = async () => {
         status: 'Activo'
       },
       {
-        name: '6B Primaria',
-        level: 'Primaria',
-        grade: 6,
+        name: '1B Secundaria',
+        level: 'Secundaria',
+        grade: 1,
         section: 'B',
-        maxStudents: 35,
+        maxStudents: 30,
         currentStudents: 28,
         schoolYearId: schoolYear._id,
         teacherId: teacherStaff._id,
@@ -143,21 +152,21 @@ const seedData = async () => {
         name: 'Primera hora',
         startTime: '08:00',
         endTime: '08:45',
-        type: 'Regular',
+        type: 'Clase',
         status: 'Activo'
       },
       {
         name: 'Segunda hora',
         startTime: '08:45',
         endTime: '09:30',
-        type: 'Regular',
+        type: 'Clase',
         status: 'Activo'
       },
       {
         name: 'Tercera hora',
         startTime: '09:45',
         endTime: '10:30',
-        type: 'Regular',
+        type: 'Clase',
         status: 'Activo'
       }
     ]);

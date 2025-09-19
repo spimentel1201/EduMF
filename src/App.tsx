@@ -18,7 +18,9 @@ import SectionsPage from '@/pages/SectionsPage';
 import NewSectionPage from '@/pages/NewSectionPage';
 import TimeSlotsPage from '@/pages/TimeSlotsPage';
 import NewTimeSlotPage from '@/pages/NewTimeSlotPage';
-import NewUserPage from '@/pages/NewUserPage'; // Importar NewUserPage
+import NewEnrollmentPage from '@/pages/NewEnrollmentPage'; // Importar NewEnrollmentPage
+import BulkEnrollmentPage from '@/pages/BulkEnrollmentPage'; // Importar BulkEnrollmentPage
+import NewUserPage from './pages/NewUserPage';
 
 
 const queryClient = new QueryClient();
@@ -62,6 +64,8 @@ function AppContent() {
           <Route path="sections/new" element={<NewSectionPage />} />
           <Route path="time-slots" element={<TimeSlotsPage />} />
           <Route path="time-slots/new" element={<NewTimeSlotPage />} />
+          <Route path="enrollments/new" element={<NewEnrollmentPage />} /> {/* Añadir esta línea */}
+          <Route path="enrollments/bulk" element={<BulkEnrollmentPage />} /> {/* Añadir esta línea */}
         </Route>
       </Routes>
     </AuthProvider>

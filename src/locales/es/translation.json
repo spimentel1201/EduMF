@@ -1,0 +1,95 @@
+{
+  "navigation": {
+    "dashboard": "Tablero",
+    "users": "Usuarios",
+    "staff": "Personal",
+    "schedules": "Horarios",
+    "schoolYears": "Años Escolares",
+    "sections": "Secciones",
+    "timeSlots": "Franjas Horarias",
+    "attendance": "Asistencia"
+  },
+  "login": {
+    "dniMinLength": "El DNI debe tener al menos 8 caracteres",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "loginError": "Credenciales inválidas",
+    "scanQrCode": "Escanear Código QR",
+    "scanQrInstructions": "Apunta la cámara al código QR para registrar asistencia",
+    "cancel": "Cancelar",
+    "currentTime": "Hora Actual",
+    "attendanceRegistered": "¡Asistencia Registrada!",
+    "scannedQr": "QR Escaneado",
+    "registeredAt": "Registrado el",
+    "notificationWillClose": "Esta notificación se cerrará automáticamente",
+    "instructions": "Instrucciones",
+    "scanQrInstructionsDetail1": "1. Asegúrate de que el código QR esté bien iluminado y sea claramente visible.",
+    "scanQrInstructionsDetail2": "2. Mantén tu dispositivo firme y alinea el código QR dentro del marco.",
+    "title": "Sistema de Asistencia Escolar",
+    "subtitle": "Inicia sesión o registra asistencia con QR",
+    "loginTab": "Iniciar Sesión",
+    "qrTab": "Registrar Asistencia",
+    "dniLabel": "DNI",
+    "passwordLabel": "Contraseña",
+    "signingIn": "Iniciando sesión...",
+    "signIn": "Iniciar Sesión",
+    "qrScanInstruction": "Escanea el código QR con tu cámara para registrar asistencia rápidamente",
+    "or": "O",
+    "signInWithDni": "Iniciar con DNI y contraseña"
+  },
+  "users": {
+    "allRoles": "Todos los Roles",
+    "adminRole": "Administrador",
+    "teacherRole": "Profesor",
+    "studentRole": "Estudiante",
+    "title": "Usuarios",
+    "subtitle": "Administrar cuentas de usuario y permisos",
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "role": "Rol",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "addUser": "Agregar Usuario",
+    "searchUsers": "Buscar usuarios..."
+  },
+  "dashboard": {
+    "title": "Tablero",
+    "subtitle": "Resumen de las estadísticas de asistencia de tu escuela y actividades recientes.",
+    "stats": {
+      "TotalStudents": "Total de Estudiantes",
+      "TotalStaff": "Total de Personal",
+      "PresentToday": "Presentes Hoy",
+      "ActiveSchedules": "Horarios Activos",
+      "stats": "estadísticas"
+    },
+    "viewAll": "Ver todo",
+    "recentActivity": "Actividad Reciente",
+    "activityStatus": {
+      "Completed": "Completado"
+    },
+    "present": "presentes",
+    "manageStaff": "Gestionar Personal",
+    "viewSchedules": "Ver Horarios",
+    "takeAttendance": "Tomar Asistencia",
+    "viewAllActivity": "Ver toda la actividad"
+  },
+  "staff": {
+    "errorLoading": "Error al cargar el personal",
+    "title": "Personal",
+    "subtitle": "Administrar miembros del personal escolar",
+    "addStaff": "Agregar Personal",
+    "searchStaff": "Buscar personal...",
+    "roles": {
+      "AllRoles": "Todos los Roles",
+      "Teacher": "Profesor",
+      "Administrator": "Administrador",
+      "Support": "Soporte"
+    },
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "role": "Rol",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo"
+  }
+}

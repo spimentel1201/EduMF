@@ -1,13 +1,14 @@
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  AcademicCapIcon, 
-  UserGroupIcon, 
-  ClockIcon, 
+import {
+  AcademicCapIcon,
+  UserGroupIcon,
+  ClockIcon,
   CheckCircleIcon,
   UserIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 
 const stats = [
   { id: 1, name: 'Total Students', value: '1,234', icon: UserGroupIcon, change: '+12%', changeType: 'positive' },
@@ -23,12 +24,13 @@ const recentActivity = [
 ];
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6 py-6">
       <div className="border-b border-gray-200 pb-5">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Dashboard</h3>
+        <h3 className="text-lg font-medium leading-6 text-gray-900">{t('dashboard.title')}</h3>
         <p className="mt-2 max-w-4xl text-sm text-gray-500">
-          Overview of your school's attendance statistics and recent activities.
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
@@ -43,7 +45,7 @@ export default function DashboardPage() {
               <div className="absolute rounded-md bg-primary-500 p-3">
                 <stat.icon className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
-              <p className="ml-16 truncate text-sm font-medium text-gray-500">{stat.name}</p>
+              <p className="ml-16 truncate text-sm font-medium text-gray-500">{t(`dashboard.stats.${stat.name.replace(/ /g, '')}`)}</p>
             </dt>
             <dd className="ml-16 flex items-baseline pb-6 sm:pb-7">
               <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
@@ -57,7 +59,7 @@ export default function DashboardPage() {
               <div className="absolute inset-x-0 bottom-0 bg-gray-50 px-4 py-4 sm:px-6">
                 <div className="text-sm">
                   <Link to="#" className="font-medium text-primary-600 hover:text-primary-500">
-                    View all<span className="sr-only"> {stat.name} stats</span>
+                    {t('dashboard.viewAll')}<span className="sr-only"> {t(`dashboard.stats.${stat.name.replace(/ /g, '')}`)} {t('dashboard.stats.stats')}</span>
                   </Link>
                 </div>
               </div>
@@ -69,7 +71,7 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Activity</h3>
+          <h3 className="text-lg font-medium leading-6 text-gray-900">{t('dashboard.recentActivity')}</h3>
         </div>
         <div className="border-t border-gray-200">
           <ul role="list" className="divide-y divide-gray-200">
@@ -79,14 +81,14 @@ export default function DashboardPage() {
                   <p className="truncate text-sm font-medium text-primary-600">{activity.name}</p>
                   <div className="ml-2 flex flex-shrink-0">
                     <p className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                      {activity.status}
+                      {t(`dashboard.activityStatus.${activity.status}`)}
                     </p>
                   </div>
                 </div>
                 <div className="mt-2 sm:flex sm:justify-between">
                   <div className="sm:flex">
                     <p className="flex items-center text-sm text-gray-500">
-                      <span>{activity.present}/{activity.total} present</span>
+                      <span>{activity.present}/{activity.total} {t('dashboard.present')}</span>
                     </p>
                     <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
                       <span>{activity.time}</span>
@@ -113,17 +115,17 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <div className="flex space-x-4">
               <Link to="/staff" className="text-primary-600 hover:text-primary-500">
-                Gestionar Personal
+                {t('dashboard.manageStaff')}
               </Link>
               <Link to="/schedules" className="text-primary-600 hover:text-primary-500">
-                Ver Horarios
+                {t('dashboard.viewSchedules')}
               </Link>
               <Link to="/attendance/take" className="text-primary-600 hover:text-primary-500">
-                Tomar Asistencia
+                {t('dashboard.takeAttendance')}
               </Link>
             </div>
             <Link to="/attendance" className="text-primary-600 hover:text-primary-500">
-              View all activity
+              {t('dashboard.viewAllActivity')}
             </Link>
           </div>
         </div>

@@ -1,0 +1,95 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "staff": "Staff",
+    "schedules": "Schedules",
+    "schoolYears": "School Years",
+    "sections": "Sections",
+    "timeSlots": "Time Slots",
+    "attendance": "Attendance"
+  },
+  "login": {
+    "dniMinLength": "DNI must be at least 8 characters long",
+    "passwordMinLength": "Password must be at least 6 characters long",
+    "loginError": "Invalid credentials",
+    "scanQrCode": "Scan QR Code",
+    "scanQrInstructions": "Point the camera at the QR code to register attendance",
+    "cancel": "Cancel",
+    "currentTime": "Current Time",
+    "attendanceRegistered": "Attendance Registered!",
+    "scannedQr": "QR Scanned",
+    "registeredAt": "Registered at",
+    "notificationWillClose": "This notification will close automatically",
+    "instructions": "Instructions",
+    "scanQrInstructionsDetail1": "1. Make sure the QR code is well-lit and clearly visible.",
+    "scanQrInstructionsDetail2": "2. Hold your device steady and align the QR code within the frame.",
+    "title": "School Attendance System",
+    "subtitle": "Sign in or register attendance with QR",
+    "loginTab": "Sign In",
+    "qrTab": "Register Attendance",
+    "dniLabel": "DNI",
+    "passwordLabel": "Password",
+    "signingIn": "Signing in...",
+    "signIn": "Sign In",
+    "qrScanInstruction": "Scan the QR code with your camera to quickly register attendance",
+    "or": "Or",
+    "signInWithDni": "Sign in with DNI and password"
+  },
+  "users": {
+    "allRoles": "All Roles",
+    "adminRole": "Administrator",
+    "teacherRole": "Teacher",
+    "studentRole": "Student",
+    "title": "Users",
+    "subtitle": "Manage user accounts and permissions",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "addUser": "Add User",
+    "searchUsers": "Search users..."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your school's attendance statistics and recent activities.",
+    "stats": {
+      "TotalStudents": "Total Students",
+      "TotalStaff": "Total Staff",
+      "PresentToday": "Present Today",
+      "ActiveSchedules": "Active Schedules",
+      "stats": "stats"
+    },
+    "viewAll": "View all",
+    "recentActivity": "Recent Activity",
+    "activityStatus": {
+      "Completed": "Completed"
+    },
+    "present": "present",
+    "manageStaff": "Manage Staff",
+    "viewSchedules": "View Schedules",
+    "takeAttendance": "Take Attendance",
+    "viewAllActivity": "View all activity"
+  },
+  "staff": {
+    "errorLoading": "Error loading staff",
+    "title": "Staff",
+    "subtitle": "Manage school staff members",
+    "addStaff": "Add Staff",
+    "searchStaff": "Search staff...",
+    "roles": {
+      "AllRoles": "All Roles",
+      "Teacher": "Teacher",
+      "Administrator": "Administrator",
+      "Support": "Support"
+    },
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  }
+}

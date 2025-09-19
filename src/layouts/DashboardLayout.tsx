@@ -1,44 +1,81 @@
-import { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
-import { 
-  Bars3Icon, 
-  XMarkIcon, 
-  UserCircleIcon, 
+import {
+  Bars3Icon,
+  XMarkIcon,
+  UserCircleIcon,
   ArrowLeftOnRectangleIcon,
   HomeIcon,
   UserGroupIcon,
-  UserPlusIcon,
   ClipboardDocumentCheckIcon,
-  ClockIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  DocumentTextIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-  { name: 'Usuarios', href: '/users', icon: UserGroupIcon, current: false },
-  { name: 'Nuevo Usuario', href: '/users/new', icon: UserPlusIcon, current: false },
-  { name: 'Personal', href: '/staff', icon: UserGroupIcon, current: false },
-  { name: 'Horarios', href: '/schedules', icon: ClockIcon, current: false },
-  { name: 'Franjas Horarias', href: '/time-slots', icon: ClockIcon, current: false },
-  { name: 'Asistencia', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
-  { name: 'Años Escolares', href: '/school-years', icon: AcademicCapIcon, current: false },
-  { name: 'Secciones', href: '/sections', icon: UserGroupIcon, current: false },
+  { name: 'dashboard', href: '/', icon: HomeIcon, current: true },
+  {
+    name: 'administration',
+    icon: UserGroupIcon,
+    children: [
+      { name: 'users', href: '/users' },
+      { name: 'newUser', href: '/users/new' },
+      { name: 'staff', href: '/staff' },
+    ],
+  },
+  {
+    name: 'academic',
+    icon: AcademicCapIcon,
+    children: [
+      { name: 'schedules', href: '/schedules' },
+      { name: 'timeSlots', href: '/time-slots' },
+      { name: 'schoolYears', href: '/school-years' },
+      { name: 'sections', href: '/sections' },
+    ],
+  },
+  {
+    name: 'enrollments',
+    icon: DocumentTextIcon,
+    children: [
+      { name: 'individualEnrollment', href: '/enrollments/new' },
+      { name: 'bulkEnrollment', href: '/enrollments/bulk' },
+    ],
+  },
+  { name: 'attendance', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
 ];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export default function DashboardLayout() {
+interface DashboardLayoutProps {
+  children?: ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
 
-  const updatedNavigation = navigation.map(item => ({
-    ...item,
-    current: location.pathname === item.href,
-  }));
+  const updatedNavigation = navigation.map(item => {
+    if (item.children) {
+      return {
+        ...item,
+        children: item.children.map(child => ({
+          ...child,
+          current: location.pathname === child.href,
+        })),
+      };
+    }
+    return {
+      ...item,
+      current: location.pathname === item.href,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -53,20 +90,62 @@ export default function DashboardLayout() {
                   </div>
                   <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                     {updatedNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className={classNames(
-                          item.current
-                            ? 'border-primary-500 text-gray-900'
-                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-                          'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
-                        )}
-                        aria-current={item.current ? 'page' : undefined}
-                      >
-                        <item.icon className="mr-2 h-5 w-5" />
-                        {item.name}
-                      </Link>
+                      item.children ? (
+                        <Menu as="div" key={item.name} className="relative flex">
+                          <Menu.Button
+                            className={classNames(
+                              'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                              'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
+                            )}
+                          >
+                            <item.icon className="mr-2 h-5 w-5" />
+                            {t(item.name)}
+                          </Menu.Button>
+                          <Transition
+                            as={Fragment}
+                            enter="transition ease-out duration-200"
+                            enterFrom="transform opacity-0 scale-95"
+                            enterTo="transform opacity-100 scale-100"
+                            leave="transition ease-in duration-75"
+                            leaveFrom="transform opacity-100 scale-100"
+                            leaveTo="transform opacity-0 scale-95"
+                          >
+                            <Menu.Items className="absolute left-0 z-10 mt-10 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                              {item.children.map((child) => (
+                                <Menu.Item key={child.name}>
+                                  {({ active }) => (
+                                    <Link
+                                      to={child.href}
+                                      className={classNames(
+                                        active ? 'bg-gray-100' : '',
+                                        child.current ? 'bg-gray-100 text-primary-700' : '',
+                                        'block px-4 py-2 text-sm text-gray-700'
+                                      )}
+                                    >
+                                      {t(child.name)}
+                                    </Link>
+                                  )}
+                                </Menu.Item>
+                              ))}
+                            </Menu.Items>
+                          </Transition>
+                        </Menu>
+                      ) : (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className={classNames(
+                            item.current
+                              ? 'border-primary-500 text-gray-900'
+                              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                            'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
+                          )}
+                          aria-current={item.current ? 'page' : undefined}
+                        >
+                          <item.icon className="mr-2 h-5 w-5" />
+                          {t(item.name)}
+                        </Link>
+                      )
                     ))}
                   </div>
                 </div>
@@ -124,23 +203,69 @@ export default function DashboardLayout() {
             <Disclosure.Panel className="sm:hidden">
               <div className="space-y-1 pt-2 pb-3">
                 {updatedNavigation.map((item) => (
-                  <Disclosure.Button
-                    key={item.name}
-                    as={Link}
-                    to={item.href}
-                    className={classNames(
-                      item.current
-                        ? 'bg-primary-50 border-primary-500 text-primary-700'
-                        : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800',
-                      'block border-l-4 py-2 pl-3 pr-4 text-base font-medium'
-                    )}
-                    aria-current={item.current ? 'page' : undefined}
-                  >
-                    <div className="flex items-center">
-                      <item.icon className="mr-3 h-5 w-5" />
-                      {item.name}
-                    </div>
-                  </Disclosure.Button>
+                  item.children ? (
+                    <Disclosure as="div" key={item.name} className="space-y-1">
+                      <Disclosure.Button
+                        className={classNames(
+                          item.current
+                            ? 'bg-primary-50 border-primary-500 text-primary-700'
+                            : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800',
+                          'group flex w-full items-center border-l-4 py-2 pl-3 pr-4 text-base font-medium'
+                        )}
+                      >
+                        <item.icon
+                          className={classNames(
+                            item.current ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500',
+                            'mr-4 h-6 w-6 flex-shrink-0'
+                          )}
+                          aria-hidden="true"
+                        />
+                        {t(item.name)}
+                        <ChevronDownIcon
+                          className={classNames(
+                            open ? 'rotate-180' : '',
+                            'ml-auto h-5 w-5 flex-shrink-0 transform'
+                          )}
+                        />
+                      </Disclosure.Button>
+                      <Disclosure.Panel className="space-y-1">
+                        {item.children.map((child) => (
+                          <Disclosure.Button
+                            key={child.name}
+                            as={Link}
+                            to={child.href}
+                            className={classNames(
+                              child.current ? 'bg-gray-100 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800',
+                              'block rounded-md py-2 pl-12 pr-3 text-sm font-medium'
+                            )}
+                          >
+                            {t(child.name)}
+                          </Disclosure.Button>
+                        ))}
+                      </Disclosure.Panel>
+                    </Disclosure>
+                  ) : (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={classNames(
+                        item.current
+                          ? 'bg-primary-50 border-primary-500 text-primary-700'
+                          : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800',
+                        'block border-l-4 py-2 pl-3 pr-4 text-base font-medium'
+                      )}
+                      aria-current={item.current ? 'page' : undefined}
+                    >
+                      <item.icon
+                        className={classNames(
+                          item.current ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500',
+                          'mr-4 h-6 w-6 flex-shrink-0'
+                        )}
+                        aria-hidden="true"
+                      />
+                      {t(item.name)}
+                    </Link>
+                  )
                 ))}
               </div>
               <div className="border-t border-gray-200 pt-4 pb-3">
@@ -178,7 +303,7 @@ export default function DashboardLayout() {
       <div className="py-10">
         <main>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Outlet />
+            {children || <Outlet />}
           </div>
         </main>
       </div>

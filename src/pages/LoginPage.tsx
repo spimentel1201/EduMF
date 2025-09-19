@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { 
   EyeIcon, 
   EyeSlashIcon, 
@@ -10,13 +11,13 @@ import {
   CheckCircleIcon,
   ClockIcon,
   UserIcon,
-  CalendarIcon
 } from '@heroicons/react/24/outline';
 import QrReader from 'react-qr-reader-es6';
+import { t } from 'i18next';
 
 const loginSchema = z.object({
-  dni: z.string().min(8, 'DNI must be at least 8 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  dni: z.string().min(8, t('login.dniMinLength')),
+  password: z.string().min(6, t('login.passwordMinLength')),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const [showAttendanceSuccess, setShowAttendanceSuccess] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const { login, loginWithQR, isLoading } = useAuth();
+  const { t } = useTranslation();
 
   // Actualizar fecha y hora cada segundo
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function LoginPage() {
       // Redirect to root path which will show the dashboard
       await login(data.dni, data.password, '/');
     } catch (error) {
-      alert('Error en el inicio de sesión. Por favor, verifica tus credenciales.');
+      alert(t('login.loginError'));
     }
   };
 
@@ -104,10 +106,10 @@ export default function LoginPage() {
           <div className="flex-1 space-y-6 bg-white p-8 rounded-lg shadow relative">
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-gray-900">
-                Escanear Código QR
+                {t('login.scanQrCode')}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                Apunta la cámara al código QR para registrar asistencia
+                {t('login.scanQrInstructions')}
               </p>
             </div>
             
@@ -133,7 +135,7 @@ export default function LoginPage() {
                 className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <QrCodeIcon className="h-5 w-5 mr-2 text-blue-600" />
-                Cancelar
+                {t('login.cancel')}
               </button>
             </div>
           </div>
@@ -143,7 +145,7 @@ export default function LoginPage() {
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                 <ClockIcon className="h-5 w-5 mr-2 text-blue-600" />
-                Hora Actual
+                {t('login.currentTime')}
               </h3>
               <div className="text-center bg-blue-50 p-4 rounded-lg">
                 <p className="text-3xl font-bold text-blue-900">
@@ -172,12 +174,12 @@ export default function LoginPage() {
                     <CheckCircleIcon className="h-6 w-6 text-green-600" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    ¡Asistencia Registrada!
+                    {t('login.attendanceRegistered')}
                   </h3>
                   
                   {/* Información del QR */}
                   <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-gray-700 mb-1">QR Escaneado:</p>
+                    <p className="text-xs font-medium text-gray-700 mb-1">{t('login.scannedQr')}:</p>
                     <p className="text-sm font-mono text-gray-900 break-all">
                       {scannedData.length > 30 ? `${scannedData.substring(0, 30)}...` : scannedData}
                     </p>
@@ -185,7 +187,7 @@ export default function LoginPage() {
                   
                   {/* Fecha y hora */}
                   <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-blue-700 mb-1">Registrado:</p>
+                    <p className="text-xs font-medium text-blue-700 mb-1">{t('login.registeredAt')}:</p>
                     <p className="text-sm font-bold text-blue-900">
                       {currentDateTime.toLocaleTimeString('es-ES', {
                         hour: '2-digit',
@@ -196,7 +198,7 @@ export default function LoginPage() {
                   </div>
                   
                   <p className="text-sm text-gray-600">
-                    La notificación se cerrará automáticamente
+                    {t('login.notificationWillClose')}
                   </p>
                 </div>
               </div>
@@ -204,14 +206,14 @@ export default function LoginPage() {
               <div className="bg-white p-6 rounded-lg shadow-lg">
                 <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                   <UserIcon className="h-5 w-5 mr-2 text-blue-600" />
-                  Instrucciones
+                  {t('login.instructions')}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-sm text-gray-600">
-                    Escanea un código QR válido para registrar tu asistencia.
+                    {t('login.scanQrInstructionsDetail1')}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Las notificaciones de registro aparecerán en este panel.
+                    {t('login.scanQrInstructionsDetail2')}
                   </p>
                 </div>
               </div>
@@ -227,10 +229,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sistema de Asistencia Escolar
+            {t('login.title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Inicia sesión o registra asistencia con QR
+            {t('login.subtitle')}
           </p>
         </div>
         
@@ -245,7 +247,7 @@ export default function LoginPage() {
                 }`}
                 onClick={() => setActiveTab('dni')}
               >
-                Iniciar Sesión
+                {t('login.loginTab')}
               </button>
               <button
                 type="button"
@@ -256,7 +258,7 @@ export default function LoginPage() {
                 }`}
                 onClick={() => setActiveTab('qr')}
               >
-                Registrar Asistencia
+                {t('login.qrTab')}
               </button>
           </div>
 
@@ -265,7 +267,7 @@ export default function LoginPage() {
               <div className="rounded-md shadow-sm space-y-4">
                 <div>
                   <label htmlFor="dni" className="block text-sm font-medium text-gray-700">
-                    DNI
+                    {t('login.dniLabel')}
                   </label>
                   <div className="mt-1">
                     <input
@@ -283,7 +285,7 @@ export default function LoginPage() {
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Password
+                    {t('login.passwordLabel')}
                   </label>
                   <div className="mt-1 relative">
                     <input
@@ -317,7 +319,7 @@ export default function LoginPage() {
                   disabled={isLoading}
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Signing in...' : 'Sign in'}
+                  {isLoading ? t('login.signingIn') : t('login.signIn')}
                 </button>
               </div>
             </form>
@@ -325,7 +327,7 @@ export default function LoginPage() {
             <div className="mt-8 space-y-6">
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-4">
-                  Escanea el código QR con tu cámara para registrar asistencia rápidamente
+                  {t('login.qrScanInstruction')}
                 </p>
                 <button
                   type="button"
@@ -333,7 +335,7 @@ export default function LoginPage() {
                   className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <QrCodeIcon className="h-5 w-5 mr-2" />
-                  Escanear Código QR
+                  {t('login.scanQrCode')}
                 </button>
               </div>
               
@@ -342,7 +344,7 @@ export default function LoginPage() {
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">O</span>
+                  <span className="px-2 bg-white text-gray-500">{t('login.or')}</span>
                 </div>
               </div>
               
@@ -352,7 +354,7 @@ export default function LoginPage() {
                   onClick={() => setActiveTab('dni')}
                   className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  Iniciar con DNI y contraseña
+                  {t('login.signInWithDni')}
                 </button>
               </div>
             </div>

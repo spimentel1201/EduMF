@@ -11,7 +11,7 @@ import Attendance from '../models/Attendance';
 
 const seedData = async () => {
   try {
-    await connectDB();
+    // await connectDB(); // Eliminar esta línea
     console.log('🌱 Iniciando carga de datos iniciales...');
 
     // 1. Crear usuario administrador
@@ -20,7 +20,7 @@ const seedData = async () => {
       lastName: 'Principal',
       gender: 'M',
       birthdate: new Date('2000-01-01'),
-      email: 'admin@school.edu',
+      email: 'admin@gmail.com',
       password: 'admin123',
       role: 'admin',
       dni: '12345678',
@@ -34,7 +34,7 @@ const seedData = async () => {
       lastName: 'Ejemplo',
       gender: 'M',
       birthdate: new Date('2000-01-01'),
-      email: 'teacher@school.edu',
+      email: 'teacher@gmail.com',
       password: 'teacher123',
       role: 'teacher',
       dni: '87654321',
@@ -58,7 +58,7 @@ const seedData = async () => {
       dni: '87654321',
       firstName: 'Carlos',
       lastName: 'Rodríguez',
-      email: 'teacher@school.edu',
+      email: '87654321@gmail.com',
       role: 'Docente',
       level: 'Secundaria',
       status: 'Activo',
@@ -68,10 +68,10 @@ const seedData = async () => {
     });
 
     const directorStaff = await Staff.create({
-      dni: '12345678',
+      dni: '12345688',
       firstName: 'María',
       lastName: 'González',
-      email: 'admin@school.edu',
+      email: '12345688@gmail.com',
       role: 'Dirección',
       level: 'General',
       status: 'Activo',
@@ -150,22 +150,22 @@ const seedData = async () => {
     const timeSlots = await TimeSlot.create([
       {
         name: 'Primera hora',
-        startTime: '08:00',
-        endTime: '08:45',
+        startTime: '08:30',
+        endTime: '09:15',
         type: 'Clase',
         status: 'Activo'
       },
       {
         name: 'Segunda hora',
-        startTime: '08:45',
-        endTime: '09:30',
+        startTime: '09:15',
+        endTime: '10:00',
         type: 'Clase',
         status: 'Activo'
       },
       {
         name: 'Tercera hora',
-        startTime: '09:45',
-        endTime: '10:30',
+        startTime: '10:00',
+        endTime: '10:45',
         type: 'Clase',
         status: 'Activo'
       }
@@ -178,6 +178,7 @@ const seedData = async () => {
         sectionId: sections[0]._id,
         teacherId: teacherStaff._id,
         timeSlotId: timeSlots[0]._id,
+        schoolYearId: schoolYear._id, // Añadir schoolYearId
         dayOfWeek: 'Lunes',
         classroom: 'A-101',
         status: 'Activo'
@@ -187,6 +188,7 @@ const seedData = async () => {
         sectionId: sections[0]._id,
         teacherId: teacherStaff._id,
         timeSlotId: timeSlots[1]._id,
+        schoolYearId: schoolYear._id, // Añadir schoolYearId
         dayOfWeek: 'Martes',
         classroom: 'A-101',
         status: 'Activo'
@@ -196,6 +198,7 @@ const seedData = async () => {
         sectionId: sections[0]._id,
         teacherId: teacherStaff._id,
         timeSlotId: timeSlots[2]._id,
+        schoolYearId: schoolYear._id, // Añadir schoolYearId
         dayOfWeek: 'Miércoles',
         classroom: 'A-102',
         status: 'Activo'
@@ -239,10 +242,10 @@ const seedData = async () => {
 // Verificar si la base de datos está vacía antes de sembrar
 const shouldSeed = async () => {
   try {
-    await connectDB();
+    // await connectDB(); // Eliminar esta línea
     const userCount = await User.countDocuments();
     const shouldSeed = userCount === 0;
-    await closeDB();
+    // await closeDB(); // Eliminar esta línea
     return shouldSeed;
   } catch (error) {
     console.error('Error verificando base de datos:', error);

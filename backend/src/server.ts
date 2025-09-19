@@ -13,9 +13,10 @@ import staffRoutes from './routes/staffRoutes';
 import schoolYearRoutes from './routes/schoolYearRoutes';
 import sectionRoutes from './routes/sectionRoutes';
 import courseRoutes from './routes/courseRoutes';
-import scheduleRoutes from './routes/courseScheduleRoutes';
+import courseScheduleRoutes from './routes/courseScheduleRoutes';
 import timeSlotRoutes from './routes/timeSlotRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
+import enrollmentRoutes from './routes/enrollmentRoutes'; // Importar las rutas de matrícula
 
 // Cargar variables de entorno
 config();
@@ -47,19 +48,19 @@ const startServer = async () => {
     
     // Rutas de la API
     app.use('/api/auth', authRoutes);
-    app.use('/api/users', userRoutes); // Usar las rutas de usuario
+    app.use('/api/users', userRoutes);
     app.use('/api/staff', staffRoutes);
     app.use('/api/school-years', schoolYearRoutes);
     app.use('/api/sections', sectionRoutes);
     app.use('/api/courses', courseRoutes);
-    app.use('/api/course-schedules', scheduleRoutes);
+    app.use('/api/course-schedules', courseScheduleRoutes);
     app.use('/api/time-slots', timeSlotRoutes);
     app.use('/api/attendance', attendanceRoutes);
+    app.use('/api/enrollments', enrollmentRoutes);
     
     // Middleware de manejo de errores
     app.use(errorHandler);
     
-    // Iniciar el servidor
     app.listen(PORT, () => {
       console.log(`Servidor ejecutándose en el puerto ${PORT}`);
     });
@@ -69,7 +70,6 @@ const startServer = async () => {
   }
 };
 
-// Iniciar el servidor
 startServer();
 
 export default app;

@@ -1,77 +1,31 @@
 {
-  "navigation": {
-    "dashboard": "Dashboard",
-    "users": "Users",
-    "staff": "Staff",
-    "schedules": "Schedules",
-    "schoolYears": "School Years",
-    "sections": "Sections",
-    "timeSlots": "Time Slots",
-    "attendance": "Attendance"
-  },
   "login": {
-    "dniMinLength": "DNI must be at least 8 characters long",
-    "passwordMinLength": "Password must be at least 6 characters long",
-    "loginError": "Invalid credentials",
-    "scanQrCode": "Scan QR Code",
-    "scanQrInstructions": "Point the camera at the QR code to register attendance",
-    "cancel": "Cancel",
-    "currentTime": "Current Time",
-    "attendanceRegistered": "Attendance Registered!",
-    "scannedQr": "QR Scanned",
-    "registeredAt": "Registered at",
-    "notificationWillClose": "This notification will close automatically",
-    "instructions": "Instructions",
-    "scanQrInstructionsDetail1": "1. Make sure the QR code is well-lit and clearly visible.",
-    "scanQrInstructionsDetail2": "2. Hold your device steady and align the QR code within the frame.",
-    "title": "School Attendance System",
-    "subtitle": "Sign in or register attendance with QR",
-    "loginTab": "Sign In",
-    "qrTab": "Register Attendance",
-    "dniLabel": "DNI",
-    "passwordLabel": "Password",
-    "signingIn": "Signing in...",
+    "title": "Welcome to EduMF",
+    "subtitle": "Sign in to your account",
+    "username": "Username",
+    "password": "Password",
     "signIn": "Sign In",
-    "qrScanInstruction": "Scan the QR code with your camera to quickly register attendance",
-    "or": "Or",
-    "signInWithDni": "Sign in with DNI and password"
-  },
-  "users": {
-    "allRoles": "All Roles",
-    "adminRole": "Administrator",
-    "teacherRole": "Teacher",
-    "studentRole": "Student",
-    "title": "Users",
-    "subtitle": "Manage user accounts and permissions",
-    "name": "Name",
-    "email": "Email",
-    "role": "Role",
-    "status": "Status",
-    "active": "Active",
-    "inactive": "Inactive",
-    "addUser": "Add User",
-    "searchUsers": "Search users..."
+    "forgotPassword": "Forgot your password?",
+    "scanQrCode": "Scan QR Code",
+    "signInWithDni": "Sign in with DNI and password",
+    "dniMinLength": "DNI must be at least 8 characters",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "loginTab": "Login"
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Overview of your school's attendance statistics and recent activities.",
-    "stats": {
-      "TotalStudents": "Total Students",
-      "TotalStaff": "Total Staff",
-      "PresentToday": "Present Today",
-      "ActiveSchedules": "Active Schedules",
-      "stats": "stats"
-    },
-    "viewAll": "View all",
+    "subtitle": "Overview of your school activity",
+    "totalStudents": "Total Students",
+    "totalStaff": "Total Staff",
+    "totalCourses": "Total Courses",
     "recentActivity": "Recent Activity",
-    "activityStatus": {
-      "Completed": "Completed"
-    },
-    "present": "present",
+    "viewAll": "View All",
     "manageStaff": "Manage Staff",
     "viewSchedules": "View Schedules",
-    "takeAttendance": "Take Attendance",
-    "viewAllActivity": "View all activity"
+    "takeAttendance": "Take Attendance"
+  },
+  "users": {
+    "adminRole": "Administrator"
   },
   "staff": {
     "errorLoading": "Error loading staff",
@@ -79,17 +33,120 @@
     "subtitle": "Manage school staff members",
     "addStaff": "Add Staff",
     "searchStaff": "Search staff...",
-    "roles": {
-      "AllRoles": "All Roles",
-      "Teacher": "Teacher",
-      "Administrator": "Administrator",
-      "Support": "Support"
-    },
     "name": "Name",
     "email": "Email",
     "role": "Role",
     "status": "Status",
+    "allRoles": "All Roles",
+    "teacher": "Teacher",
+    "administrator": "Administrator",
+    "support": "Support",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "pending": "Pending"
+  },
+  "schedules": {
+    "errorLoading": "Error loading schedules",
+    "title": "Course Schedules",
+    "subtitle": "Manage course schedules and timetables",
+    "addSchedule": "Add Schedule",
+    "searchSchedules": "Search schedules...",
+    "allSections": "All Sections",
+    "time": "Time",
+    "course": "Course",
+    "teacher": "Teacher",
+    "day": "Day",
+    "section": "Section",
+    "days": {
+      "AllDays": "All Days",
+      "Monday": "Monday",
+      "Tuesday": "Tuesday",
+      "Wednesday": "Wednesday",
+      "Thursday": "Thursday",
+      "Friday": "Friday"
+    }
+  },
+  "sections": {
+    "errorLoading": "Error loading sections",
+    "title": "Sections",
+    "subtitle": "Manage school sections and classes",
+    "addSection": "Add Section",
+    "searchSections": "Search sections...",
+    "name": "Name",
+    "gradeLevel": "Grade Level",
+    "capacity": "Capacity",
+    "status": "Status",
+    "levels": {
+      "Todoslosniveles": "All Levels",
+      "Primaria": "Primary",
+      "Secondaria": "Secondary"
+    },
+    "statusOptions": {
+      "Activo": "Active",
+      "Inactivo": "Inactive"
+    }
+  },
+  "timeSlots": {
+    "errorLoading": "Error loading time slots",
+    "retry": "Retry",
+    "title": "Time Slots",
+    "subtitle": "Manage available time slots for classes",
+    "newTimeSlot": "New Time Slot",
+    "noTimeSlots": "No time slots",
+    "createFirstTimeSlot": "Start by creating a new time slot.",
+    "name": "Name",
+    "schedule": "Schedule",
+    "type": "Type",
+    "status": "Status",
+    "actions": "Actions",
+    "viewDetails": "View details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this time slot?",
+    "deleteError": "Error deleting time slot",
+    "types": {
+      "Class": "Class",
+      "Break": "Break",
+      "Lunch": "Lunch"
+    },
+    "statusOptions": {
+      "Active": "Active",
+      "Inactive": "Inactive"
+    }
+  },
+  "users": {
+    "errorLoading": "Error loading users",
+    "title": "Users",
+    "subtitle": "Manage school users and their roles",
+    "addUser": "Add User",
+    "searchUsers": "Search users...",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "allRoles": "All Roles",
+    "roles": {
+      "Admin": "Administrator",
+      "Teacher": "Teacher",
+      "Student": "Student"
+    },
+    "statusOptions": {
+      "Active": "Active",
+      "Inactive": "Inactive"
+    }
+  },
+  "attendance": {
+    "errorLoading": "Error loading attendance",
+    "title": "Attendance Records",
+    "subtitle": "View and manage attendance records",
+    "date": "Date",
+    "section": "Section",
+    "allSections": "All Sections",
+    "student": "Student",
+    "status": "Status",
+    "statusOptions": {
+      "Present": "Present",
+      "Absent": "Absent"
+    }
   }
 }

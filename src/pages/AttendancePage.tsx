@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { attendanceService } from '../services/attendanceService';
 import { sectionService } from '../services/sectionService';
+import { useTranslation } from 'react-i18next';
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSection, setSelectedSection] = useState('');
+  const { t } = useTranslation();
 
   const { data: attendanceRecords = [], isLoading, error } = useQuery({
     queryKey: ['attendance', selectedDate, selectedSection],
@@ -29,7 +31,7 @@ export default function AttendancePage() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">Error loading attendance: {error.message}</p>
+        <p className="text-red-600">{t('attendance.errorLoading')}: {error.message}</p>
       </div>
     );
   }
@@ -38,9 +40,9 @@ export default function AttendancePage() {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-lg font-semibold text-gray-900">Attendance Records</h1>
+          <h1 className="text-lg font-semibold text-gray-900">{t('attendance.title')}</h1>
           <p className="mt-2 text-sm text-gray-700">
-            View and manage attendance records
+            {t('attendance.subtitle')}
           </p>
         </div>
       </div>
@@ -48,7 +50,7 @@ export default function AttendancePage() {
       {/* Filters */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Date</label>
+          <label className="block text-sm font-medium text-gray-700">{t('attendance.date')}</label>
           <div className="relative mt-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <CalendarIcon className="h-5 w-5 text-gray-400" />
@@ -62,7 +64,7 @@ export default function AttendancePage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Section</label>
+          <label className="block text-sm font-medium text-gray-700">{t('attendance.section')}</label>
           <div className="relative mt-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <UserGroupIcon className="h-5 w-5 text-gray-400" />
@@ -72,7 +74,7 @@ export default function AttendancePage() {
               value={selectedSection}
               onChange={(e) => setSelectedSection(e.target.value)}
             >
-              <option value="">All Sections</option>
+              <option value="">{t('attendance.allSections')}</option>
               {sections.map((section) => (
                 <option key={section.id} value={section.id}>
                   {section.name}
@@ -89,16 +91,16 @@ export default function AttendancePage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                Student
+                {t('attendance.student')}
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Section
+                {t('attendance.section')}
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Status
+                {t('attendance.status')}
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Date
+                {t('attendance.date')}
               </th>
             </tr>
           </thead>
@@ -119,7 +121,7 @@ export default function AttendancePage() {
                       ? 'bg-red-100 text-red-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {record.status}
+                    {t(`attendance.statusOptions.${String(record.status).replace(/ /g, '')}`)}
                   </span>
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">

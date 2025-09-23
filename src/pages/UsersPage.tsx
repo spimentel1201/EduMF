@@ -7,8 +7,8 @@ import { useTranslation } from 'react-i18next';
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('All Roles');
   const { t } = useTranslation();
+  const [selectedRole, setSelectedRole] = useState(t('users.allRoles'));
   const roles = [t('users.allRoles'), t('users.adminRole'), t('users.teacherRole'), t('users.studentRole')];
 
   const { data: users = [], isLoading, error } = useQuery({
@@ -19,7 +19,7 @@ export default function UsersPage() {
   const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'All Roles' || user.role === selectedRole;
+    const matchesRole = selectedRole === t('users.allRoles') || user.role === selectedRole;
     return matchesSearch && matchesRole;
   });
 
@@ -34,7 +34,7 @@ export default function UsersPage() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">Error loading users: {error.message}</p>
+        <p className="text-red-600">{t('users.errorLoading')}: {error.message}</p>
       </div>
     );
   }
@@ -70,6 +70,8 @@ export default function UsersPage() {
               type="text"
               placeholder={t('users.searchUsers')}
               className="p-2 border border-gray-300 rounded-md w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -118,7 +120,7 @@ export default function UsersPage() {
                   {user.email}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {user.role}
+                  {t(`users.roles.${user.role.replace(/ /g, '')}`)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm">
                   <td className="py-2 px-4 border-b">
@@ -127,7 +129,7 @@ export default function UsersPage() {
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {t(`users.${user.status === 'Activo' ? 'active' : 'inactive'}`)}
+                    {t(`users.statusOptions.${user.status.replace(/ /g, '')}`)}
                   </span>
                   </td>
                 </td>

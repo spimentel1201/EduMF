@@ -36,7 +36,7 @@ export default function BulkEnrollment() {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = 'studentId,sectionId,schoolYearId,enrollmentDate';
+    const headers = 'studentName,sectionName,schoolYearName,enrollmentDate'; // Cambiado a nombres descriptivos
     const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {

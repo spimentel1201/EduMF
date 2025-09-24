@@ -14,6 +14,21 @@ export default function SchedulesPage() {
   const [selectedSectionId, setSelectedSectionId] = useState<string | 'All Sections'>('All Sections'); // Nuevo estado para la sección
   const days = ['All Days', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
+  // Helper function to get the correct translation key for days
+  const getDayTranslationKey = (day: string) => {
+    switch (day) {
+      case 'Lunes': return 'Monday';
+      case 'Martes': return 'Tuesday';
+      case 'Miércoles': return 'Wednesday';
+      case 'Jueves': return 'Thursday';
+      case 'Viernes': return 'Friday';
+      case 'Sábado': return 'Saturday';
+      case 'Domingo': return 'Sunday';
+      case 'All Days': return 'AllDays';
+      default: return day;
+    }
+  };
+
   const { data: schedules = [], isLoading, error } = useQuery({
     queryKey: ['course-schedules'],
     queryFn: courseScheduleService.getAll,
@@ -130,7 +145,7 @@ export default function SchedulesPage() {
             >
               {days.map((day) => (
                 <option key={day} value={day}>
-                  {t(`schedules.days.${day.replace(/ /g, '')}`)}
+                  {t(`schedules.days.${getDayTranslationKey(day.replace(/ /g, ''))}`)}
                 </option>
               ))}
             </select>
@@ -229,7 +244,7 @@ export default function SchedulesPage() {
                   {schedule.teacherId.firstName}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {t(`schedules.days.${schedule.dayOfWeek.replace(/ /g, '')}`)}
+                  {t(`schedules.days.${getDayTranslationKey(schedule.dayOfWeek.replace(/ /g, ''))}`)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                   {schedule.timeSlotId.startTime} - {schedule.timeSlotId.endTime}

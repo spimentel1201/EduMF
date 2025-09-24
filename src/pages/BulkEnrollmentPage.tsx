@@ -1,13 +1,14 @@
 import React from 'react';
-import DashboardLayout from '@/layouts/DashboardLayout';
 import BulkEnrollment from '@/components/BulkEnrollment';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const BulkEnrollmentPage: React.FC = () => {
+  const { t } = useTranslation(); // Initialize useTranslation
   return (
-    <DashboardLayout>
-      <h1 className="text-2xl font-semibold mb-6">Matrícula Masiva de Estudiantes</h1>
+    <>
+      <h1 className="text-2xl font-semibold mb-6">{t('enrollments.bulkEnrollmentTitle')}</h1>
       <BulkEnrollment />
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -5,11 +5,43 @@ import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import {staffService} from '../services/staffService';
 import { useTranslation } from 'react-i18next';
 
+// Función auxiliar para convertir el rol del backend a la clave de traducción
+const getStaffRoleTranslationKey = (role: string) => {
+  switch (role) {
+    case 'Teacher':
+      return 'Teacher'; // Corregido para que coincida con la clave en translation.json
+    case 'Administrator':
+      return 'Administrator';
+    case 'Support':
+      return 'Support';
+    case 'Psicólogo(a)':
+      return 'Psicólogo(a)';
+    case 'Mantenimiento':
+      return 'Mantenimiento';
+    case 'CIST':
+      return 'CIST';
+    case 'Dirección':
+      return 'Dirección';
+    case 'Docente':
+      return 'Docente';
+    case 'Auxiliar':
+      return 'Auxiliar';
+    default:
+      return role; // Fallback si no se encuentra una traducción específica
+  }
+};
+
+// Función auxiliar para convertir el estado del backend a la clave de traducción
+const getStaffStatusTranslationKey = (status: string) => {
+  return status === 'Activo' ? 'active' : 'inactive';
+};
+
 export default function StaffPage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('All Roles');
-  const roles = ['All Roles', 'Teacher', 'Administrator', 'Support'];
+  // Estos roles deben coincidir con los valores del backend para el filtrado
+  const roles = ['All Roles', 'Teacher', 'Administrator', 'Support', 'Psicólogo(a)', 'Mantenimiento', 'CIST', 'Dirección', 'Docente', 'Auxiliar'];
 
   const { data: staff = [], isLoading, error } = useQuery({
     queryKey: ['staff'],
@@ -20,6 +52,7 @@ export default function StaffPage() {
     const matchesSearch = member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    // Comparar con el valor real del rol del objeto de usuario
     const matchesRole = selectedRole === 'All Roles' || member.role === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -85,7 +118,7 @@ export default function StaffPage() {
           >
             {roles.map((role) => (
               <option key={role} value={role}>
-                {t(`staff.roles.${role.replace(/ /g, '')}`)}
+                {role === 'All Roles' ? t('staff.allRoles') : t(`staff.roles.${getStaffRoleTranslationKey(role)}`)}
               </option>
             ))}
           </select>
@@ -121,15 +154,15 @@ export default function StaffPage() {
                   {member.email}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {t(`staff.roles.${member.role.replace(/ /g, '')}`)}
+                  {t(`staff.roles.${getStaffRoleTranslationKey(member.role)}`)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm">
                   <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                     member.status === 'Activo'
-                      ? 'bg-green-100 text-green-800' 
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {t(`staff.status.${member.status === 'Activo' ? 'active' : 'inactive'}`)}
+                    {t(`staff.statusOptions.${getStaffStatusTranslationKey(member.status)}`)}
                   </span>
                 </td>
               </tr>

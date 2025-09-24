@@ -1,10 +1,67 @@
 {
+  "dashboard": {
+    "title": "Tablero",
+    "subtitle": "Resumen de la actividad escolar",
+    "stats": {
+      "TotalStudents": "Total de Estudiantes",
+      "TotalStaff": "Total de Personal",
+      "PresentToday": "Presentes Hoy",
+      "ActiveSchedules": "Horarios Activos"
+    },
+    "viewAll": "Ver Todo",
+    "recentActivity": "Actividad Reciente",
+    "present": "presente",
+    "activityStatus": {
+      "Completed": "Completado"
+    },
+    "manageStaff": "Gestionar Personal",
+    "viewSchedules": "Ver Horarios",
+    "takeAttendance": "Tomar Asistencia",
+    "viewAllActivity": "Ver Toda la Actividad"
+  },
+  "administration": {
+    "title": "Administración",
+    "users": {
+      "title": "Usuarios"
+    },
+    "newUser": {
+      "title": "Nuevo Usuario"
+    },
+    "staff": {
+      "title": "Personal"
+    }
+  },
+  "academic": {
+    "title": "Académico",
+    "schedules": {
+      "title": "Horarios"
+    },
+    "timeSlots": {
+      "title": "Franjas Horarias"
+    },
+    "schoolYears": {
+      "title": "Años Escolares"
+    },
+    "sections": {
+      "title": "Secciones"
+    }
+  },
+  "enrollments": {
+    "title": "Matrículas",
+    "individualEnrollment": {
+      "title": "Matrícula Individual"
+    },
+    "bulkEnrollment": {
+      "title": "Matrícula Masiva"
+    }
+  },
   "schedules": {
     "errorLoading": "Error al cargar horarios",
     "retry": "Reintentar",
     "title": "Horarios",
     "subtitle": "Gestiona los horarios escolares y años académicos",
-    "newSchedule": "Nuevo Horario",
+    "addSchedule": "Añadir Horario",
+    "searchSchedules": "Buscar horarios...",
     "noSchedules": "No hay horarios",
     "createFirstSchedule": "Comienza creando un nuevo horario.",
     "name": "Nombre",
@@ -21,7 +78,21 @@
     "statusOptions": {
       "Active": "Activo",
       "Inactive": "Inactivo"
-    }
+    },
+    "days": {
+      "AllDays": "Todos los Días",
+      "Monday": "Lunes",
+      "Tuesday": "Martes",
+      "Wednesday": "Miércoles",
+      "Thursday": "Jueves",
+      "Friday": "Viernes"
+    },
+    "allSections": "Todas las Secciones",
+    "time": "Hora",
+    "course": "Curso",
+    "teacher": "Profesor",
+    "day": "Día",
+    "section": "Sección"
   },
   "sections": {
     "errorLoading": "Error al cargar secciones",
@@ -59,7 +130,7 @@
     "viewDetails": "Ver detalles",
     "edit": "Editar",
     "delete": "Eliminar",
-    "confirmDelete": "¿Estás seguro de que quieres eliminar este horario?",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este horario??",
     "deleteError": "Error al eliminar el horario",
     "types": {
       "Class": "Clase",
@@ -92,6 +163,33 @@
       "Inactive": "Inactivo"
     }
   },
+  "staff": {
+    "errorLoading": "Error al cargar el personal",
+    "title": "Personal",
+    "subtitle": "Gestiona el personal de la escuela y sus roles",
+    "addStaff": "Añadir Personal",
+    "searchStaff": "Buscar personal...",
+    "name": "Nombre",
+    "email": "Email",
+    "role": "Rol",
+    "status": "Estado",
+    "allRoles": "Todos los Roles",
+    "roles": {
+      "Teacher": "Docente",
+      "Administrator": "Administrador",
+      "Support": "Soporte",
+      "Psicólogo(a)": "Psicólogo(a)",
+      "Mantenimiento": "Mantenimiento",
+      "CIST": "CIST",
+      "Dirección": "Dirección",
+      "Docente": "Docente",
+      "Auxiliar": "Auxiliar"
+    },
+    "statusOptions": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    }
+  },
   "attendance": {
     "errorLoading": "Error al cargar la asistencia",
     "title": "Registros de Asistencia",
@@ -105,5 +203,6 @@
       "Present": "Presente",
       "Absent": "Ausente"
     }
-  }
+  },
+  "signOut": "Cerrar Sesión"
 }

@@ -15,6 +15,25 @@ export default function TimeSlotsPage() {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
 
+    // Helper function to get the correct translation key for time slot types
+    const getTimeSlotTypeTranslationKey = (type: string) => {
+        switch (type) {
+            case 'Clase': return 'Class';
+            case 'Receso': return 'Break';
+            case 'Almuerzo': return 'Lunch';
+            default: return type;
+        }
+    };
+
+    // Helper function to get the correct translation key for time slot statuses
+    const getTimeSlotStatusTranslationKey = (status: string) => {
+        switch (status) {
+            case 'Activo': return 'Active';
+            case 'Inactivo': return 'Inactive';
+            default: return status;
+        }
+    };
+
     const { data: timeSlots, isLoading, error } = useQuery({
         queryKey: ['timeSlots'],
         queryFn: timeSlotService.getAll,
@@ -193,12 +212,12 @@ export default function TimeSlotsPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(timeSlot.type)}`}>
-                                                    {t(`timeSlots.types.${timeSlot.type.replace(/ /g, '')}`)}
+                                                    {t(`timeSlots.types.${getTimeSlotTypeTranslationKey(timeSlot.type)}`)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(timeSlot.status)}`}>
-                                                    {t(`timeSlots.statusOptions.${timeSlot.status.replace(/ /g, '')}`)}
+                                                    {t(`timeSlots.statusOptions.${getTimeSlotStatusTranslationKey(timeSlot.status)}`)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

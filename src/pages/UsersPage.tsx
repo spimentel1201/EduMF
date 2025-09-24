@@ -5,11 +5,36 @@ import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { userService } from '../services/userService';
 import { useTranslation } from 'react-i18next';
 
+// Función auxiliar para convertir el rol del backend a la clave de traducción
+const getRoleTranslationKey = (role: string) => {
+  if (!role) return '';
+  // Asumiendo que los roles del backend pueden ser 'admin', 'teacher', 'student' (minúsculas)
+  // y las claves de traducción son 'Admin', 'Teacher', 'Student' (capitalizadas)
+  return role.charAt(0).toUpperCase() + role.slice(1);
+};
+
+// Función auxiliar para convertir el estado del backend a la clave de traducción
+const getStatusTranslationKey = (status: string) => {
+  if (!status) return '';
+  // Asumiendo que los estados del backend pueden ser 'Activo', 'Inactivo' (español)
+  // y las claves de traducción son 'Active', 'Inactive' (inglés)
+  switch (status) {
+    case 'Activo':
+      return 'Active';
+    case 'Inactivo':
+      return 'Inactive';
+    default:
+      return status; // Fallback para otros casos
+  }
+};
+
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
-  const [selectedRole, setSelectedRole] = useState(t('users.allRoles'));
-  const roles = [t('users.allRoles'), t('users.adminRole'), t('users.teacherRole'), t('users.studentRole')];
+  // El estado selectedRole y el array roles deben usar los valores del backend para el filtrado
+  // y luego traducir para la visualización.
+  const [selectedRole, setSelectedRole] = useState('All Roles');
+  const roles = ['All Roles', 'Admin', 'Teacher', 'Student']; // Estos deben coincidir con los valores del backend si es posible, o ser mapeados.
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -19,7 +44,8 @@ export default function UsersPage() {
   const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === t('users.allRoles') || user.role === selectedRole;
+    // Comparar con el valor real del rol del objeto de usuario, después de normalizarlo
+    const matchesRole = selectedRole === 'All Roles' || getRoleTranslationKey(user.role) === selectedRole;
     return matchesSearch && matchesRole;
   });
 
@@ -84,7 +110,7 @@ export default function UsersPage() {
           >
             {roles.map((role) => (
               <option key={role} value={role}>
-                {role}
+                {role === 'All Roles' ? t('users.allRoles') : t(`users.roles.${role}`)}
               </option>
             ))}
           </select>
@@ -120,16 +146,16 @@ export default function UsersPage() {
                   {user.email}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {t(`users.roles.${user.role.replace(/ /g, '')}`)}
+                  {t(`users.roles.${getRoleTranslationKey(user.role)}`)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm">
                   <td className="py-2 px-4 border-b">
                     <span className={`text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full ${
-                    user.status === 'Activo' 
-                      ? 'bg-green-100 text-green-800' 
+                    getStatusTranslationKey(user.status) === 'Active'
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {t(`users.statusOptions.${user.status.replace(/ /g, '')}`)}
+                    {t(`users.statusOptions.${getStatusTranslationKey(user.status)}`)}
                   </span>
                   </td>
                 </td>

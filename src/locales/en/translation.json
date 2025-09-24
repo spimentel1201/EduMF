@@ -15,17 +15,80 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Overview of your school activity",
-    "totalStudents": "Total Students",
-    "totalStaff": "Total Staff",
-    "totalCourses": "Total Courses",
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalStaff": "Total Staff",
+      "presentTeachers": "Present Teachers",
+      "activeSchedules": "Active Schedules"
+    },
     "recentActivity": "Recent Activity",
+    "present": "present",
+    "activityStatus": {
+      "completed": "Completed"
+    },
     "viewAll": "View All",
+    "viewAllActivity": "View All Activity",
     "manageStaff": "Manage Staff",
     "viewSchedules": "View Schedules",
     "takeAttendance": "Take Attendance"
   },
+  "administration": {
+    "title": "Administration",
+    "users": {
+      "title": "Users"
+    },
+    "newUser": {
+      "title": "New User"
+    },
+    "staff": {
+      "title": "Staff"
+    }
+  },
+  "academic": {
+    "title": "Academic",
+    "schedules": {
+      "title": "Schedules"
+    },
+    "timeSlots": {
+      "title": "Time Slots"
+    },
+    "schoolYears": {
+      "title": "School Years"
+    },
+    "sections": {
+      "title": "Sections"
+    }
+  },
+  "enrollments": {
+    "title": "Enrollments",
+    "individualEnrollment": {
+      "title": "Individual Enrollment"
+    },
+    "bulkEnrollment": {
+      "title": "Bulk Enrollment"
+    }
+  },
   "users": {
-    "adminRole": "Administrator"
+    "adminRole": "Administrator",
+    "errorLoading": "Error loading users",
+    "title": "Users",
+    "subtitle": "Manage school users and their roles",
+    "addUser": "Add User",
+    "searchUsers": "Search users...",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "allRoles": "All Roles",
+    "roles": {
+      "Admin": "Administrator",
+      "Teacher": "Teacher",
+      "Student": "Student"
+    },
+    "statusOptions": {
+      "Active": "Active",
+      "Inactive": "Inactive"
+    }
   },
   "staff": {
     "errorLoading": "Error loading staff",
@@ -114,27 +177,6 @@
       "Inactive": "Inactive"
     }
   },
-  "users": {
-    "errorLoading": "Error loading users",
-    "title": "Users",
-    "subtitle": "Manage school users and their roles",
-    "addUser": "Add User",
-    "searchUsers": "Search users...",
-    "name": "Name",
-    "email": "Email",
-    "role": "Role",
-    "status": "Status",
-    "allRoles": "All Roles",
-    "roles": {
-      "Admin": "Administrator",
-      "Teacher": "Teacher",
-      "Student": "Student"
-    },
-    "statusOptions": {
-      "Active": "Active",
-      "Inactive": "Inactive"
-    }
-  },
   "attendance": {
     "errorLoading": "Error loading attendance",
     "title": "Attendance Records",
@@ -148,5 +190,6 @@
       "Present": "Present",
       "Absent": "Absent"
     }
-  }
+  },
+  "signOut": "Sign Out"
 }

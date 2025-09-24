@@ -11,10 +11,10 @@ import {
 import { useTranslation } from 'react-i18next';
 
 const stats = [
-  { id: 1, name: 'Total Students', value: '1,234', icon: UserGroupIcon, change: '+12%', changeType: 'positive' },
-  { id: 2, name: 'Total Staff', value: '89', icon: UserIcon, change: '+3', changeType: 'positive' },
-  { id: 3, name: 'Present Today', value: '1,123', icon: CheckCircleIcon, change: '+5%', changeType: 'positive' },
-  { id: 4, name: 'Active Schedules', value: '67', icon: CalendarIcon, change: '+4', changeType: 'positive' },
+  { id: 1, name: 'totalStudents', value: '1,234', icon: UserGroupIcon, change: '+12%', changeType: 'positive' },
+  { id: 2, name: 'totalStaff', value: '89', icon: UserIcon, change: '+3', changeType: 'positive' },
+  { id: 3, name: 'presentTeachers', value: '1,123', icon: CheckCircleIcon, change: '+5%', changeType: 'positive' },
+  { id: 4, name: 'activeSchedules', value: '67', icon: CalendarIcon, change: '+4', changeType: 'positive' },
 ];
 
 const recentActivity = [

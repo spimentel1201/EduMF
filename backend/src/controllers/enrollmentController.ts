@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
-import { createEnrollment, bulkCreateEnrollments } from '../services/enrollmentService';
-import { parseCSV } from '../utils/csvParser';
-import User from '../models/User'; // Importar el modelo de Usuario
+import { createEnrollment } from '../services/enrollmentService';
+import User, { IUser } from '../models/User'; // Importar el modelo de Usuario
 import Section from '../models/Section'; // Importar el modelo de Sección
 import SchoolYear from '../models/SchoolYear'; // Importar el modelo de Año Escolar
+import mongoose from 'mongoose'; // Importar mongoose para transacciones
+import Enrollment from '../models/Enrollment';
+import * as XLSX from 'xlsx';
 
 export const enrollStudent = async (req: Request, res: Response) => {
   try {
@@ -15,46 +17,125 @@ export const enrollStudent = async (req: Request, res: Response) => {
 };
 
 export const bulkEnrollStudents = async (req: Request, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No se ha subido ningún archivo.' });
+  }
+
+  const { schoolYearName, sectionName } = req.body;
+
+  if (!schoolYearName) {
+    return res.status(400).json({ message: 'El nombre del año escolar es requerido.' });
+  }
+  if (!sectionName) {
+    return res.status(400).json({ message: 'El nombre de la sección es requerido.' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No se ha subido ningún archivo.' });
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+
+    // Extract student data starting from row 12 (index 11)
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 11 });
+
+    const studentsToEnroll = jsonData.map((row: any) => ({
+      firstName: row[0], // NOMBRES
+      lastName: row[1],  // APELLIDOS
+      dni: row[2],       // DNI
+      gender: row[3],    // GENERO
+      birthDate: row[4], // FECHA_NAC
+    }));
+
+    const section = await Section.findOne({ name: sectionName }).session(session);
+    if (!section) {
+      throw new Error(`Sección '${sectionName}' no encontrada en la base de datos.`);
     }
 
-    const csvData = parseCSV(req.file.buffer.toString());
+    const schoolYear = await SchoolYear.findOne({ name: schoolYearName }).session(session);
+    if (!schoolYear) {
+      throw new Error(`Año escolar '${schoolYearName}' no encontrado.`);
+    }
 
-    const enrollmentsDataWithIds = await Promise.all(
-      csvData.map(async (row: any) => {
-        // Buscar estudiante por nombre completo (asumiendo "Nombre Apellido")
-        const studentNameParts = row.studentName.split(' ');
-        const firstName = studentNameParts[0];
-        const lastName = studentNameParts.slice(1).join(' '); // Manejar apellidos compuestos
+    const createdEnrollments = [];
+    const errors = [];
 
-        const student = await User.findOne({ firstName, lastName, role: 'student' });
-        const section = await Section.findOne({ name: row.sectionName });
-        const schoolYear = await SchoolYear.findOne({ year: row.schoolYearName });
+    for (const studentData of studentsToEnroll) {
+      const { dni, firstName, lastName } = studentData;
+
+      if (!dni || !firstName || !lastName) {
+        errors.push(`Datos incompletos para un estudiante: ${JSON.stringify(studentData)}`);
+        continue;
+      }
+
+      try {
+        let student = await User.findOne({ dni: String(dni) }).session(session);
 
         if (!student) {
-          throw new Error(`Estudiante no encontrado: ${row.studentName}`);
-        }
-        if (!section) {
-          throw new Error(`Sección no encontrada: ${row.sectionName}`);
-        }
-        if (!schoolYear) {
-          throw new Error(`Año escolar no encontrado: ${row.schoolYearName}`);
+          const generatedEmail = `${firstName.substring(0, 2).toLowerCase()}${lastName.split(' ')[0].toLowerCase()}${dni}@escuela.com`;
+          [student] = await User.create([{
+            dni: String(dni),
+            firstName: String(firstName),
+            lastName: String(lastName),
+            email: generatedEmail,
+            role: 'student',
+            password: String(dni), // Contraseña temporal
+          }], { session });
+        } else if (student.role !== 'student') {
+          throw new Error(`El usuario con DNI ${dni} ya existe pero no es un estudiante.`);
         }
 
-        return {
+        const existingEnrollment = await Enrollment.findOne({
+          studentId: student._id,
+          sectionId: section._id,
+          schoolYearId: schoolYear._id
+        }).session(session);
+
+        if (existingEnrollment) {
+          console.log(`El estudiante ${student.firstName} ${student.lastName} ya está matriculado.`);
+          continue;
+        }
+
+        if (section.currentStudents >= section.maxStudents) {
+          throw new Error(`La sección '${section.name}' ha alcanzado su capacidad máxima.`);
+        }
+
+        const enrollment = new Enrollment({
           studentId: student._id,
           sectionId: section._id,
           schoolYearId: schoolYear._id,
-          enrollmentDate: row.enrollmentDate,
-        };
-      })
-    );
+          level: section._id, // Asignar el ID de la sección como el nivel
+        });
+        await enrollment.save({ session });
+        createdEnrollments.push(enrollment);
 
-    const createdEnrollments = await bulkCreateEnrollments(enrollmentsDataWithIds);
-    res.status(201).json(createdEnrollments);
+        section.currentStudents += 1;
+
+      } catch (error: any) {
+        errors.push(`Error procesando DNI ${dni}: ${error.message}`);
+      }
+    }
+
+    await section.save({ session });
+
+    if (errors.length > 0) {
+      throw new Error(`Ocurrieron errores: ${errors.join('; ')}`);
+    }
+
+    await session.commitTransaction();
+    res.status(201).json({
+      message: 'Matrícula masiva completada con éxito.',
+      data: { createdEnrollments }
+    });
+
   } catch (error: any) {
-    res.status(400).json({ message: error.message });
+    await session.abortTransaction();
+    console.error('Error en matrícula masiva:', error);
+    res.status(500).json({ message: error.message || 'Error en la matrícula masiva.' });
+  } finally {
+    session.endSession();
   }
 };
+

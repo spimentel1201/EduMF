@@ -13,6 +13,18 @@ export interface BulkEnrollmentResponse {
   errors: any[];
 }
 
+export interface BulkEnrollmentPayload {
+  schoolYearName: string;
+  sectionName: string;
+  students: Array<{
+    firstName: string;
+    lastName: string;
+    dni: string;
+    gender: string;
+    birthDate: string;
+  }>;
+}
+
 export const enrollmentService = {
   createEnrollment: async (enrollmentData: EnrollmentFormData) => {
     try {
@@ -23,11 +35,9 @@ export const enrollmentService = {
     }
   },
 
-  bulkEnrollStudents: async (file: File): Promise<BulkEnrollmentResponse> => {
+  bulkEnrollStudents: async (payload: FormData): Promise<BulkEnrollmentResponse> => {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await api.post('/enrollments/bulk', formData, {
+      const response = await api.post('/enrollments/bulk', payload, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

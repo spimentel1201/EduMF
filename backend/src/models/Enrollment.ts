@@ -4,6 +4,7 @@ export interface IEnrollment extends Document {
   studentId: mongoose.Types.ObjectId;
   sectionId: mongoose.Types.ObjectId;
   schoolYearId: mongoose.Types.ObjectId;
+  level: string; // Añadir la propiedad level
   enrollmentDate: Date;
   status: 'active' | 'inactive' | 'completed';
   createdAt: Date;
@@ -26,6 +27,10 @@ const EnrollmentSchema: Schema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SchoolYear',
       required: [true, 'El año escolar es requerido'],
+    },
+    level: {
+      type: String,
+      required: [true, 'El nivel es requerido'],
     },
     enrollmentDate: {
       type: Date,

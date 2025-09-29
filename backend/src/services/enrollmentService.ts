@@ -2,7 +2,6 @@ import Enrollment, { IEnrollment } from '../models/Enrollment';
 import User from '../models/User';
 import Section from '../models/Section';
 import SchoolYear from '../models/SchoolYear';
-import mongoose from 'mongoose';
 
 export const createEnrollment = async (enrollmentData: Partial<IEnrollment>): Promise<IEnrollment> => {
   const { studentId, sectionId, schoolYearId } = enrollmentData;

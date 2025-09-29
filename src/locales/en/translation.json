@@ -10,7 +10,24 @@
     "signInWithDni": "Sign in with DNI and password",
     "dniMinLength": "DNI must be at least 8 characters",
     "passwordMinLength": "Password must be at least 6 characters",
-    "loginTab": "Login"
+    "loginTab": "Login",
+    "loginError": "Login error. Please check your credentials.",
+    "scanQrInstructions": "Scan the QR code to register your attendance.",
+    "cancel": "Cancel",
+    "currentTime": "Current Time",
+    "attendanceRegistered": "Attendance Registered",
+    "scannedQr": "Scanned QR",
+    "registeredAt": "Registered at",
+    "notificationWillClose": "This notification will close automatically in a few seconds.",
+    "instructions": "Instructions",
+    "scanQrInstructionsDetail1": "1. Make sure the QR code is well lit and not damaged.",
+    "scanQrInstructionsDetail2": "2. Place the QR code within the camera frame.",
+    "qrTab": "QR",
+    "dniLabel": "DNI",
+    "passwordLabel": "Password",
+    "signingIn": "Signing In...",
+    "qrScanInstruction": "Scan the provided QR code to log in.",
+    "or": "Or"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -52,21 +69,15 @@
     "timeSlots": {
       "title": "Time Slots"
     },
-    "schoolYears": {
-      "title": "School Years"
-    },
+    "schoolYears": "School Years",
     "sections": {
       "title": "Sections"
     }
   },
   "enrollments": {
     "title": "Enrollments",
-    "individualEnrollment": {
-      "title": "Individual Enrollment"
-    },
-    "bulkEnrollment": {
-      "title": "Bulk Enrollment"
-    }
+    "individualEnrollment": "Individual Enrollment",
+    "bulkEnrollment": "Bulk Enrollment"
   },
   "users": {
     "adminRole": "Administrator",
@@ -100,13 +111,31 @@
     "email": "Email",
     "role": "Role",
     "status": "Status",
+    "actions": "Actions",
+    "viewDetails": "View details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this staff member?",
+    "deleteError": "Error deleting staff member",
+    "noStaff": "No staff members",
+    "createFirstStaff": "Start by adding a new staff member.",
     "allRoles": "All Roles",
-    "teacher": "Teacher",
-    "administrator": "Administrator",
-    "support": "Support",
-    "active": "Active",
-    "inactive": "Inactive",
-    "pending": "Pending"
+    "roles": {
+      "teacher": "Teacher",
+      "administrator": "Administrator",
+      "support": "Support",
+      "psychologist": "Psychologist",
+      "maintenance": "Maintenance",
+      "cist": "CIST",
+      "direction": "Direction",
+      "auxiliary": "Auxiliary"
+    },
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending"
+    },
+    "allStatuses": "All Statuses"
   },
   "schedules": {
     "errorLoading": "Error loading schedules",

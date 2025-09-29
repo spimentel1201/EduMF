@@ -18,35 +18,35 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher'; // Importar el componente LanguageSwitcher
 
 const navigation = [
-  { name: 'dashboard', href: '/', icon: HomeIcon, current: true },
+  { name: 'dashboard.title', href: '/', icon: HomeIcon, current: true },
   {
-    name: 'administration',
+    name: 'administration.title',
     icon: UserGroupIcon,
     children: [
-      { name: 'users', href: '/users' },
-      { name: 'newUser', href: '/users/new' },
-      { name: 'staff', href: '/staff' },
+      { name: 'users.title', href: '/users' },
+      { name: 'administration.newUser.title', href: '/users/new' },
+      { name: 'staff.title', href: '/staff' },
     ],
   },
   {
-    name: 'academic',
+    name: 'academic.title',
     icon: AcademicCapIcon,
     children: [
-      { name: 'schedules', href: '/schedules' },
-      { name: 'timeSlots', href: '/time-slots' },
-      { name: 'schoolYears', href: '/school-years' },
-      { name: 'sections', href: '/sections' },
+      { name: 'schedules.title', href: '/schedules' },
+      { name: 'timeSlots.title', href: '/time-slots' },
+      { name: 'academic.schoolYears', href: '/school-years' },
+      { name: 'sections.title', href: '/sections' },
     ],
   },
   {
-    name: 'enrollments',
+    name: 'enrollments.title',
     icon: DocumentTextIcon,
     children: [
-      { name: 'individualEnrollment', href: '/enrollments/new' },
-      { name: 'bulkEnrollment', href: '/enrollments/bulk' },
+      { name: 'enrollments.individualEnrollment', href: '/enrollments/new' },
+      { name: 'enrollments.bulkEnrollment', href: '/enrollments/bulk' },
     ],
   },
-  { name: 'attendance', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
+  { name: 'attendance.title', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
 ];
 
 function classNames(...classes: string[]) {
@@ -100,7 +100,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             )}
                           >
                             <item.icon className="mr-2 h-5 w-5" />
-                            {t(`${item.name}.title`)}
+                            {t(item.name)}
                           </Menu.Button>
                           <Transition
                             as={Fragment}
@@ -123,7 +123,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                         'block px-4 py-2 text-sm text-gray-700'
                                       )}
                                     >
-                                      {t(`${item.name}.${child.name}.title`)}
+                                      {t(child.name)}
                                     </Link>
                                   )}
                                 </Menu.Item>
@@ -144,7 +144,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           aria-current={item.current ? 'page' : undefined}
                         >
                           <item.icon className="mr-2 h-5 w-5" />
-                          {t(`${item.name}.title`)}
+                          {t(item.name)}
                         </Link>
                       )
                     ))}
@@ -222,7 +222,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           )}
                           aria-hidden="true"
                         />
-                        {t(`${item.name}.title`)}
+                        {t(item.name)}
                         <ChevronDownIcon
                           className={classNames(
                             open ? 'rotate-180' : '',
@@ -241,7 +241,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                               'block rounded-md py-2 pl-12 pr-3 text-sm font-medium'
                             )}
                           >
-                            {t(`${item.name}.${child.name}.title`)}
+                            {t(child.name)}
                           </Disclosure.Button>
                         ))}
                       </Disclosure.Panel>
@@ -259,7 +259,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       aria-current={item.current ? 'page' : undefined}
                     >
                       <item.icon className="mr-2 h-5 w-5" />
-                      {t(`${item.name}.title`)}
+                      {t(item.name)}
                     </Link>
                   )
                 ))}

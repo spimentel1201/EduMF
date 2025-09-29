@@ -1,23 +1,53 @@
 {
+  "login": {
+    "title": "Bienvenido a EduMF",
+    "subtitle": "Inicia sesión en tu cuenta",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "signIn": "Iniciar Sesión",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "scanQrCode": "Escanear Código QR",
+    "signInWithDni": "Iniciar sesión con DNI y contraseña",
+    "dniMinLength": "El DNI debe tener al menos 8 caracteres",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "loginTab": "Iniciar Sesión",
+    "loginError": "Error al iniciar sesión. Por favor, verifica tus credenciales.",
+    "scanQrInstructions": "Escanea el código QR para registrar tu asistencia.",
+    "cancel": "Cancelar",
+    "currentTime": "Hora Actual",
+    "attendanceRegistered": "Asistencia Registrada",
+    "scannedQr": "QR Escaneado",
+    "registeredAt": "Registrado a las",
+    "notificationWillClose": "Esta notificación se cerrará automáticamente en unos segundos.",
+    "instructions": "Instrucciones",
+    "scanQrInstructionsDetail1": "1. Asegúrate de que el código QR esté bien iluminado y no esté dañado.",
+    "scanQrInstructionsDetail2": "2. Coloca el código QR dentro del marco de la cámara.",
+    "qrTab": "QR",
+    "dniLabel": "DNI",
+    "passwordLabel": "Contraseña",
+    "signingIn": "Iniciando Sesión...",
+    "qrScanInstruction": "Escanea el código QR proporcionado para iniciar sesión.",
+    "or": "O"
+  },
   "dashboard": {
     "title": "Tablero",
-    "subtitle": "Resumen de la actividad escolar",
+    "subtitle": "Resumen de la actividad de tu escuela",
     "stats": {
-      "TotalStudents": "Total de Estudiantes",
-      "TotalStaff": "Total de Personal",
-      "PresentToday": "Presentes Hoy",
-      "ActiveSchedules": "Horarios Activos"
+      "totalStudents": "Total de Estudiantes",
+      "totalStaff": "Total de Personal",
+      "presentTeachers": "Profesores Presentes",
+      "activeSchedules": "Horarios Activos"
     },
-    "viewAll": "Ver Todo",
     "recentActivity": "Actividad Reciente",
     "present": "presente",
     "activityStatus": {
-      "Completed": "Completado"
+      "completed": "Completado"
     },
-    "manageStaff": "Gestionar Personal",
+    "viewAll": "Ver Todo",
+    "viewAllActivity": "Ver Toda la Actividad",
+    "manageStaff": "Administrar Personal",
     "viewSchedules": "Ver Horarios",
-    "takeAttendance": "Tomar Asistencia",
-    "viewAllActivity": "Ver Toda la Actividad"
+    "takeAttendance": "Tomar Asistencia"
   },
   "administration": {
     "title": "Administración",
@@ -39,117 +69,25 @@
     "timeSlots": {
       "title": "Franjas Horarias"
     },
-    "schoolYears": {
-      "title": "Años Escolares"
-    },
+    "schoolYears": "Años Escolares",
     "sections": {
       "title": "Secciones"
     }
   },
   "enrollments": {
-    "title": "Matrículas",
-    "individualEnrollment": {
-      "title": "Matrícula Individual"
-    },
-    "bulkEnrollment": {
-      "title": "Matrícula Masiva"
-    }
-  },
-  "schedules": {
-    "errorLoading": "Error al cargar horarios",
-    "retry": "Reintentar",
-    "title": "Horarios",
-    "subtitle": "Gestiona los horarios escolares y años académicos",
-    "addSchedule": "Añadir Horario",
-    "searchSchedules": "Buscar horarios...",
-    "noSchedules": "No hay horarios",
-    "createFirstSchedule": "Comienza creando un nuevo horario.",
-    "name": "Nombre",
-    "academicYear": "Año Académico",
-    "startDate": "Fecha de Inicio",
-    "endDate": "Fecha de Fin",
-    "status": "Estado",
-    "actions": "Acciones",
-    "viewDetails": "Ver detalles",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "confirmDelete": "¿Estás seguro de que quieres eliminar este horario?",
-    "deleteError": "Error al eliminar el horario",
-    "statusOptions": {
-      "Active": "Activo",
-      "Inactive": "Inactivo"
-    },
-    "days": {
-      "AllDays": "Todos los Días",
-      "Monday": "Lunes",
-      "Tuesday": "Martes",
-      "Wednesday": "Miércoles",
-      "Thursday": "Jueves",
-      "Friday": "Viernes"
-    },
-    "allSections": "Todas las Secciones",
-    "time": "Hora",
-    "course": "Curso",
-    "teacher": "Profesor",
-    "day": "Día",
-    "section": "Sección"
-  },
-  "sections": {
-    "errorLoading": "Error al cargar secciones",
-    "title": "Secciones",
-    "subtitle": "Gestiona las secciones y clases escolares",
-    "addSection": "Añadir Sección",
-    "searchSections": "Buscar secciones...",
-    "name": "Nombre",
-    "gradeLevel": "Nivel de Grado",
-    "capacity": "Capacidad",
-    "status": "Estado",
-    "levels": {
-      "allLevels": "Todos los niveles",
-      "primary": "Primaria",
-      "secondary": "Secundaria"
-    },
-    "statusOptions": {
-      "Active": "Activo",
-      "Inactive": "Inactivo"
-    }
-  },
-  "timeSlots": {
-    "errorLoading": "Error al cargar los horarios",
-    "retry": "Reintentar",
-    "title": "Horarios",
-    "subtitle": "Gestiona los horarios disponibles para las clases",
-    "newTimeSlot": "Nuevo Horario",
-    "noTimeSlots": "No hay horarios",
-    "createFirstTimeSlot": "Comienza creando un nuevo horario.",
-    "name": "Nombre",
-    "schedule": "Horario",
-    "type": "Tipo",
-    "status": "Estado",
-    "actions": "Acciones",
-    "viewDetails": "Ver detalles",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "confirmDelete": "¿Estás seguro de que quieres eliminar este horario??",
-    "deleteError": "Error al eliminar el horario",
-    "types": {
-      "Class": "Clase",
-      "Break": "Receso",
-      "Lunch": "Almuerzo"
-    },
-    "statusOptions": {
-      "Active": "Activo",
-      "Inactive": "Inactivo"
-    }
+    "title": "Inscripciones",
+    "individualEnrollment": "Inscripción Individual",
+    "bulkEnrollment": "Inscripción Masiva"
   },
   "users": {
+    "adminRole": "Administrador",
     "errorLoading": "Error al cargar usuarios",
     "title": "Usuarios",
-    "subtitle": "Gestiona los usuarios de la escuela y sus roles",
-    "addUser": "Añadir Usuario",
+    "subtitle": "Gestionar usuarios de la escuela y sus roles",
+    "addUser": "Agregar Usuario",
     "searchUsers": "Buscar usuarios...",
     "name": "Nombre",
-    "email": "Email",
+    "email": "Correo Electrónico",
     "role": "Rol",
     "status": "Estado",
     "allRoles": "Todos los Roles",
@@ -166,34 +104,112 @@
   "staff": {
     "errorLoading": "Error al cargar el personal",
     "title": "Personal",
-    "subtitle": "Gestiona el personal de la escuela y sus roles",
-    "addStaff": "Añadir Personal",
+    "subtitle": "Gestionar miembros del personal escolar",
+    "addStaff": "Agregar Personal",
     "searchStaff": "Buscar personal...",
     "name": "Nombre",
-    "email": "Email",
+    "email": "Correo Electrónico",
     "role": "Rol",
     "status": "Estado",
+    "actions": "Acciones",
+    "viewDetails": "Ver detalles",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar a este miembro del personal?",
+    "deleteError": "Error al eliminar miembro del personal",
+    "noStaff": "No se encontraron miembros del personal.",
+    "createFirstStaff": "Crea tu primer miembro del personal",
+    "allStatuses": "Todos los estados",
     "allRoles": "Todos los Roles",
     "roles": {
-      "Teacher": "Docente",
-      "Administrator": "Administrador",
-      "Support": "Soporte",
-      "Psicólogo(a)": "Psicólogo(a)",
-      "Mantenimiento": "Mantenimiento",
-      "CIST": "CIST",
-      "Dirección": "Dirección",
-      "Docente": "Docente",
-      "Auxiliar": "Auxiliar"
+      "teacher": "Profesor",
+      "administrator": "Administrador",
+      "support": "Soporte",
+      "psychologist": "Psicólogo(a)",
+      "maintenance": "Mantenimiento",
+      "cist": "CIST",
+      "direction": "Dirección",
+      "auxiliary": "Auxiliar"
     },
     "statusOptions": {
       "active": "Activo",
-      "inactive": "Inactivo"
+      "inactive": "Inactivo",
+      "pending": "Pendiente"
+    }
+  },
+  "schedules": {
+    "errorLoading": "Error al cargar horarios",
+    "title": "Horarios de Cursos",
+    "subtitle": "Gestionar horarios de cursos y cronogramas",
+    "addSchedule": "Agregar Horario",
+    "searchSchedules": "Buscar horarios...",
+    "allSections": "Todas las Secciones",
+    "time": "Hora",
+    "course": "Curso",
+    "teacher": "Profesor",
+    "day": "Día",
+    "section": "Sección",
+    "days": {
+      "AllDays": "Todos los Días",
+      "Monday": "Lunes",
+      "Tuesday": "Martes",
+      "Wednesday": "Miércoles",
+      "Thursday": "Jueves",
+      "Friday": "Viernes"
+    }
+  },
+  "sections": {
+    "errorLoading": "Error al cargar secciones",
+    "title": "Secciones",
+    "subtitle": "Gestionar secciones y clases escolares",
+    "addSection": "Agregar Sección",
+    "searchSections": "Buscar secciones...",
+    "name": "Nombre",
+    "gradeLevel": "Nivel de Grado",
+    "capacity": "Capacidad",
+    "status": "Estado",
+    "levels": {
+      "Todoslosniveles": "Todos los Niveles",
+      "Primaria": "Primaria",
+      "Secondaria": "Secundaria"
+    },
+    "statusOptions": {
+      "Activo": "Activo",
+      "Inactivo": "Inactivo"
+    }
+  },
+  "timeSlots": {
+    "errorLoading": "Error al cargar franjas horarias",
+    "retry": "Reintentar",
+    "title": "Franjas Horarias",
+    "subtitle": "Gestionar franjas horarias disponibles para clases",
+    "newTimeSlot": "Nueva Franja Horaria",
+    "noTimeSlots": "No hay franjas horarias",
+    "createFirstTimeSlot": "Comienza creando una nueva franja horaria.",
+    "name": "Nombre",
+    "schedule": "Horario",
+    "type": "Tipo",
+    "status": "Estado",
+    "actions": "Acciones",
+    "viewDetails": "Ver detalles",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar esta franja horaria?",
+    "deleteError": "Error al eliminar la franja horaria",
+    "types": {
+      "Class": "Clase",
+      "Break": "Descanso",
+      "Lunch": "Almuerzo"
+    },
+    "statusOptions": {
+      "Active": "Activo",
+      "Inactive": "Inactivo"
     }
   },
   "attendance": {
-    "errorLoading": "Error al cargar la asistencia",
+    "errorLoading": "Error al cargar asistencia",
     "title": "Registros de Asistencia",
-    "subtitle": "Ver y gestionar los registros de asistencia",
+    "subtitle": "Ver y gestionar registros de asistencia",
     "date": "Fecha",
     "section": "Sección",
     "allSections": "Todas las Secciones",

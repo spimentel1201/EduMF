@@ -4,44 +4,50 @@ import { useQuery } from '@tanstack/react-query';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import {staffService} from '../services/staffService';
 import { useTranslation } from 'react-i18next';
+import { StaffMember } from '@/types/staff';
+import { STAFF_ROLES, STAFF_STATUSES } from '@/types/staff';
 
 // Función auxiliar para convertir el rol del backend a la clave de traducción
 const getStaffRoleTranslationKey = (role: string) => {
   switch (role) {
-    case 'Teacher':
-      return 'Teacher'; // Corregido para que coincida con la clave en translation.json
-    case 'Administrator':
-      return 'Administrator';
-    case 'Support':
-      return 'Support';
-    case 'Psicólogo(a)':
-      return 'Psicólogo(a)';
-    case 'Mantenimiento':
-      return 'Mantenimiento';
-    case 'CIST':
-      return 'CIST';
-    case 'Dirección':
-      return 'Dirección';
     case 'Docente':
-      return 'Docente';
+      return 'teacher';
+    case 'Psicólogo(a)':
+      return 'psychologist';
+    case 'Mantenimiento':
+      return 'maintenance';
+    case 'CIST':
+      return 'cist';
+    case 'Dirección':
+      return 'direction';
     case 'Auxiliar':
-      return 'Auxiliar';
+      return 'auxiliary';
     default:
-      return role; // Fallback si no se encuentra una traducción específica
+      return role.toLowerCase(); // Fallback si no se encuentra una traducción específica
   }
 };
 
 // Función auxiliar para convertir el estado del backend a la clave de traducción
 const getStaffStatusTranslationKey = (status: string) => {
-  return status === 'Activo' ? 'active' : 'inactive';
+  switch (status) {
+    case 'Activo':
+      return 'active';
+    case 'Inactivo':
+      return 'inactive';
+    case 'Pendiente':
+      return 'pending';
+    default:
+      return status.toLowerCase();
+  }
 };
 
 export default function StaffPage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('All Roles');
-  // Estos roles deben coincidir con los valores del backend para el filtrado
-  const roles = ['All Roles', 'Teacher', 'Administrator', 'Support', 'Psicólogo(a)', 'Mantenimiento', 'CIST', 'Dirección', 'Docente', 'Auxiliar'];
+  const [selectedStatus, setSelectedStatus] = useState('All Statuses');
+  const roles = ['All Roles', ...STAFF_ROLES];
+  const statusOptions = ['All Statuses', ...STAFF_STATUSES];
 
   const { data: staff = [], isLoading, error } = useQuery({
     queryKey: ['staff'],
@@ -52,9 +58,9 @@ export default function StaffPage() {
     const matchesSearch = member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email.toLowerCase().includes(searchTerm.toLowerCase());
-    // Comparar con el valor real del rol del objeto de usuario
     const matchesRole = selectedRole === 'All Roles' || member.role === selectedRole;
-    return matchesSearch && matchesRole;
+    const matchesStatus = selectedStatus === 'All Statuses' || member.status === selectedStatus;
+    return matchesSearch && matchesRole && matchesStatus;
   });
 
   if (isLoading) {
@@ -119,6 +125,20 @@ export default function StaffPage() {
             {roles.map((role) => (
               <option key={role} value={role}>
                 {role === 'All Roles' ? t('staff.allRoles') : t(`staff.roles.${getStaffRoleTranslationKey(role)}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <select
+            className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="All Statuses">{t('staff.allStatuses')}</option>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {t(`staff.statusOptions.${getStaffStatusTranslationKey(status)}`)}
               </option>
             ))}
           </select>

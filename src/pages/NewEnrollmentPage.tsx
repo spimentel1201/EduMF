@@ -141,7 +141,7 @@ export default function NewEnrollmentPage() {
                     <option value="">Seleccione un año escolar</option>
                     {schoolYears?.map((year: any) => (
                       <option key={year.id.toString()} value={year.id.toString()}>
-                        {year.year} ({year.startDate.substring(0, 10)} - {year.endDate.substring(0, 10)})
+                        {year.name}
                       </option>
                     ))}
                   </select>

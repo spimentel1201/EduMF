@@ -9,10 +9,10 @@ export interface AttendanceRecord {
 }
 
 export const attendanceService = {
-  getByDate: async (date: string, courseScheduleId?: string) => {
+  getByDate: async (date: string, sectionId?: string) => {
     const params = new URLSearchParams();
     params.append('date', date);
-    if (courseScheduleId) params.append('courseScheduleId', courseScheduleId);
+    if (sectionId) params.append('sectionId', sectionId);
     
     const response = await api.get(`/attendance?${params.toString()}`);
     return response.data.data;
@@ -35,5 +35,14 @@ export const attendanceService = {
     
     const response = await api.get(`/attendance/stats?${params.toString()}`);
     return response.data.data;
+  },
+
+  bulkCreateAttendances: async (data: { date: string; sectionId: string; studentAttendances: Array<{ studentId: string; status: string }> }) => {
+    try {
+      const response = await api.post('/attendance/bulk', data);
+      return response.data;
+    } catch (error: any) {
+      throw error.response.data;
+    }
   },
 };

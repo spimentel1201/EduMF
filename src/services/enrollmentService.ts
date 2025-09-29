@@ -47,4 +47,13 @@ export const enrollmentService = {
       throw error.response.data;
     }
   },
+
+  getStudentsBySection: async (sectionId: string) => {
+    try {
+      const response = await api.get(`/enrollments/section/${sectionId}`);
+      return response.data;
+    } catch (error: any) {
+      throw error.response.data;
+    }
+  },
 };

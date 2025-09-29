@@ -2,7 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import Attendance from '../models/Attendance';
 import CourseSchedule from '../models/CourseSchedule';
+import Enrollment from '../models/Enrollment'; // Importar el modelo Enrollment
 import ApiError from '../middleware/ApiError';
+import mongoose from 'mongoose';
 
 // Validación para asistencia
 export const validateAttendance = [
@@ -26,6 +28,11 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     const filter: any = {};
     if (req.query.courseScheduleId) {
       filter.courseScheduleId = req.query.courseScheduleId;
+    }
+    if (req.query.sectionId) {
+      const courseSchedules = await CourseSchedule.find({ sectionId: req.query.sectionId });
+      const courseScheduleIds = courseSchedules.map(cs => cs._id);
+      filter.courseScheduleId = { $in: courseScheduleIds };
     }
     if (req.query.status) {
       filter.status = req.query.status;
@@ -189,6 +196,88 @@ export const deleteAttendance = async (req: Request, res: Response, next: NextFu
       success: true,
       data: {}
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const bulkCreateAttendances = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { date, sectionId, studentAttendances } = req.body;
+
+    if (!date || !sectionId || !studentAttendances || !Array.isArray(studentAttendances)) {
+      return res.status(400).json({ message: 'Fecha, ID de sección y asistencias de estudiantes son requeridos.' });
+    }
+
+    const courseSchedules = await CourseSchedule.find({ sectionId });
+    if (courseSchedules.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron horarios de curso para la sección proporcionada.' });
+    }
+
+    const takenBy = req.user.id; // El usuario que registra la asistencia
+
+    const results = [];
+
+    for (const studentAttendance of studentAttendances) {
+      const { studentId, status } = studentAttendance;
+      const studentObjectId = new mongoose.Types.ObjectId(studentId);
+      const currentAttendanceDate = new Date(date); // Crear una nueva instancia de fecha para cada iteración
+
+      const enrollment = await Enrollment.findOne({ studentId: studentObjectId, sectionId });
+
+      if (!enrollment) {
+        results.push({ studentId, status, success: false, message: 'Estudiante no matriculado en esta sección.' });
+        continue;
+      }
+
+      const courseSchedule = courseSchedules.find(cs => cs.sectionId.toString() === enrollment.sectionId.toString());
+
+      if (!courseSchedule) {
+        results.push({ studentId, status, success: false, message: 'No se encontró horario de curso para la sección del estudiante.' });
+        continue;
+      }
+
+      let attendanceRecord = await Attendance.findOne({
+        courseScheduleId: courseSchedule._id,
+        date: {
+          $gte: new Date(new Date(currentAttendanceDate).setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date(currentAttendanceDate).setHours(23, 59, 59, 999))
+        }
+      });
+
+      if (attendanceRecord) {
+        // Actualizar el registro existente
+        const detailIndex = attendanceRecord.details.findIndex(d => d.studentId.toString() === studentId);
+        if (detailIndex > -1) {
+          attendanceRecord.details[detailIndex].status = status;
+        } else {
+          attendanceRecord.details.push({ studentId: new mongoose.Types.ObjectId(studentId), status });
+        }
+        // No se actualiza takenBy aquí, ya que es para el registro general de asistencia, no por detalle de estudiante
+        await attendanceRecord.save();
+        results.push({ studentId, status, success: true, message: 'Asistencia actualizada.' });
+      } else {
+        // Crear un nuevo registro
+        attendanceRecord = await Attendance.create({
+          courseScheduleId: courseSchedule._id,
+          sectionId: sectionId, // Añadir sectionId al registro de asistencia
+          teacherId: takenBy, // El takenBy es el teacherId
+          date: currentAttendanceDate,
+          status: 'Tomada', // Establecer el estado general de la asistencia
+          details: [{
+            studentId: new mongoose.Types.ObjectId(studentId),
+            status: status,
+          }],
+        });
+        results.push({ studentId, status, success: true, message: 'Asistencia creada.' });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: results,
+    });
+
   } catch (error) {
     next(error);
   }

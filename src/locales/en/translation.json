@@ -218,7 +218,8 @@
     "statusOptions": {
       "Present": "Present",
       "Absent": "Absent"
-    }
+    },
+    "attendanceRegisteredSuccess": "Attendance registered successfully."
   },
   "signOut": "Sign Out"
 }

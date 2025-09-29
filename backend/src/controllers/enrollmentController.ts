@@ -139,3 +139,23 @@ export const bulkEnrollStudents = async (req: Request, res: Response) => {
   }
 };
 
+export const getStudentsBySection = async (req: Request, res: Response) => {
+  try {
+    const { sectionId } = req.params;
+
+    if (!sectionId) {
+      return res.status(400).json({ message: 'El ID de la sección es requerido.' });
+    }
+
+    const enrollments = await Enrollment.find({ sectionId })
+      .populate('studentId', 'firstName lastName dni') // Popula solo los campos necesarios del estudiante
+      .exec();
+
+    const students = enrollments.map(enrollment => enrollment.studentId);
+
+    res.status(200).json(students);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message || 'Error al obtener estudiantes por sección.' });
+  }
+};
+

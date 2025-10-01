@@ -219,7 +219,10 @@
       "Present": "Presente",
       "Absent": "Ausente"
     },
-    "attendanceRegisteredSuccess": "Asistencia registrada exitosamente."
+    "attendanceRegisteredSuccess": "Asistencia registrada exitosamente.",
+    "noStudentsInSection": "No hay estudiantes en esta sección.",
+    "monthlyReport": "Reporte Mensual",
+    "selectSection": "Seleccionar Sección"
   },
   "signOut": "Cerrar Sesión"
 }

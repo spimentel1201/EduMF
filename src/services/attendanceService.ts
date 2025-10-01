@@ -45,4 +45,13 @@ export const attendanceService = {
       throw error.response.data;
     }
   },
+
+  getMonthlyAttendanceReport: async (params: { sectionId?: string; month: number; year: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params.sectionId) queryParams.append('sectionId', params.sectionId);
+    queryParams.append('month', params.month.toString());
+    queryParams.append('year', params.year.toString());
+    const response = await api.get(`/attendances/report/monthly?${queryParams.toString()}`);
+    return response.data.data;
+  },
 };

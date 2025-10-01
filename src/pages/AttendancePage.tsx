@@ -1,4 +1,4 @@
-import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { attendanceService } from '../services/attendanceService';
@@ -35,7 +35,11 @@ export default function AttendancePage() {
 
   const { data: students = [], isLoading: isLoadingStudents, error: studentsError } = useQuery<Student[]>({
     queryKey: ['studentsBySection', selectedSection],
-    queryFn: () => enrollmentService.getStudentsBySection(selectedSection),
+    queryFn: () => {
+      console.log("Fetching students for section:", selectedSection); // Added for debugging
+      if (!selectedSection) return Promise.resolve([]);
+      return enrollmentService.getStudentsBySection(selectedSection);
+    },
     enabled: !!selectedSection, // Solo ejecutar si hay una sección seleccionada
   });
 
@@ -53,7 +57,12 @@ export default function AttendancePage() {
         return newAttendance;
       });
     } else {
-      setStudentsAttendance([]); // Clear attendance if no students are present
+      setStudentsAttendance(prevAttendance => {
+        if (prevAttendance.length > 0) {
+          return [];
+        }
+        return prevAttendance; // No change, return previous state
+      });
     }
   }, [students]);
 
@@ -128,11 +137,13 @@ export default function AttendancePage() {
             <select
               className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm"
               value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
+              onChange={(e) => {
+                setSelectedSection(e.target.value);
+              }}
             >
-              <option value="">Seleccionar Sección</option>
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
+              <option key="empty-section-option" value="">Seleccionar Sección</option>
+              {sections?.map((section) => (
+                <option key={section._id} value={section._id}>
                   {section.name}
                 </option>
               ))}

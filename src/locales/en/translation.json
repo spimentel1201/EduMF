@@ -219,7 +219,8 @@
       "Present": "Present",
       "Absent": "Absent"
     },
-    "attendanceRegisteredSuccess": "Attendance registered successfully."
+    "attendanceRegisteredSuccess": "Attendance registered successfully.",
+    "noStudentsInSection": "No students in this section."
   },
   "signOut": "Sign Out"
 }

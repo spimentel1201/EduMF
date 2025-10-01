@@ -10,13 +10,18 @@ export interface SchoolYear {
 }
 
 export interface Section {
-  id: string; // Cambiar de number a string
+  _id: string; // Cambiar de number a string
   name: string;
   grade: string;
   level: EducationalLevel;
   schoolYearId: string; // Cambiar de number a string
   status: SectionStatus;
   maxStudents: number;
+  course: string;
+  period: string;
+  teacher: string;
+  students: string[];
+  schedule: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -118,6 +123,11 @@ export interface SectionFormData {
   level: EducationalLevel;
   schoolYearId: string;
   maxStudents: number;
+  course: string;
+  period: string;
+  teacher: string;
+  students: string[];
+  schedule: string[];
   status?: SectionStatus;
 }
 

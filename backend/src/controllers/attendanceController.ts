@@ -5,6 +5,9 @@ import CourseSchedule from '../models/CourseSchedule';
 import Enrollment from '../models/Enrollment'; // Importar el modelo Enrollment
 import ApiError from '../middleware/ApiError';
 import mongoose from 'mongoose';
+import { startOfDay, endOfDay } from 'date-fns';
+import Staff from '../models/Staff';
+import Schedule from '../models/CourseSchedule'; // Assuming CourseSchedule is the Schedule model
 
 // Validación para asistencia
 export const validateAttendance = [
@@ -150,30 +153,62 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ errors: errors.array() });
     }
 
-    let attendance = await Attendance.findById(req.params.id);
+    const { id } = req.params;
+    const { status, studentId, sectionId, date } = req.body;
+    const userId = (req as any).user.id; // Assuming user ID is available from authentication middleware
+    const userRole = (req as any).user.role; // Assuming user role is available from authentication middleware
+
+    let attendance = await Attendance.findById(id);
 
     if (!attendance) {
-      return next(new ApiError('Asistencia no encontrada', 404));
+      return next(new ApiError('Attendance record not found', 404));
     }
 
-    // Verificar que el horario del curso existe si se está actualizando
-    if (req.body.courseScheduleId) {
-      const courseSchedule = await CourseSchedule.findById(req.body.courseScheduleId);
-      if (!courseSchedule) {
-        return next(new ApiError('Horario del curso no encontrado', 404));
+    // Admin can update any attendance record
+    if (userRole === 'admin') {
+      attendance.status = status || attendance.status;
+      await attendance.save();
+      return res.status(200).json({
+        success: true,
+        data: attendance
+      });
+    }
+
+    // Teachers can only update attendance for the current day and their own classes
+    if (userRole === 'teacher') {
+      const today = new Date();
+      const attendanceDate = new Date(attendance.date);
+
+      if (attendanceDate < startOfDay(today) || attendanceDate > endOfDay(today)) {
+        return next(new ApiError('Teachers can only modify attendance for the current day', 403));
       }
+
+      // Verify if the teacher is assigned to the section of the attendance record
+      const teacher = await Staff.findOne({ userId: userId });
+      if (!teacher) {
+        return next(new ApiError('Teacher not found', 404));
+      }
+
+      const schedule = await Schedule.findOne({
+        teacher: teacher._id,
+        section: attendance.sectionId,
+        day: attendanceDate.getDay().toString(), // Assuming day is stored as a string (0-6 for Sunday-Saturday)
+      });
+
+      if (!schedule) {
+        return next(new ApiError('Teacher is not authorized to modify attendance for this section', 403));
+      }
+
+      attendance.status = status || attendance.status;
+      await attendance.save();
+      return res.status(200).json({
+        success: true,
+        data: attendance
+      });
     }
 
-    attendance = await Attendance.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    return next(new ApiError('Unauthorized to update attendance', 403));
 
-    res.status(200).json({
-      success: true,
-      data: attendance
-    });
   } catch (error) {
     next(error);
   }
@@ -278,6 +313,79 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
       data: results,
     });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtener reporte mensual de asistencias
+// @route   GET /api/attendances/report/monthly
+// @access  Private
+export const getMonthlyAttendanceReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sectionId, month, year } = req.query;
+
+    if (!month || !year) {
+      return next(new ApiError('Mes y año son requeridos para el reporte mensual', 400));
+    }
+
+    const startOfMonth = new Date(Number(year), Number(month) - 1, 1);
+    const endOfMonth = new Date(Number(year), Number(month), 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const match: any = {
+      date: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    };
+
+    if (sectionId) {
+      match.sectionId = new mongoose.Types.ObjectId(sectionId as string);
+    }
+
+    const report = await Attendance.aggregate([
+      { $match: match },
+      { $unwind: '$details' },
+      { $group: {
+          _id: {
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+            studentId: '$details.studentId',
+            status: '$details.status',
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $group: {
+          _id: '$_id.date',
+          students: {
+            $push: {
+              studentId: '$_id.studentId',
+              status: '$_id.status',
+              count: '$count',
+            },
+          },
+          totalPresent: {
+            $sum: { $cond: [{ $eq: ['$_id.status', 'Presente'] }, '$count', 0] },
+          },
+          totalAbsent: {
+            $sum: { $cond: [{ $eq: ['$_id.status', 'Ausente'] }, '$count', 0] },
+          },
+          totalLate: {
+            $sum: { $cond: [{ $eq: ['$_id.status', 'Tardanza'] }, '$count', 0] },
+          },
+          totalJustified: {
+            $sum: { $cond: [{ $eq: ['$_id.status', 'Justificado'] }, '$count', 0] },
+          },
+        },
+      },
+      { $sort: { '_id': 1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: report,
+    });
   } catch (error) {
     next(error);
   }

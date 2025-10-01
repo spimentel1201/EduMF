@@ -1,11 +1,13 @@
 import { api } from './api';
 import type { Section, SectionFormData } from '@/types/academic';
 
+export const getSections = async (): Promise<Section[]> => {
+  const response = await api.get('/sections');
+  return response.data.data;
+};
+
 export const sectionService = {
-  getAll: async (): Promise<Section[]> => {
-    const response = await api.get('/sections');
-    return response.data.data; // Extraer del objeto data
-  },
+  getAll: getSections, // Referencia a la función exportada
 
   getById: async (id: number): Promise<Section> => {
     const response = await api.get(`/sections/${id}`);

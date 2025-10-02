@@ -115,7 +115,7 @@ export default function NewEnrollmentPage() {
                   >
                     <option value="">Seleccione una sección</option>
                     {sections?.map((section) => (
-                      <option key={section._id} value={section._id}>
+                      <option key={section.id} value={section.id}>
                         {section.name}
                       </option>
                     ))}

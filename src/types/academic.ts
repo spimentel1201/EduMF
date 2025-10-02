@@ -10,11 +10,11 @@ export interface SchoolYear {
 }
 
 export interface Section {
-  _id: string; // Cambiar de number a string
+  id: string;
   name: string;
   grade: string;
   level: EducationalLevel;
-  schoolYearId: string; // Cambiar de number a string
+  schoolYearId: string;
   status: SectionStatus;
   maxStudents: number;
   course: string;
@@ -27,7 +27,7 @@ export interface Section {
 }
 
 export interface Course {
-  id: string; // Cambiar de number a string
+  id: string;
   name: string;
   description?: string;
   level: EducationalLevel;
@@ -37,12 +37,12 @@ export interface Course {
 }
 
 export interface CourseSchedule {
-  id: string; // Cambiar de number a string
-  courseId: Course; // Esto será el objeto Course poblado
-  sectionId: Section; // Esto será el objeto Section poblado
-  teacherId: StaffMember; // Esto será el objeto StaffMember poblado
-  timeSlotId: TimeSlot; // Esto será el objeto TimeSlot poblado
-  schoolYearId: SchoolYear; // Esto será el objeto SchoolYear poblado
+  id: string;
+  courseId: Course;
+  sectionId: Section;
+  teacherId: StaffMember;
+  timeSlotId: TimeSlot;
+  schoolYearId: SchoolYear;
   dayOfWeek: DayOfWeek;
   classroom: string;
   status: CourseScheduleStatus;
@@ -51,7 +51,7 @@ export interface CourseSchedule {
 }
 
 export interface TimeSlot {
-  id: string; // Cambiar de number a string
+  id: string;
   name: string;
   startTime: string;
   endTime: string;
@@ -61,14 +61,13 @@ export interface TimeSlot {
   updatedAt?: string;
 }
 
-// Actualizar interfaces de formulario
 export interface CourseScheduleFormData {
-  courseId: string; // Cambiar de number a string
-  sectionId: string; // Cambiar de number a string
-  teacherId: string; // Cambiar de number a string
+  courseId: string;
+  sectionId: string;
+  teacherId: string;
   dayOfWeek: DayOfWeek;
-  timeSlotId: string; // Cambiar de number a string
-  schoolYearId: string; // Cambiar de number a string
+  timeSlotId: string;
+  schoolYearId: string;
   classroom: string;
   status: CourseScheduleStatus;
 }

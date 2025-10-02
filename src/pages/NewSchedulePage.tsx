@@ -301,7 +301,7 @@ export default function NewSchedulePage() {
                     >
                       <option value="">Seleccionar sección</option>
                       {availableSections.map((section) => (
-                        <option key={section._id} value={section._id}>
+                        <option key={section.id} value={section.id}>
                           {section.name}
                         </option>
                       ))}

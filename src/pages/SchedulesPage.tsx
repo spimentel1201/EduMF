@@ -158,7 +158,7 @@ export default function SchedulesPage() {
             >
               <option value="All Sections">{t('schedules.allSections')}</option>
               {sections.map((section) => (
-                <option key={section._id} value={section._id}>
+                <option key={section.id} value={section.id}>
                   {section.name}
                 </option>
               ))}

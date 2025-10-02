@@ -36,7 +36,6 @@ export default function AttendancePage() {
   const { data: students = [], isLoading: isLoadingStudents, error: studentsError } = useQuery<Student[]>({
     queryKey: ['studentsBySection', selectedSection],
     queryFn: () => {
-      console.log("Fetching students for section:", selectedSection); // Added for debugging
       if (!selectedSection) return Promise.resolve([]);
       return enrollmentService.getStudentsBySection(selectedSection);
     },
@@ -134,6 +133,7 @@ export default function AttendancePage() {
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <UserGroupIcon className="h-5 w-5 text-gray-400" />
             </div>
+
             <select
               className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm"
               value={selectedSection}
@@ -142,8 +142,8 @@ export default function AttendancePage() {
               }}
             >
               <option key="empty-section-option" value="">Seleccionar Sección</option>
-              {sections?.map((section) => (
-                <option key={section._id} value={section._id}>
+              {sections && sections.length > 0 && sections.map((section) => (
+                <option key={section.id} value={section.id}>
                   {section.name}
                 </option>
               ))}

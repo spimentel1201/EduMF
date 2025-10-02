@@ -102,7 +102,7 @@ export default function BulkEnrollment() {
       ['Nombre:', '', '' ], // Placeholder for institution name if needed
       ['Datos referentes al registro de notas:'],
       ['Año académico:', '', schoolYears?.find(year => year.id === selectedSchoolYear)?.name || ''],
-      ['Grado y Seccion:', '', sections?.find(section => section._id === selectedSection)?.name || ''],
+      ['Grado y Seccion:', '', sections?.find(section => section.id === selectedSection)?.name || ''],
       [],
       [],
       ['NOMBRES', 'APELLIDOS', 'DNI', 'GENERO', 'FECHA_NAC'],
@@ -219,7 +219,7 @@ export default function BulkEnrollment() {
           >
             <option value="">Seleccione Nivel</option>
             {sections?.map((section) => (
-              <option key={section._id} value={section._id}>
+              <option key={section.id} value={section.id}>
                 {section.name}
               </option>
             ))}

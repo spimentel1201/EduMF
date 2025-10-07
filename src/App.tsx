@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AttendanceRecordsPage from './pages/AttendanceRecordsPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -66,6 +67,7 @@ function AppContent() {
           <Route path="time-slots/new" element={<NewTimeSlotPage />} />
           <Route path="enrollments/new" element={<NewEnrollmentPage />} /> {/* Añadir esta línea */}
           <Route path="enrollments/bulk" element={<BulkEnrollmentPage />} /> {/* Añadir esta línea */}
+          <Route path="/attendance-records" element={<AttendanceRecordsPage />} />
         </Route>
       </Routes>
     </AuthProvider>

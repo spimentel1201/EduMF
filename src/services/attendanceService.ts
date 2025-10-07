@@ -1,4 +1,5 @@
 import { api } from './api';
+import { AttendanceRecordDisplay, AttendanceFilterParams } from '../types/attendance';
 
 export interface AttendanceRecord {
   studentId: string;
@@ -53,5 +54,13 @@ export const attendanceService = {
     queryParams.append('year', params.year.toString());
     const response = await api.get(`/attendances/report/monthly?${queryParams.toString()}`);
     return response.data.data;
+  },
+
+  getAttendanceRecords: async (filters: AttendanceFilterParams): Promise<{ attendanceRecords: AttendanceRecordDisplay[], totalRecords: number }> => {
+    const response = await api.get('/attendance-records', { params: filters });
+    return {
+      attendanceRecords: response.data.data,
+      totalRecords: response.data.total,
+    };
   },
 };

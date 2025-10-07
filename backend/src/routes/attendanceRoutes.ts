@@ -22,6 +22,8 @@ router.post('/bulk', protect, bulkCreateAttendances);
 
 router.get('/report/monthly', protect, getMonthlyAttendanceReport);
 
+router.get('/attendance-records', protect, getAttendances);
+
 router
   .route('/:id')
   .get(protect, getAttendanceById)

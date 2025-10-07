@@ -31,23 +31,15 @@
   },
   "dashboard": {
     "title": "Tablero",
-    "subtitle": "Resumen de la actividad de tu escuela",
-    "stats": {
-      "totalStudents": "Total de Estudiantes",
-      "totalStaff": "Total de Personal",
-      "presentTeachers": "Profesores Presentes",
-      "activeSchedules": "Horarios Activos"
-    },
-    "recentActivity": "Actividad Reciente",
-    "present": "presente",
-    "activityStatus": {
-      "completed": "Completado"
-    },
-    "viewAll": "Ver Todo",
-    "viewAllActivity": "Ver Toda la Actividad",
-    "manageStaff": "Administrar Personal",
+    "welcome": "Bienvenido",
+    "totalStudents": "Total de Estudiantes",
+    "totalTeachers": "Total de Docentes",
+    "totalSections": "Total de Secciones",
+    "takeAttendance": "Tomar Asistencia",
     "viewSchedules": "Ver Horarios",
-    "takeAttendance": "Tomar Asistencia"
+    "manageEnrollments": "Gestionar Inscripciones",
+    "quickActions": "Acciones Rápidas",
+    "viewAll": "Ver Todo"
   },
   "administration": {
     "title": "Administración",
@@ -207,22 +199,56 @@
     }
   },
   "attendance": {
-    "errorLoading": "Error al cargar asistencia",
-    "title": "Registros de Asistencia",
-    "subtitle": "Ver y gestionar registros de asistencia",
+    "title": "Control de Asistencia",
+    "subtitle": "Gestiona la asistencia de los estudiantes por sección.",
     "date": "Fecha",
+    "section": "Sección",
+    "selectSectionPrompt": "Por favor, selecciona una sección para ver los estudiantes.",
+    "noStudentsInSection": "No hay estudiantes en esta sección.",
+    "errorLoadingStudents": "Error cargando estudiantes",
+    "attendanceRegisteredSuccess": "Asistencia registrada exitosamente.",
+    "attendanceRegisteredError": "Error al registrar la asistencia.",
+    "statusOptions": {
+      "Presente": "Presente",
+      "Tardanza": "Tardanza",
+      "Ausente": "Ausente",
+      "Justificado": "Justificado"
+    },
+    "monthlyReport": "Reporte Mensual de Asistencia",
+    "selectMonth": "Selecciona un mes",
+    "selectYear": "Selecciona un año",
+    "selectSection": "Selecciona una sección",
+    "generateReport": "Generar Reporte",
+    "noReportData": "No hay datos de reporte para los filtros seleccionados."
+  },
+  "attendanceRecords": {
+    "title": "Registros de Asistencia",
+    "subtitle": "Visualiza y gestiona los registros de asistencia de los estudiantes.",
+    "filters": "Filtros",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Fin",
     "section": "Sección",
     "allSections": "Todas las Secciones",
     "student": "Estudiante",
-    "status": "Estado",
-    "statusOptions": {
-      "Present": "Presente",
-      "Absent": "Ausente"
+    "allStudents": "Todos los Estudiantes",
+    "table": {
+      "student": "Estudiante",
+      "section": "Sección",
+      "date": "Fecha",
+      "status": "Estado"
     },
-    "attendanceRegisteredSuccess": "Asistencia registrada exitosamente.",
-    "noStudentsInSection": "No hay estudiantes en esta sección.",
-    "monthlyReport": "Reporte Mensual",
-    "selectSection": "Seleccionar Sección"
+    "noRecords": "No se encontraron registros de asistencia."
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "showing": "Mostrando",
+    "to": "a",
+    "of": "de",
+    "results": "resultados",
+    "itemsPerPage": "Elementos por página"
   },
   "signOut": "Cerrar Sesión"
 }

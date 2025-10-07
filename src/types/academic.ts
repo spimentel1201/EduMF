@@ -122,11 +122,11 @@ export interface SectionFormData {
   level: EducationalLevel;
   schoolYearId: string;
   maxStudents: number;
-  course: string;
-  period: string;
-  teacher: string;
-  students: string[];
-  schedule: string[];
+  course?: string;
+  period?: string;
+  teacher?: string;
+  students?: string[];
+  schedule?: string[];
   status?: SectionStatus;
 }
 

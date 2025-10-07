@@ -40,36 +40,81 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     if (req.query.status) {
       filter.status = req.query.status;
     }
-    if (req.query.date) {
-      const date = new Date(req.query.date as string);
-      filter.date = {
-        $gte: new Date(date.setHours(0, 0, 0, 0)),
-        $lt: new Date(date.setHours(23, 59, 59, 999))
-      };
+
+    if (req.query.startDate || req.query.endDate) {
+      filter.date = {};
+      if (req.query.startDate) {
+        filter.date.$gte = startOfDay(new Date(req.query.startDate as string));
+      }
+      if (req.query.endDate) {
+        filter.date.$lte = endOfDay(new Date(req.query.endDate as string));
+      }
     }
 
-    const attendances = await Attendance.find(filter)
-      .populate([
-        { path: 'courseScheduleId', populate: ['courseId', 'sectionId', 'teacherId', 'timeSlotId'] },
-        { path: 'takenBy' }
-      ])
-      .sort({ date: -1 })
-      .skip(skip)
-      .limit(limit);
+    if (req.query.studentId) {
+      filter['details.studentId'] = req.query.studentId;
+    }
 
-    const total = await Attendance.countDocuments(filter);
+      const filter: any = {};
+      if (startDate && endDate) {
+        filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      }
+      if (sectionId) {
+        filter.sectionId = sectionId;
+      }
+      if (studentId) {
+        filter['details.studentId'] = studentId;
+      }
 
-    res.status(200).json({
-      success: true,
-      count: attendances.length,
-      total,
-      pagination: {
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      },
-      data: attendances
-    });
+      const attendances = await Attendance.find(filter)
+        .populate([
+          { path: 'sectionId', select: 'name' },
+          { path: 'teacherId', select: 'firstName lastName' },
+          { path: 'details.studentId', select: 'firstName lastName' }
+        ])
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      // Calculate total formatted records count using aggregation
+      const totalFormattedRecordsPipeline: any[] = [
+        { $match: filter },
+        { $unwind: '$details' },
+        { $count: 'total' }
+      ];
+
+      const totalFormattedRecordsResult = await Attendance.aggregate(totalFormattedRecordsPipeline);
+      const total = totalFormattedRecordsResult.length > 0 ? totalFormattedRecordsResult[0].total : 0;
+
+      const formattedRecords = attendances.flatMap(attendance => {
+        const sectionName = (attendance.sectionId as any)?.name || 'N/A';
+        const teacherName = (attendance.teacherId as any)?.firstName + ' ' + (attendance.teacherId as any)?.lastName || 'N/A';
+
+        return attendance.details.map(detail => ({
+          id: attendance._id,
+          date: attendance.date.toISOString(),
+          sectionId: attendance.sectionId,
+          sectionName: sectionName,
+          studentId: detail.studentId,
+          studentName: (detail.studentId as any)?.firstName + ' ' + (detail.studentId as any)?.lastName || 'N/A',
+          status: detail.status,
+          notes: detail.notes,
+          teacherId: attendance.teacherId,
+          teacherName: teacherName,
+        }));
+      });
+
+      res.status(200).json({
+        success: true,
+        count: formattedRecords.length,
+        total: total,
+        pagination: {
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          totalPages: Math.ceil(total / parseInt(limit as string)),
+        },
+        data: formattedRecords,
+      });
   } catch (error) {
     next(error);
   }

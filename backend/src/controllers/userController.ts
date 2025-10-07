@@ -147,7 +147,14 @@ export const bulkRegisterUsers = async (req: Request, res: Response) => {
  */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await User.find({});
+    const { role } = req.query;
+    let query = {};
+
+    if (role) {
+      query = { role };
+    }
+
+    const users = await User.find(query);
     res.status(200).json({
       success: true,
       data: users,

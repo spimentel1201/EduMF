@@ -2,51 +2,87 @@ import { Fragment, ReactNode } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import {
-  Bars3Icon,
-  XMarkIcon,
-  UserCircleIcon,
-  ArrowLeftOnRectangleIcon,
-  HomeIcon,
-  UserGroupIcon,
-  ClipboardDocumentCheckIcon,
   AcademicCapIcon,
+  ArrowLeftOnRectangleIcon,
+  Bars3Icon,
+  BookOpenIcon,
+  CalendarDaysIcon,
+  ChartPieIcon,
+  ChevronDownIcon,
+  ClipboardDocumentCheckIcon,
   DocumentTextIcon,
-  ChevronDownIcon
+  HomeIcon,
+  UserCircleIcon,
+  UserGroupIcon,
+  UsersIcon,
+  XMarkIcon,
+  ClockIcon,
+  BuildingLibraryIcon,
+  UserIcon,
+  BriefcaseIcon,
+  DocumentDuplicateIcon,
+  TableCellsIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher'; // Importar el componente LanguageSwitcher
 
-const navigation = [
-  { name: 'dashboard.title', href: '/', icon: HomeIcon, current: true },
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ForwardRefExoticComponent<Omit<React.SVGProps<SVGSVGElement>, "ref"> & { title?: string; titleId?: string; } & React.RefAttributes<SVGSVGElement>>;
+  current: boolean;
+  children?: NavigationItem[];
+}
+
+const navigation: NavigationItem[] = [
+  { name: 'dashboard.title', href: '/', icon: HomeIcon, current: false },
   {
-    name: 'administration.title',
-    icon: UserGroupIcon,
+    name: 'academic.title',
+    href: '#',
+    icon: AcademicCapIcon,
+    current: false,
     children: [
-      { name: 'users.title', href: '/users' },
-      { name: 'administration.newUser.title', href: '/users/new' },
-      { name: 'staff.title', href: '/staff' },
+      { name: 'sections.title', href: '/sections', icon: AcademicCapIcon, current: false },
+      { name: 'courses.title', href: '/courses', icon: BookOpenIcon, current: false },
+      { name: 'schedules.title', href: '/schedules', icon: CalendarDaysIcon, current: false },
+      { name: 'timeSlots.title', href: '/time-slots', icon: ClockIcon, current: false },
+      { name: 'schoolYears', href: '/school-years', icon: BuildingLibraryIcon, current: false },
     ],
   },
   {
-    name: 'academic.title',
-    icon: AcademicCapIcon,
+    name: 'users.title',
+    href: '#',
+    icon: UsersIcon,
+    current: false,
     children: [
-      { name: 'schedules.title', href: '/schedules' },
-      { name: 'timeSlots.title', href: '/time-slots' },
-      { name: 'academic.schoolYears', href: '/school-years' },
-      { name: 'sections.title', href: '/sections' },
+      { name: 'students.title', href: '/students', icon: UsersIcon, current: false },
+      { name: 'teachers.title', href: '/teachers', icon: UserGroupIcon, current: false },
+      { name: 'administration.users.title', href: '/users', icon: UserIcon, current: false },
+      { name: 'administration.staff.title', href: '/staff', icon: BriefcaseIcon, current: false },
     ],
   },
   {
     name: 'enrollments.title',
+    href: '#',
     icon: DocumentTextIcon,
+    current: false,
     children: [
-      { name: 'enrollments.individualEnrollment', href: '/enrollments/new' },
-      { name: 'enrollments.bulkEnrollment', href: '/enrollments/bulk' },
+      { name: 'enrollments.individualEnrollment', href: '/enrollments/new', icon: DocumentTextIcon, current: false },
+      { name: 'enrollments.bulkEnrollment', href: '/enrollments/bulk', icon: DocumentDuplicateIcon, current: false },
     ],
   },
-  { name: 'attendance.title', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
+  {
+    name: 'attendance.title',
+    href: '#',
+    icon: ClipboardDocumentCheckIcon,
+    current: false,
+    children: [
+      { name: 'attendance.title', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
+      { name: 'attendanceRecords.title', href: '/attendance-records', icon: ChartPieIcon, current: false },
+      { name: 'attendance.monthlyReport', href: '/monthly-attendance-report', icon: TableCellsIcon, current: false },
+    ],
+  },
 ];
 
 function classNames(...classes: string[]) {
@@ -64,8 +100,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const updatedNavigation = navigation.map(item => {
     if (item.children) {
+      const hasActiveChild = item.children.some(child => location.pathname === child.href);
       return {
         ...item,
+        current: hasActiveChild,
         children: item.children.map(child => ({
           ...child,
           current: location.pathname === child.href,
@@ -95,12 +133,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <Menu as="div" key={item.name} className="relative flex">
                           <Menu.Button
                             className={classNames(
-                              'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                              item.current
+                                ? 'border-primary-500 text-gray-900'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                               'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
                             )}
                           >
                             <item.icon className="mr-2 h-5 w-5" />
                             {t(item.name)}
+                            <ChevronDownIcon className="ml-2 h-5 w-5" aria-hidden="true" />
                           </Menu.Button>
                           <Transition
                             as={Fragment}

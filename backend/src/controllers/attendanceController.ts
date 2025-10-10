@@ -28,43 +28,20 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     const skip = (page - 1) * limit;
 
     // Filtros
+    const { startDate, endDate, sectionId, studentId } = req.query;
+
     const filter: any = {};
-    if (req.query.courseScheduleId) {
-      filter.courseScheduleId = req.query.courseScheduleId;
+    if (startDate && endDate) {
+      filter.date = { $gte: startOfDay(new Date(startDate as string)), $lte: endOfDay(new Date(endDate as string)) };
     }
-    if (req.query.sectionId) {
-      const courseSchedules = await CourseSchedule.find({ sectionId: req.query.sectionId });
-      const courseScheduleIds = courseSchedules.map(cs => cs._id);
-      filter.courseScheduleId = { $in: courseScheduleIds };
+    if (sectionId) {
+      filter.sectionId = sectionId;
     }
-    if (req.query.status) {
-      filter.status = req.query.status;
+    if (studentId) {
+      filter['details.studentId'] = studentId;
     }
 
-    if (req.query.startDate || req.query.endDate) {
-      filter.date = {};
-      if (req.query.startDate) {
-        filter.date.$gte = startOfDay(new Date(req.query.startDate as string));
-      }
-      if (req.query.endDate) {
-        filter.date.$lte = endOfDay(new Date(req.query.endDate as string));
-      }
-    }
 
-    if (req.query.studentId) {
-      filter['details.studentId'] = req.query.studentId;
-    }
-
-      const filter: any = {};
-      if (startDate && endDate) {
-        filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
-      }
-      if (sectionId) {
-        filter.sectionId = sectionId;
-      }
-      if (studentId) {
-        filter['details.studentId'] = studentId;
-      }
 
       const attendances = await Attendance.find(filter)
         .populate([
@@ -109,9 +86,9 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
         count: formattedRecords.length,
         total: total,
         pagination: {
-          page: parseInt(page as string),
-          limit: parseInt(limit as string),
-          totalPages: Math.ceil(total / parseInt(limit as string)),
+          page: page,
+          limit: limit,
+          totalPages: Math.ceil(total / limit),
         },
         data: formattedRecords,
       });

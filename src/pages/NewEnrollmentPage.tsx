@@ -90,7 +90,7 @@ export default function NewEnrollmentPage() {
                   >
                     <option value="">Seleccione un estudiante</option>
                     {students?.map((student: any) => (
-                      <option key={student._id.toString()} value={student._id.toString()}>
+                      <option key={student.id.toString()} value={student.id.toString()}>
                         {student.firstName} {student.lastName} ({student.dni})
                       </option>
                     ))}

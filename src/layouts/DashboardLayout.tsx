@@ -43,11 +43,10 @@ const navigation: NavigationItem[] = [
     icon: AcademicCapIcon,
     current: false,
     children: [
-      { name: 'sections.title', href: '/sections', icon: AcademicCapIcon, current: false },
-      { name: 'courses.title', href: '/courses', icon: BookOpenIcon, current: false },
-      { name: 'schedules.title', href: '/schedules', icon: CalendarDaysIcon, current: false },
-      { name: 'timeSlots.title', href: '/time-slots', icon: ClockIcon, current: false },
-      { name: 'schoolYears', href: '/school-years', icon: BuildingLibraryIcon, current: false },
+      { name: 'academic.sections.title', href: '/sections', icon: AcademicCapIcon, current: false },
+      { name: 'academic.schedules.title', href: '/schedules', icon: CalendarDaysIcon, current: false },
+      { name: 'academic.timeSlots.title', href: '/time-slots', icon: ClockIcon, current: false },
+      { name: 'academic.schoolYears.title', href: '/school-years', icon: BuildingLibraryIcon, current: false },
     ],
   },
   {
@@ -56,8 +55,6 @@ const navigation: NavigationItem[] = [
     icon: UsersIcon,
     current: false,
     children: [
-      { name: 'students.title', href: '/students', icon: UsersIcon, current: false },
-      { name: 'teachers.title', href: '/teachers', icon: UserGroupIcon, current: false },
       { name: 'administration.users.title', href: '/users', icon: UserIcon, current: false },
       { name: 'administration.staff.title', href: '/staff', icon: BriefcaseIcon, current: false },
     ],

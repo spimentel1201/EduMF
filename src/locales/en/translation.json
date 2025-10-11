@@ -61,9 +61,14 @@
     "timeSlots": {
       "title": "Time Slots"
     },
-    "schoolYears": "School Years",
+    "schoolYears": {
+      "title": "School Years"
+    },
     "sections": {
       "title": "Sections"
+    },
+    "courses": {
+      "title": "Courses"
     }
   },
   "enrollments": {
@@ -219,7 +224,15 @@
     "selectYear": "Select a year",
     "selectSection": "Select a section",
     "generateReport": "Generate Report",
-    "noReportData": "No report data for the selected filters."
+    "noReportData": "No report data for the selected filters.",
+    "totalPresent": "Total Present",
+    "totalAbsent": "Total Absent",
+    "totalLate": "Total Late",
+    "totalJustified": "Total Justified",
+    "status": "Status"
+  },
+  "student": {
+    "name": "Student Name"
   },
   "attendanceRecords": {
     "title": "Attendance Records",

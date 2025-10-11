@@ -8,9 +8,8 @@ import { useTranslation } from 'react-i18next';
 // Función auxiliar para convertir el rol del backend a la clave de traducción
 const getRoleTranslationKey = (role: string) => {
   if (!role) return '';
-  // Asumiendo que los roles del backend pueden ser 'admin', 'teacher', 'student' (minúsculas)
-  // y las claves de traducción son 'Admin', 'Teacher', 'Student' (capitalizadas)
-  return role.charAt(0).toUpperCase() + role.slice(1);
+  // Aseguramos que el rol siempre esté en minúsculas para coincidir con las claves de traducción.
+  return role.toLowerCase();
 };
 
 // Función auxiliar para convertir el estado del backend a la clave de traducción
@@ -34,7 +33,7 @@ export default function UsersPage() {
   // El estado selectedRole y el array roles deben usar los valores del backend para el filtrado
   // y luego traducir para la visualización.
   const [selectedRole, setSelectedRole] = useState('All Roles');
-  const roles = ['All Roles', 'Admin', 'Teacher', 'Student']; // Estos deben coincidir con los valores del backend si es posible, o ser mapeados.
+  const roles = ['All Roles', 'admin', 'teacher', 'student']; // Estos deben coincidir con los valores del backend si es posible, o ser mapeados.
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],

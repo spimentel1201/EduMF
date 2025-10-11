@@ -80,8 +80,7 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
           teacherName: teacherName,
         }));
       });
-
-      res.status(200).json({
+    res.status(200).json({
         success: true,
         count: formattedRecords.length,
         total: total,
@@ -365,50 +364,68 @@ export const getMonthlyAttendanceReport = async (req: Request, res: Response, ne
     if (sectionId) {
       match.sectionId = new mongoose.Types.ObjectId(sectionId as string);
     }
-
     const report = await Attendance.aggregate([
       { $match: match },
       { $unwind: '$details' },
+      // Obtener datos del estudiante
+      { $lookup: {
+          from: 'users',
+          localField: 'details.studentId',
+          foreignField: '_id',
+          as: 'studentInfo'
+      }},
+
+      { $unwind: '$studentInfo' },
+      // Agrupar por fecha, estudiante y estado de asistencia
       { $group: {
           _id: {
-            date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-            studentId: '$details.studentId',
-            status: '$details.status',
+              date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+              studentId: '$details.studentId',
+              studentName: { $concat: ['$studentInfo.firstName', ' ', '$studentInfo.lastName'] },
+              status: '$details.status'
           },
-          count: { $sum: 1 },
-        },
-      },
+          count: { $sum: 1 }
+      }},
+      // Re-agrupar para consolidar por fecha y calcular totales
       { $group: {
           _id: '$_id.date',
           students: {
-            $push: {
-              studentId: '$_id.studentId',
-              status: '$_id.status',
-              count: '$count',
-            },
+              $push: {
+                  studentId: '$_id.studentId',
+                  studentName: '$_id.studentName',
+                  status: '$_id.status',
+                  count: '$count'
+              }
           },
-          totalPresent: {
-            $sum: { $cond: [{ $eq: ['$_id.status', 'Presente'] }, '$count', 0] },
+          present: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Presente'] }, '$count', 0 ]
+              }
           },
-          totalAbsent: {
-            $sum: { $cond: [{ $eq: ['$_id.status', 'Ausente'] }, '$count', 0] },
+          absent: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Ausente'] }, '$count', 0 ]
+              }
           },
-          totalLate: {
-            $sum: { $cond: [{ $eq: ['$_id.status', 'Tardanza'] }, '$count', 0] },
+          late: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Tardanza'] }, '$count', 0 ]
+              }
           },
-          totalJustified: {
-            $sum: { $cond: [{ $eq: ['$_id.status', 'Justificado'] }, '$count', 0] },
-          },
-        },
-      },
-      { $sort: { '_id': 1 } },
+          justified: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Justificado'] }, '$count', 0 ]
+              }
+          }
+      }},
+      { $sort: { _id: 1 } }
     ]);
-
-    res.status(200).json({
-      success: true,
-      data: report,
-    });
-  } catch (error) {
-    next(error);
-  }
+        console.log('Monthly Attendance Report - Aggregation Result:', report); 
+        res.status(200).json({
+          success: true,
+          data: report,
+        });
+      } catch (error) {
+        next(error);
+      }
 };

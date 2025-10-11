@@ -20,7 +20,7 @@ router
 
 router.post('/bulk', protect, bulkCreateAttendances);
 
-router.get('/report/monthly', protect, getMonthlyAttendanceReport);
+router.get('/report/monthly', getMonthlyAttendanceReport);
 
 router.get('/attendance-records', protect, getAttendances);
 

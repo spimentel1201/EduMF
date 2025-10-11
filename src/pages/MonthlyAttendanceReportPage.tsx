@@ -2,18 +2,26 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select, DatePicker, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { getMonthlyAttendanceReport } from '../services/attendanceService';
+import { attendanceService } from '../services/attendanceService';
 import { getSections } from '../services/sectionService';
 import { Section } from '../types/academic';
 import dayjs from 'dayjs';
 import { format } from 'date-fns';
 
+type StudentAttendanceDetail = {
+  studentId: string;
+  studentName: string;
+  status: string;
+  count: number;
+};
+
 type AttendanceReportData = {
-  date: string;
-  present: number;
-  absent: number;
-  late: number;
-  justified: number;
+  _id: string; // La fecha del reporte
+  students: StudentAttendanceDetail[];
+  totalPresent: number;
+  totalAbsent: number;
+  totalLate: number;
+  totalJustified: number;
 };
 
 export default function MonthlyAttendanceReportPage() {
@@ -47,10 +55,10 @@ export default function MonthlyAttendanceReportPage() {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const month = selectedMonth.getMonth() + 1;
-      const year = selectedMonth.getFullYear();
+      const month = selectedMonth.month() + 1;
+      const year = selectedMonth.year();
       
-      const data = await getMonthlyAttendanceReport({
+      const data = await attendanceService.getMonthlyAttendanceReport({
         sectionId: selectedSection,
         month,
         year
@@ -67,30 +75,48 @@ export default function MonthlyAttendanceReportPage() {
   const columns: ColumnsType<AttendanceReportData> = [
     {
       title: t('attendance.date'),
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: '_id',
+      key: '_id',
+      render: (text: string) => format(new Date(text), 'dd/MM/yyyy'),
     },
     {
-      title: t('attendance.statusOptions.Present'),
-      dataIndex: 'present',
-      key: 'present',
+      title: t('attendance.totalPresent'),
+      dataIndex: 'totalPresent',
+      key: 'totalPresent',
     },
     {
-      title: t('attendance.statusOptions.Absent'),
-      dataIndex: 'absent',
-      key: 'absent',
+      title: t('attendance.totalAbsent'),
+      dataIndex: 'totalAbsent',
+      key: 'totalAbsent',
     },
     {
-      title: t('attendance.statusOptions.Late'),
-      dataIndex: 'late',
-      key: 'late',
+      title: t('attendance.totalLate'),
+      dataIndex: 'totalLate',
+      key: 'totalLate',
     },
     {
-      title: t('attendance.statusOptions.Justified'),
-      dataIndex: 'justified',
-      key: 'justified',
+      title: t('attendance.totalJustified'),
+      dataIndex: 'totalJustified',
+      key: 'totalJustified',
     },
   ];
+
+  const expandedRowRender = (record: AttendanceReportData) => {
+    const studentColumns: ColumnsType<StudentAttendanceDetail> = [
+      {
+        title: t('student.name'),
+        dataIndex: 'studentName',
+        key: 'studentName',
+      },
+      {
+        title: t('attendance.status'),
+        dataIndex: 'status',
+        key: 'status',
+      },
+    ];
+
+    return <Table columns={studentColumns} dataSource={record.students} pagination={false} rowKey="studentId" />;
+  };
 
   return (
     <div className="p-4">
@@ -103,7 +129,7 @@ export default function MonthlyAttendanceReportPage() {
           value={selectedSection}
           onChange={setSelectedSection}
           options={sections.map(s => ({ 
-            value: s._id, 
+            value: s.id, 
             label: s.name 
           }))}
         />
@@ -116,11 +142,12 @@ export default function MonthlyAttendanceReportPage() {
         />
       </div>
       
-      <Table 
-        columns={columns} 
-        dataSource={reportData} 
+      <Table
+        columns={columns}
+        dataSource={reportData}
         loading={loading}
-        rowKey="date"
+        rowKey="_id"
+        expandable={{ expandedRowRender }}
       />
     </div>
   );

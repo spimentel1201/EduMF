@@ -61,9 +61,14 @@
     "timeSlots": {
       "title": "Franjas Horarias"
     },
-    "schoolYears": "Años Escolares",
+    "schoolYears": {
+      "title": "Años Escolares"
+    },
     "sections": {
       "title": "Secciones"
+    },
+    "courses": {
+      "title": "Cursos"
     }
   },
   "enrollments": {
@@ -84,9 +89,9 @@
     "status": "Estado",
     "allRoles": "Todos los Roles",
     "roles": {
-      "Admin": "Administrador",
-      "Teacher": "Profesor",
-      "Student": "Estudiante"
+      "admin": "Administrador",
+      "teacher": "Profesor",
+      "student": "Estudiante"
     },
     "statusOptions": {
       "Active": "Activo",
@@ -219,7 +224,15 @@
     "selectYear": "Selecciona un año",
     "selectSection": "Selecciona una sección",
     "generateReport": "Generar Reporte",
-    "noReportData": "No hay datos de reporte para los filtros seleccionados."
+    "noReportData": "No hay datos de reporte para los filtros seleccionados.",
+    "totalPresent": "Total Presentes",
+    "totalAbsent": "Total Ausentes",
+    "totalLate": "Total Tardanzas",
+    "totalJustified": "Total Justificados",
+    "status": "Estado"
+  },
+  "student": {
+    "name": "Nombre del Estudiante"
   },
   "attendanceRecords": {
     "title": "Registros de Asistencia",

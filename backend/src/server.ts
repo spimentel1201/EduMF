@@ -55,7 +55,7 @@ const startServer = async () => {
     app.use('/api/courses', courseRoutes);
     app.use('/api/course-schedules', courseScheduleRoutes);
     app.use('/api/time-slots', timeSlotRoutes);
-    app.use('/api', attendanceRoutes);
+    app.use('/api/attendances', attendanceRoutes);
     app.use('/api/enrollments', enrollmentRoutes);
     
     // Middleware de manejo de errores

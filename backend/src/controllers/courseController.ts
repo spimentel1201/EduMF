@@ -17,20 +17,16 @@ export const getCourses = async (req: Request, res: Response, next: NextFunction
     const status = req.query.status as string;
     const searchTerm = req.query.search as string;
 
-    // Construir query
     let query: any = {};
     
-    // Filtrar por nivel si se proporciona
     if (level) {
       query.level = level;
     }
     
-    // Filtrar por estado si se proporciona
     if (status) {
       query.status = status;
     }
     
-    // Buscar por nombre o descripción
     if (searchTerm) {
       query.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
@@ -38,7 +34,6 @@ export const getCourses = async (req: Request, res: Response, next: NextFunction
       ];
     }
 
-    // Ejecutar query con paginación
     const total = await Course.countDocuments(query);
     const courses = await Course.find(query)
       .sort({ name: 1 })
@@ -97,13 +92,11 @@ export const createCourse = async (req: Request, res: Response, next: NextFuncti
 
     const { name, description, level } = req.body;
 
-    // Verificar si ya existe un curso con el mismo nombre
     const courseExists = await Course.findOne({ name });
     if (courseExists) {
       return next(ApiError.badRequest('Ya existe un curso con este nombre'));
     }
 
-    // Crear nuevo curso
     const course = await Course.create({
       name,
       description,
@@ -140,7 +133,6 @@ export const updateCourse = async (req: Request, res: Response, next: NextFuncti
       return next(ApiError.notFound('Curso no encontrado'));
     }
 
-    // Verificar si el nombre ya está en uso por otro curso
     if (name !== course.name) {
       const existingCourse = await Course.findOne({
         name,
@@ -152,7 +144,6 @@ export const updateCourse = async (req: Request, res: Response, next: NextFuncti
       }
     }
 
-    // Actualizar curso
     course = await Course.findByIdAndUpdate(
       req.params.id,
       { name, description, level, status },
@@ -175,13 +166,11 @@ export const updateCourse = async (req: Request, res: Response, next: NextFuncti
  */
 export const deleteCourse = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Verificar si el curso existe
     const course = await Course.findById(req.params.id);
     if (!course) {
       return next(ApiError.notFound('Curso no encontrado'));
     }
 
-    // Eliminar curso
     await course.deleteOne();
 
     res.status(200).json({
@@ -204,15 +193,12 @@ export const getCoursesByLevel = async (req: Request, res: Response, next: NextF
     const level = req.params.level;
     const status = req.query.status as string || 'active';
 
-    // Validar nivel
     if (!['Inicial', 'Primaria', 'Secundaria', 'Todos'].includes(level)) {
       return next(ApiError.badRequest('Nivel inválido'));
     }
 
-    // Construir query
     let query: any = { status };
     
-    // Si el nivel no es 'Todos', filtrar por nivel
     if (level !== 'Todos') {
       query.level = level;
     }

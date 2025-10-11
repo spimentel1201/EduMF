@@ -2,9 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import Attendance from '../models/Attendance';
 import CourseSchedule from '../models/CourseSchedule';
+import Enrollment from '../models/Enrollment';
 import ApiError from '../middleware/ApiError';
+import mongoose from 'mongoose';
+import { startOfDay, endOfDay } from 'date-fns';
+import Staff from '../models/Staff';
+import Schedule from '../models/CourseSchedule';
 
-// Validación para asistencia
 export const validateAttendance = [
   body('courseScheduleId').notEmpty().withMessage('El horario del curso es requerido'),
   body('date').notEmpty().withMessage('La fecha es requerida').isDate().withMessage('Formato de fecha inválido'),
@@ -21,45 +25,68 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
+    const { startDate, endDate, sectionId, studentId } = req.query;
 
-    // Filtros
     const filter: any = {};
-    if (req.query.courseScheduleId) {
-      filter.courseScheduleId = req.query.courseScheduleId;
+    if (startDate && endDate) {
+      filter.date = { $gte: startOfDay(new Date(startDate as string)), $lte: endOfDay(new Date(endDate as string)) };
     }
-    if (req.query.status) {
-      filter.status = req.query.status;
+    if (sectionId) {
+      filter.sectionId = sectionId;
     }
-    if (req.query.date) {
-      const date = new Date(req.query.date as string);
-      filter.date = {
-        $gte: new Date(date.setHours(0, 0, 0, 0)),
-        $lt: new Date(date.setHours(23, 59, 59, 999))
-      };
+    if (studentId) {
+      filter['details.studentId'] = studentId;
     }
 
-    const attendances = await Attendance.find(filter)
-      .populate([
-        { path: 'courseScheduleId', populate: ['courseId', 'sectionId', 'teacherId', 'timeSlotId'] },
-        { path: 'takenBy' }
-      ])
-      .sort({ date: -1 })
-      .skip(skip)
-      .limit(limit);
 
-    const total = await Attendance.countDocuments(filter);
 
+      const attendances = await Attendance.find(filter)
+        .populate([
+          { path: 'sectionId', select: 'name' },
+          { path: 'teacherId', select: 'firstName lastName' },
+          { path: 'details.studentId', select: 'firstName lastName' }
+        ])
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const totalFormattedRecordsPipeline: any[] = [
+        { $match: filter },
+        { $unwind: '$details' },
+        { $count: 'total' }
+      ];
+
+      const totalFormattedRecordsResult = await Attendance.aggregate(totalFormattedRecordsPipeline);
+      const total = totalFormattedRecordsResult.length > 0 ? totalFormattedRecordsResult[0].total : 0;
+
+      const formattedRecords = attendances.flatMap(attendance => {
+        const sectionName = (attendance.sectionId as any)?.name || 'N/A';
+        const teacherName = (attendance.teacherId as any)?.firstName + ' ' + (attendance.teacherId as any)?.lastName || 'N/A';
+
+        return attendance.details.map(detail => ({
+          id: attendance._id,
+          date: attendance.date.toISOString(),
+          sectionId: attendance.sectionId,
+          sectionName: sectionName,
+          studentId: detail.studentId,
+          studentName: (detail.studentId as any)?.firstName + ' ' + (detail.studentId as any)?.lastName || 'N/A',
+          status: detail.status,
+          notes: detail.notes,
+          teacherId: attendance.teacherId,
+          teacherName: teacherName,
+        }));
+      });
     res.status(200).json({
-      success: true,
-      count: attendances.length,
-      total,
-      pagination: {
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      },
-      data: attendances
-    });
+        success: true,
+        count: formattedRecords.length,
+        total: total,
+        pagination: {
+          page: page,
+          limit: limit,
+          totalPages: Math.ceil(total / limit),
+        },
+        data: formattedRecords,
+      });
   } catch (error) {
     next(error);
   }
@@ -99,13 +126,11 @@ export const createAttendance = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Verificar que el horario del curso existe
     const courseSchedule = await CourseSchedule.findById(req.body.courseScheduleId);
     if (!courseSchedule) {
       return next(new ApiError('Horario del curso no encontrado', 404));
     }
 
-    // Verificar si ya existe una asistencia para este horario y fecha
     const date = new Date(req.body.date);
     const existingAttendance = await Attendance.findOne({
       courseScheduleId: req.body.courseScheduleId,
@@ -119,7 +144,6 @@ export const createAttendance = async (req: Request, res: Response, next: NextFu
       return next(new ApiError('Ya existe una asistencia para este horario y fecha', 400));
     }
 
-    // Asignar el usuario que toma la asistencia
     req.body.takenBy = req.user.id;
 
     const attendance = await Attendance.create(req.body);
@@ -143,30 +167,58 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ errors: errors.array() });
     }
 
-    let attendance = await Attendance.findById(req.params.id);
+    const { id } = req.params;
+    const { status, studentId, sectionId, date } = req.body;
+    const userId = (req as any).user.id;
+    const userRole = (req as any).user.role;
+
+    let attendance = await Attendance.findById(id);
 
     if (!attendance) {
-      return next(new ApiError('Asistencia no encontrada', 404));
+      return next(new ApiError('Attendance record not found', 404));
     }
 
-    // Verificar que el horario del curso existe si se está actualizando
-    if (req.body.courseScheduleId) {
-      const courseSchedule = await CourseSchedule.findById(req.body.courseScheduleId);
-      if (!courseSchedule) {
-        return next(new ApiError('Horario del curso no encontrado', 404));
+    if (userRole === 'admin') {
+      attendance.status = status || attendance.status;
+      await attendance.save();
+      return res.status(200).json({
+        success: true,
+        data: attendance
+      });
+    }
+    if (userRole === 'teacher') {
+      const today = new Date();
+      const attendanceDate = new Date(attendance.date);
+
+      if (attendanceDate < startOfDay(today) || attendanceDate > endOfDay(today)) {
+        return next(new ApiError('Teachers can only modify attendance for the current day', 403));
       }
+
+      const teacher = await Staff.findOne({ userId: userId });
+      if (!teacher) {
+        return next(new ApiError('Teacher not found', 404));
+      }
+
+      const schedule = await Schedule.findOne({
+        teacher: teacher._id,
+        section: attendance.sectionId,
+        day: attendanceDate.getDay().toString(),
+      });
+
+      if (!schedule) {
+        return next(new ApiError('Teacher is not authorized to modify attendance for this section', 403));
+      }
+
+      attendance.status = status || attendance.status;
+      await attendance.save();
+      return res.status(200).json({
+        success: true,
+        data: attendance
+      });
     }
 
-    attendance = await Attendance.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    return next(new ApiError('Unauthorized to update attendance', 403));
 
-    res.status(200).json({
-      success: true,
-      data: attendance
-    });
   } catch (error) {
     next(error);
   }
@@ -192,4 +244,174 @@ export const deleteAttendance = async (req: Request, res: Response, next: NextFu
   } catch (error) {
     next(error);
   }
+};
+
+export const bulkCreateAttendances = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { date, sectionId, studentAttendances } = req.body;
+
+    if (!date || !sectionId || !studentAttendances || !Array.isArray(studentAttendances)) {
+      return res.status(400).json({ message: 'Fecha, ID de sección y asistencias de estudiantes son requeridos.' });
+    }
+
+    const courseSchedules = await CourseSchedule.find({ sectionId });
+    if (courseSchedules.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron horarios de curso para la sección proporcionada.' });
+    }
+
+    const takenBy = req.user.id;
+    const results = [];
+
+    for (const studentAttendance of studentAttendances) {
+      const { studentId, status } = studentAttendance;
+      const studentObjectId = new mongoose.Types.ObjectId(studentId);
+      const currentAttendanceDate = new Date(date);
+
+      const enrollment = await Enrollment.findOne({ studentId: studentObjectId, sectionId });
+
+      if (!enrollment) {
+        results.push({ studentId, status, success: false, message: 'Estudiante no matriculado en esta sección.' });
+        continue;
+      }
+
+      const courseSchedule = courseSchedules.find(cs => cs.sectionId.toString() === enrollment.sectionId.toString());
+
+      if (!courseSchedule) {
+        results.push({ studentId, status, success: false, message: 'No se encontró horario de curso para la sección del estudiante.' });
+        continue;
+      }
+
+      let attendanceRecord = await Attendance.findOne({
+        courseScheduleId: courseSchedule._id,
+        date: {
+          $gte: new Date(new Date(currentAttendanceDate).setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date(currentAttendanceDate).setHours(23, 59, 59, 999))
+        }
+      });
+
+      if (attendanceRecord) {
+        const detailIndex = attendanceRecord.details.findIndex(d => d.studentId.toString() === studentId);
+        if (detailIndex > -1) {
+          attendanceRecord.details[detailIndex].status = status;
+        } else {
+          attendanceRecord.details.push({ studentId: new mongoose.Types.ObjectId(studentId), status });
+        }
+        await attendanceRecord.save();
+        results.push({ studentId, status, success: true, message: 'Asistencia actualizada.' });
+      } else {
+        // Crear un nuevo registro
+        attendanceRecord = await Attendance.create({
+          courseScheduleId: courseSchedule._id,
+          sectionId: sectionId,
+          teacherId: takenBy,
+          date: currentAttendanceDate,
+          status: 'Tomada',
+          details: [{
+            studentId: new mongoose.Types.ObjectId(studentId),
+            status: status,
+          }],
+        });
+        results.push({ studentId, status, success: true, message: 'Asistencia creada.' });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: results,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtener reporte mensual de asistencias
+// @route   GET /api/attendances/report/monthly
+// @access  Private
+export const getMonthlyAttendanceReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sectionId, month, year } = req.query;
+
+    if (!month || !year) {
+      return next(new ApiError('Mes y año son requeridos para el reporte mensual', 400));
+    }
+
+    const startOfMonth = new Date(Number(year), Number(month) - 1, 1);
+    const endOfMonth = new Date(Number(year), Number(month), 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const match: any = {
+      date: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    };
+
+    if (sectionId) {
+      match.sectionId = new mongoose.Types.ObjectId(sectionId as string);
+    }
+    const report = await Attendance.aggregate([
+      { $match: match },
+      { $unwind: '$details' },
+      // Obtener datos del estudiante
+      { $lookup: {
+          from: 'users',
+          localField: 'details.studentId',
+          foreignField: '_id',
+          as: 'studentInfo'
+      }},
+
+      { $unwind: '$studentInfo' },
+      // Agrupar por fecha, estudiante y estado de asistencia
+      { $group: {
+          _id: {
+              date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+              studentId: '$details.studentId',
+              studentName: { $concat: ['$studentInfo.firstName', ' ', '$studentInfo.lastName'] },
+              status: '$details.status'
+          },
+          count: { $sum: 1 }
+      }},
+      // Re-agrupar para consolidar por fecha y calcular totales
+      { $group: {
+          _id: '$_id.date',
+          students: {
+              $push: {
+                  studentId: '$_id.studentId',
+                  studentName: '$_id.studentName',
+                  status: '$_id.status',
+                  count: '$count'
+              }
+          },
+          present: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Presente'] }, '$count', 0 ]
+              }
+          },
+          absent: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Ausente'] }, '$count', 0 ]
+              }
+          },
+          late: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Tardanza'] }, '$count', 0 ]
+              }
+          },
+          justified: {
+              $sum: {
+                  $cond: [ { $eq: ['$_id.status', 'Justificado'] }, '$count', 0 ]
+              }
+          }
+      }},
+      { $sort: { _id: 1 } }
+    ]);
+        console.log('Monthly Attendance Report - Aggregation Result:', report); 
+        res.status(200).json({
+          success: true,
+          data: report,
+        });
+      } catch (error) {
+        next(error);
+      }
 };

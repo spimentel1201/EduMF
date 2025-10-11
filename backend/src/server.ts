@@ -13,9 +13,11 @@ import staffRoutes from './routes/staffRoutes';
 import schoolYearRoutes from './routes/schoolYearRoutes';
 import sectionRoutes from './routes/sectionRoutes';
 import courseRoutes from './routes/courseRoutes';
-import scheduleRoutes from './routes/courseScheduleRoutes';
+import courseScheduleRoutes from './routes/courseScheduleRoutes';
 import timeSlotRoutes from './routes/timeSlotRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
+import enrollmentRoutes from './routes/enrollmentRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
 
 // Cargar variables de entorno
 config();
@@ -27,18 +29,13 @@ const PORT = process.env.PORT || 5000;
 // Función para iniciar el servidor
 const startServer = async () => {
   try {
-    // Conectar a la base de datos
     await connectDB();
     
-    // Verificar y ejecutar seed si es necesario
-    /*const needsSeeding = await shouldSeed();
+    const needsSeeding = await shouldSeed();
     if (needsSeeding) {
       console.log('🌱 Ejecutando seed de datos iniciales...');
       await seedData();
     }
-*/
-    // Middleware
-    //app.use(cors());
     app.use(cors({
       origin: ['http://localhost:5173', 'http://localhost:3000'],
       credentials: true,
@@ -53,14 +50,15 @@ const startServer = async () => {
     app.use('/api/school-years', schoolYearRoutes);
     app.use('/api/sections', sectionRoutes);
     app.use('/api/courses', courseRoutes);
-    app.use('/api/course-schedules', scheduleRoutes);
+    app.use('/api/course-schedules', courseScheduleRoutes);
     app.use('/api/time-slots', timeSlotRoutes);
-    app.use('/api/attendance', attendanceRoutes);
+    app.use('/api/attendances', attendanceRoutes);
+    app.use('/api/enrollments', enrollmentRoutes);
+    app.use('/api/dashboard', dashboardRoutes);
     
     // Middleware de manejo de errores
     app.use(errorHandler);
     
-    // Iniciar el servidor
     app.listen(PORT, () => {
       console.log(`Servidor ejecutándose en el puerto ${PORT}`);
     });
@@ -70,7 +68,4 @@ const startServer = async () => {
   }
 };
 
-// Iniciar el servidor
 startServer();
-
-export default app;

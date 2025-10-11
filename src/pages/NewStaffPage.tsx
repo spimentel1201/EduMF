@@ -31,7 +31,6 @@ const staffSchema = z.object({
 
 type StaffFormData = z.infer<typeof staffSchema>;
 
-// Mapeo de roles para mostrar en UI
 const ROLE_DISPLAY_MAP = {
   'Psicólogo(a)': 'Psicólogo(a)', 
   'Mantenimiento': 'Mantenimiento', 
@@ -41,7 +40,6 @@ const ROLE_DISPLAY_MAP = {
   'Auxiliar': 'Auxiliar'
 };
 
-// Mapeo de niveles para mostrar en UI
 const LEVEL_DISPLAY_MAP = {
   'Inicial': 'Inicial',
   'Primaria': 'Primaria',

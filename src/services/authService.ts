@@ -23,11 +23,11 @@ export const authService = {
 
   loginWithQR: async (qrData: string): Promise<AuthResponse> => {
     const response = await api.post('/auth/qr-login', { qrData });
-    return response.data.data; // Extraer de response.data.data
+    return response.data.data;
   },
 
   getCurrentUser: async () => {
     const response = await api.get('/auth/me');
-    return response.data.data; // Extraer de response.data.data
+    return response.data.data;
   },
 };

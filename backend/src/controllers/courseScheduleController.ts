@@ -8,7 +8,6 @@ import TimeSlot from '../models/TimeSlot';
 import SchoolYear from '../models/SchoolYear';
 import ApiError from '../middleware/ApiError';
 
-// Validación para horarios de curso
 export const validateCourseSchedule = [
   body('courseId').notEmpty().withMessage('El curso es requerido'),
   body('sectionId').notEmpty().withMessage('La sección es requerida'),

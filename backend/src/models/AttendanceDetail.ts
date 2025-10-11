@@ -36,7 +36,6 @@ const AttendanceDetailSchema: Schema = new Schema(
   }
 );
 
-// Índices para búsquedas eficientes
 AttendanceDetailSchema.index({ attendanceId: 1, studentId: 1 }, { unique: true });
 AttendanceDetailSchema.index({ status: 1 });
 

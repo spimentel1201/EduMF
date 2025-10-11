@@ -24,7 +24,6 @@ const timeSlotSchema = z.object({
   type: z.enum(TIME_SLOT_TYPES as [string, ...string[]]),
   status: z.enum(TIME_SLOT_STATUSES as [string, ...string[]])
 }).refine((data) => {
-  // Validar que la hora de fin sea mayor que la de inicio
   const start = new Date(`2000-01-01T${data.startTime}:00`);
   const end = new Date(`2000-01-01T${data.endTime}:00`);
   return end > start;

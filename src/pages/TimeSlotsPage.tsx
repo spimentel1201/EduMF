@@ -9,9 +9,28 @@ import {
 } from '@heroicons/react/24/outline';
 import { timeSlotService } from '@/services/timeSlotService';
 import type { TimeSlot } from '@/types/academic';
+import { useTranslation } from 'react-i18next';
 
 export default function TimeSlotsPage() {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
+
+    const getTimeSlotTypeTranslationKey = (type: string) => {
+        switch (type) {
+            case 'Clase': return 'Class';
+            case 'Receso': return 'Break';
+            case 'Almuerzo': return 'Lunch';
+            default: return type;
+        }
+    };
+
+    const getTimeSlotStatusTranslationKey = (status: string) => {
+        switch (status) {
+            case 'Activo': return 'Active';
+            case 'Inactivo': return 'Inactive';
+            default: return status;
+        }
+    };
 
     const { data: timeSlots, isLoading, error } = useQuery({
         queryKey: ['timeSlots'],
@@ -25,12 +44,12 @@ export default function TimeSlotsPage() {
         },
         onError: (error) => {
             console.error('Error deleting time slot:', error);
-            alert('Error al eliminar el horario');
+            alert(t('timeSlots.deleteError'));
         }
     });
 
     const handleDelete = (timeSlot: TimeSlot) => {
-        if (window.confirm(`¿Estás seguro de que quieres eliminar el horario "${timeSlot.name}"?`)) {
+        if (window.confirm(t('timeSlots.confirmDelete', { name: timeSlot.name }))) {
             deleteTimeSlotMutation.mutate(timeSlot.id);
         }
     };
@@ -63,7 +82,7 @@ export default function TimeSlotsPage() {
         return (
             <div className="space-y-6">
                 <div className="border-b border-gray-200 pb-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">Horarios</h3>
+                    <h3 className="text-lg font-medium leading-6 text-gray-900">{t('timeSlots.title')}</h3>
                 </div>
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
@@ -85,17 +104,17 @@ export default function TimeSlotsPage() {
         return (
             <div className="space-y-6">
                 <div className="border-b border-gray-200 pb-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">Horarios</h3>
+                    <h3 className="text-lg font-medium leading-6 text-gray-900">{t('timeSlots.title')}</h3>
                 </div>
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
                         <div className="text-center">
-                            <p className="text-red-600">Error al cargar los horarios</p>
+                            <p className="text-red-600">{t('timeSlots.errorLoading')}</p>
                             <button
                                 onClick={() => queryClient.invalidateQueries({ queryKey: ['timeSlots'] })}
                                 className="mt-2 text-primary-600 hover:text-primary-500"
                             >
-                                Reintentar
+                                {t('timeSlots.retry')}
                             </button>
                         </div>
                     </div>
@@ -111,9 +130,9 @@ export default function TimeSlotsPage() {
             <div className="border-b border-gray-200 pb-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">Horarios</h3>
+                        <h3 className="text-lg font-medium leading-6 text-gray-900">{t('timeSlots.title')}</h3>
                         <p className="mt-2 max-w-4xl text-sm text-gray-500">
-                            Gestiona los horarios disponibles para las clases
+                            {t('timeSlots.subtitle')}
                         </p>
                     </div>
                     <Link
@@ -121,7 +140,7 @@ export default function TimeSlotsPage() {
                         className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                     >
                         <PlusIcon className="h-4 w-4 mr-2" />
-                        Nuevo Horario
+                        {t('timeSlots.newTimeSlot')}
                     </Link>
                 </div>
             </div>
@@ -131,9 +150,9 @@ export default function TimeSlotsPage() {
                     {availableTimeSlots.length === 0 ? (
                         <div className="text-center py-12">
                             <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">No hay horarios</h3>
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('timeSlots.noTimeSlots')}</h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                Comienza creando un nuevo horario.
+                                {t('timeSlots.createFirstTimeSlot')}
                             </p>
                             <div className="mt-6">
                                 <Link
@@ -141,7 +160,7 @@ export default function TimeSlotsPage() {
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                                 >
                                     <PlusIcon className="h-4 w-4 mr-2" />
-                                    Nuevo Horario
+                                    {t('timeSlots.newTimeSlot')}
                                 </Link>
                             </div>
                         </div>
@@ -151,19 +170,19 @@ export default function TimeSlotsPage() {
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Nombre
+                                            {t('timeSlots.name')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Horario
+                                            {t('timeSlots.schedule')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tipo
+                                            {t('timeSlots.type')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Estado
+                                            {t('timeSlots.status')}
                                         </th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Acciones
+                                            {t('timeSlots.actions')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -191,12 +210,12 @@ export default function TimeSlotsPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(timeSlot.type)}`}>
-                                                    {timeSlot.type}
+                                                    {t(`timeSlots.types.${getTimeSlotTypeTranslationKey(timeSlot.type)}`)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(timeSlot.status)}`}>
-                                                    {timeSlot.status}
+                                                    {t(`timeSlots.statusOptions.${getTimeSlotStatusTranslationKey(timeSlot.status)}`)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -204,21 +223,21 @@ export default function TimeSlotsPage() {
                                                     <Link
                                                         to={`/time-slots/${timeSlot.id}`}
                                                         className="text-primary-600 hover:text-primary-900"
-                                                        title="Ver detalles"
+                                                        title={t('timeSlots.viewDetails')}
                                                     >
                                                         <EyeIcon className="h-4 w-4" />
                                                     </Link>
                                                     <Link
                                                         to={`/time-slots/${timeSlot.id}/edit`}
                                                         className="text-indigo-600 hover:text-indigo-900"
-                                                        title="Editar"
+                                                        title={t('timeSlots.edit')}
                                                     >
                                                         <PencilIcon className="h-4 w-4" />
                                                     </Link>
                                                     <button
                                                         onClick={() => handleDelete(timeSlot)}
                                                         className="text-red-600 hover:text-red-900"
-                                                        title="Eliminar"
+                                                        title={t('timeSlots.delete')}
                                                         disabled={deleteTimeSlotMutation.isPending}
                                                     >
                                                         <TrashIcon className="h-4 w-4" />

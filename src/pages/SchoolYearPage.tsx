@@ -10,7 +10,7 @@ import {
   TrashIcon,
   EyeIcon
 } from '@heroicons/react/24/outline';
-import { SchoolYear, SchoolYearStatus } from '../types/academic';
+import { SchoolYearStatus } from '../types/academic';
 import { schoolYearService } from '../services/schoolYearService';
 
 export default function SchoolYearPage() {

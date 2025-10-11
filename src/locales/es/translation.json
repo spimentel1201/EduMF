@@ -1,0 +1,275 @@
+{
+  "login": {
+    "title": "Bienvenido a EduMF",
+    "subtitle": "Inicia sesión en tu cuenta",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "signIn": "Iniciar Sesión",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "scanQrCode": "Escanear Código QR",
+    "signInWithDni": "Iniciar sesión con DNI y contraseña",
+    "dniMinLength": "El DNI debe tener al menos 8 caracteres",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "loginTab": "Iniciar Sesión",
+    "loginError": "Error al iniciar sesión. Por favor, verifica tus credenciales.",
+    "scanQrInstructions": "Escanea el código QR para registrar tu asistencia.",
+    "cancel": "Cancelar",
+    "currentTime": "Hora Actual",
+    "attendanceRegistered": "Asistencia Registrada",
+    "scannedQr": "QR Escaneado",
+    "registeredAt": "Registrado a las",
+    "notificationWillClose": "Esta notificación se cerrará automáticamente en unos segundos.",
+    "instructions": "Instrucciones",
+    "scanQrInstructionsDetail1": "1. Asegúrate de que el código QR esté bien iluminado y no esté dañado.",
+    "scanQrInstructionsDetail2": "2. Coloca el código QR dentro del marco de la cámara.",
+    "qrTab": "QR",
+    "dniLabel": "DNI",
+    "passwordLabel": "Contraseña",
+    "signingIn": "Iniciando Sesión...",
+    "qrScanInstruction": "Escanea el código QR proporcionado para iniciar sesión.",
+    "or": "O"
+  },
+  "dashboard": {
+    "title": "Tablero",
+    "welcome": "Bienvenido",
+     "stats": {
+      "totalStudents": "Total de estudiantes",
+      "totalStaff": "Total de personal",
+      "presentRate": "Tasa de asistencia",
+      "activeSections": "Secciones activas",
+      "recentActivity": "Actividad reciente",
+      "present": "presentes"
+     },
+    "totalStudents": "Total de Estudiantes",
+    "totalTeachers": "Total de Docentes",
+    "totalSections": "Total de Secciones",
+    "takeAttendance": "Tomar Asistencia",
+    "viewSchedules": "Ver Horarios",
+    "manageEnrollments": "Gestionar Inscripciones",
+    "quickActions": "Acciones Rápidas",
+    "viewAll": "Ver Todo"
+  },
+  "administration": {
+    "title": "Administración",
+    "users": {
+      "title": "Usuarios"
+    },
+    "newUser": {
+      "title": "Nuevo Usuario"
+    },
+    "staff": {
+      "title": "Personal"
+    }
+  },
+  "academic": {
+    "title": "Académico",
+    "schedules": {
+      "title": "Horarios"
+    },
+    "timeSlots": {
+      "title": "Franjas Horarias"
+    },
+    "schoolYears": {
+      "title": "Años Escolares"
+    },
+    "sections": {
+      "title": "Secciones"
+    },
+    "courses": {
+      "title": "Cursos"
+    }
+  },
+  "enrollments": {
+    "title": "Inscripciones",
+    "individualEnrollment": "Inscripción Individual",
+    "bulkEnrollment": "Inscripción Masiva"
+  },
+  "users": {
+    "adminRole": "Administrador",
+    "errorLoading": "Error al cargar usuarios",
+    "title": "Usuarios",
+    "subtitle": "Gestionar usuarios de la escuela y sus roles",
+    "addUser": "Agregar Usuario",
+    "searchUsers": "Buscar usuarios...",
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "role": "Rol",
+    "status": "Estado",
+    "allRoles": "Todos los Roles",
+    "roles": {
+      "admin": "Administrador",
+      "teacher": "Profesor",
+      "student": "Estudiante"
+    },
+    "statusOptions": {
+      "Active": "Activo",
+      "Inactive": "Inactivo"
+    }
+  },
+  "staff": {
+    "errorLoading": "Error al cargar el personal",
+    "title": "Personal",
+    "subtitle": "Gestionar miembros del personal escolar",
+    "addStaff": "Agregar Personal",
+    "searchStaff": "Buscar personal...",
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "role": "Rol",
+    "status": "Estado",
+    "actions": "Acciones",
+    "viewDetails": "Ver detalles",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar a este miembro del personal?",
+    "deleteError": "Error al eliminar miembro del personal",
+    "noStaff": "No se encontraron miembros del personal.",
+    "createFirstStaff": "Crea tu primer miembro del personal",
+    "allStatuses": "Todos los estados",
+    "allRoles": "Todos los Roles",
+    "roles": {
+      "teacher": "Profesor",
+      "administrator": "Administrador",
+      "support": "Soporte",
+      "psychologist": "Psicólogo(a)",
+      "maintenance": "Mantenimiento",
+      "cist": "CIST",
+      "direction": "Dirección",
+      "auxiliary": "Auxiliar"
+    },
+    "statusOptions": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "pending": "Pendiente"
+    }
+  },
+  "schedules": {
+    "errorLoading": "Error al cargar horarios",
+    "title": "Horarios de Cursos",
+    "subtitle": "Gestionar horarios de cursos y cronogramas",
+    "addSchedule": "Agregar Horario",
+    "searchSchedules": "Buscar horarios...",
+    "allSections": "Todas las Secciones",
+    "time": "Hora",
+    "course": "Curso",
+    "teacher": "Profesor",
+    "day": "Día",
+    "section": "Sección",
+    "days": {
+      "AllDays": "Todos los Días",
+      "Monday": "Lunes",
+      "Tuesday": "Martes",
+      "Wednesday": "Miércoles",
+      "Thursday": "Jueves",
+      "Friday": "Viernes"
+    }
+  },
+  "sections": {
+    "errorLoading": "Error al cargar secciones",
+    "title": "Secciones",
+    "subtitle": "Gestionar secciones y clases escolares",
+    "addSection": "Agregar Sección",
+    "searchSections": "Buscar secciones...",
+    "name": "Nombre",
+    "gradeLevel": "Nivel de Grado",
+    "capacity": "Capacidad",
+    "status": "Estado",
+    "levels": {
+      "Todoslosniveles": "Todos los Niveles",
+      "Primaria": "Primaria",
+      "Secondaria": "Secundaria"
+    },
+    "statusOptions": {
+      "Activo": "Activo",
+      "Inactivo": "Inactivo"
+    }
+  },
+  "timeSlots": {
+    "errorLoading": "Error al cargar franjas horarias",
+    "retry": "Reintentar",
+    "title": "Franjas Horarias",
+    "subtitle": "Gestionar franjas horarias disponibles para clases",
+    "newTimeSlot": "Nueva Franja Horaria",
+    "noTimeSlots": "No hay franjas horarias",
+    "createFirstTimeSlot": "Comienza creando una nueva franja horaria.",
+    "name": "Nombre",
+    "schedule": "Horario",
+    "type": "Tipo",
+    "status": "Estado",
+    "actions": "Acciones",
+    "viewDetails": "Ver detalles",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar esta franja horaria?",
+    "deleteError": "Error al eliminar la franja horaria",
+    "types": {
+      "Class": "Clase",
+      "Break": "Descanso",
+      "Lunch": "Almuerzo"
+    },
+    "statusOptions": {
+      "Active": "Activo",
+      "Inactive": "Inactivo"
+    }
+  },
+  "attendance": {
+    "title": "Control de Asistencia",
+    "subtitle": "Gestiona la asistencia de los estudiantes por sección.",
+    "date": "Fecha",
+    "section": "Sección",
+    "selectSectionPrompt": "Por favor, selecciona una sección para ver los estudiantes.",
+    "noStudentsInSection": "No hay estudiantes en esta sección.",
+    "errorLoadingStudents": "Error cargando estudiantes",
+    "attendanceRegisteredSuccess": "Asistencia registrada exitosamente.",
+    "attendanceRegisteredError": "Error al registrar la asistencia.",
+    "statusOptions": {
+      "Presente": "Presente",
+      "Tardanza": "Tardanza",
+      "Ausente": "Ausente",
+      "Justificado": "Justificado"
+    },
+    "monthlyReport": "Reporte Mensual de Asistencia",
+    "selectMonth": "Selecciona un mes",
+    "selectYear": "Selecciona un año",
+    "selectSection": "Selecciona una sección",
+    "generateReport": "Generar Reporte",
+    "noReportData": "No hay datos de reporte para los filtros seleccionados.",
+    "totalPresent": "Total Presentes",
+    "totalAbsent": "Total Ausentes",
+    "totalLate": "Total Tardanzas",
+    "totalJustified": "Total Justificados",
+    "status": "Estado"
+  },
+  "student": {
+    "name": "Nombre del Estudiante"
+  },
+  "attendanceRecords": {
+    "title": "Registros de Asistencia",
+    "subtitle": "Visualiza y gestiona los registros de asistencia de los estudiantes.",
+    "filters": "Filtros",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Fin",
+    "section": "Sección",
+    "allSections": "Todas las Secciones",
+    "student": "Estudiante",
+    "allStudents": "Todos los Estudiantes",
+    "table": {
+      "student": "Estudiante",
+      "section": "Sección",
+      "date": "Fecha",
+      "status": "Estado"
+    },
+    "noRecords": "No se encontraron registros de asistencia."
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "showing": "Mostrando",
+    "to": "a",
+    "of": "de",
+    "results": "resultados",
+    "itemsPerPage": "Elementos por página"
+  },
+  "signOut": "Cerrar Sesión"
+}

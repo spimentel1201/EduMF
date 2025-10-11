@@ -3,11 +3,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 export interface IUser extends Document {
-  name: string;
-  email: string;
-  password: string;
-  role: 'admin' | 'teacher' | 'student';
+  firstName: string;
+  lastName: string;
   dni: string;
+  gender?: 'male' | 'female' | 'other';
+  birthdate?: Date;
+  email?: string;
+  password?: string;
+  role: 'admin' | 'teacher' | 'student';
   status: 'active' | 'inactive';
   createdAt: Date;
   updatedAt: Date;
@@ -17,35 +20,49 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema(
   {
-    name: {
+    firstName: {
       type: String,
       required: [true, 'El nombre es requerido'],
       trim: true,
     },
-    email: {
+    lastName: {
       type: String,
-      required: [true, 'El email es requerido'],
-      unique: true,
+      required: [true, 'El apellido es requerido'],
       trim: true,
-      lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Por favor ingrese un email válido'],
-    },
-    password: {
-      type: String,
-      required: [true, 'La contraseña es requerida'],
-      minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
-      select: false,
-    },
-    role: {
-      type: String,
-      enum: ['admin', 'teacher', 'student'],
-      default: 'student',
     },
     dni: {
       type: String,
       required: [true, 'El DNI es requerido'],
       unique: true,
+      trim: true
+    },
+    gender: {
+      type: String,
+      enum: ['M', 'F', 'O'],
+      required: false,
+    },
+    birthdate: {
+      type: Date,
+      required: false,
+    },
+    email: {
+      type: String,
+      unique: true,
       trim: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, 'Por favor ingrese un email válido'],
+      required: [true, 'El email es requerido'],
+    },
+    password: {
+      type: String,
+      minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
+      select: false,
+      required: false,
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'teacher', 'student'],
+      default: 'student',
     },
     status: {
       type: String,
@@ -58,9 +75,8 @@ const UserSchema: Schema = new Schema(
   }
 );
 
-// Middleware para encriptar la contraseña antes de guardar
 UserSchema.pre<IUser>('save', async function (next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return next();
   }
 
@@ -73,12 +89,13 @@ UserSchema.pre<IUser>('save', async function (next) {
   }
 });
 
-// Método para comparar contraseñas
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  if (!this.password) {
+    return false;
+  }
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Método para generar token JWT
 UserSchema.methods.generateAuthToken = function (): string {
   const jwtSecret = process.env.JWT_SECRET || 'defaultsecret';
   
@@ -92,5 +109,4 @@ UserSchema.methods.generateAuthToken = function (): string {
 };
 
 const User = mongoose.model<IUser>('User', UserSchema);
-
 export default User;

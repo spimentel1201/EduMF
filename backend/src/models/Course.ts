@@ -57,7 +57,6 @@ const CourseSchema: Schema = new Schema(
   }
 );
 
-// Transform para convertir _id a id
 CourseSchema.set('toJSON', {
   transform: function(doc, ret) {
     ret.id = ret._id;
@@ -67,7 +66,6 @@ CourseSchema.set('toJSON', {
   }
 });
 
-// Índices para búsquedas eficientes
 CourseSchema.index({ code: 1 });
 CourseSchema.index({ level: 1, grade: 1 });
 CourseSchema.index({ status: 1 });

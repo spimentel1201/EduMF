@@ -5,7 +5,9 @@ import {
   createAttendance,
   updateAttendance,
   deleteAttendance,
-  validateAttendance
+  validateAttendance,
+  bulkCreateAttendances,
+  getMonthlyAttendanceReport
 } from '../controllers/attendanceController';
 import { protect, authorize } from '../middleware/authMiddleware';
 
@@ -15,6 +17,12 @@ router
   .route('/')
   .get(protect, getAttendances)
   .post(protect, validateAttendance, createAttendance);
+
+router.post('/bulk', protect, bulkCreateAttendances);
+
+router.get('/report/monthly', getMonthlyAttendanceReport);
+
+router.get('/attendance-records', protect, getAttendances);
 
 router
   .route('/:id')

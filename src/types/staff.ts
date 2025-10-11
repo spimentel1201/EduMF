@@ -117,7 +117,6 @@ export const TIME_SLOTS = [
   '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
 ];
 
-// Funciones de utilidad
 export const getRoleDescription = (role: StaffRole): string => {
   const descriptions: Record<StaffRole, string> = {
     'Docente': 'Personal que imparte clases en el nivel educativo',

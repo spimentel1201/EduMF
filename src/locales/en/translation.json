@@ -1,0 +1,267 @@
+{
+  "login": {
+    "title": "Welcome to EduMF",
+    "subtitle": "Sign in to your account",
+    "username": "Username",
+    "password": "Password",
+    "signIn": "Sign In",
+    "forgotPassword": "Forgot your password?",
+    "scanQrCode": "Scan QR Code",
+    "signInWithDni": "Sign in with DNI and password",
+    "dniMinLength": "DNI must be at least 8 characters",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "loginTab": "Login",
+    "loginError": "Login error. Please check your credentials.",
+    "scanQrInstructions": "Scan the QR code to register your attendance.",
+    "cancel": "Cancel",
+    "currentTime": "Current Time",
+    "attendanceRegistered": "Attendance Registered",
+    "scannedQr": "Scanned QR",
+    "registeredAt": "Registered at",
+    "notificationWillClose": "This notification will close automatically in a few seconds.",
+    "instructions": "Instructions",
+    "scanQrInstructionsDetail1": "1. Make sure the QR code is well lit and not damaged.",
+    "scanQrInstructionsDetail2": "2. Place the QR code within the camera frame.",
+    "qrTab": "QR",
+    "dniLabel": "DNI",
+    "passwordLabel": "Password",
+    "signingIn": "Signing In...",
+    "qrScanInstruction": "Scan the provided QR code to log in.",
+    "or": "Or"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome",
+    "totalStudents": "Total Students",
+    "totalTeachers": "Total Teachers",
+    "totalSections": "Total Sections",
+    "takeAttendance": "Take Attendance",
+    "viewSchedules": "View Schedules",
+    "manageEnrollments": "Manage Enrollments",
+    "quickActions": "Quick Actions",
+    "viewAll": "View All"
+  },
+  "administration": {
+    "title": "Administration",
+    "users": {
+      "title": "Users"
+    },
+    "newUser": {
+      "title": "New User"
+    },
+    "staff": {
+      "title": "Staff"
+    }
+  },
+  "academic": {
+    "title": "Academic",
+    "schedules": {
+      "title": "Schedules"
+    },
+    "timeSlots": {
+      "title": "Time Slots"
+    },
+    "schoolYears": {
+      "title": "School Years"
+    },
+    "sections": {
+      "title": "Sections"
+    },
+    "courses": {
+      "title": "Courses"
+    }
+  },
+  "enrollments": {
+    "title": "Enrollments",
+    "individualEnrollment": "Individual Enrollment",
+    "bulkEnrollment": "Bulk Enrollment"
+  },
+  "users": {
+    "adminRole": "Administrator",
+    "errorLoading": "Error loading users",
+    "title": "Users",
+    "subtitle": "Manage school users and their roles",
+    "addUser": "Add User",
+    "searchUsers": "Search users...",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "allRoles": "All Roles",
+    "roles": {
+      "Admin": "Administrator",
+      "Teacher": "Teacher",
+      "Student": "Student"
+    },
+    "statusOptions": {
+      "Active": "Active",
+      "Inactive": "Inactive"
+    }
+  },
+  "staff": {
+    "errorLoading": "Error loading staff",
+    "title": "Staff",
+    "subtitle": "Manage school staff members",
+    "addStaff": "Add Staff",
+    "searchStaff": "Search staff...",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions",
+    "viewDetails": "View details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this staff member?",
+    "deleteError": "Error deleting staff member",
+    "noStaff": "No staff members",
+    "createFirstStaff": "Start by adding a new staff member.",
+    "allRoles": "All Roles",
+    "roles": {
+      "teacher": "Teacher",
+      "administrator": "Administrator",
+      "support": "Support",
+      "psychologist": "Psychologist",
+      "maintenance": "Maintenance",
+      "cist": "CIST",
+      "direction": "Direction",
+      "auxiliary": "Auxiliary"
+    },
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending"
+    },
+    "allStatuses": "All Statuses"
+  },
+  "schedules": {
+    "errorLoading": "Error loading schedules",
+    "title": "Course Schedules",
+    "subtitle": "Manage course schedules and timetables",
+    "addSchedule": "Add Schedule",
+    "searchSchedules": "Search schedules...",
+    "allSections": "All Sections",
+    "time": "Time",
+    "course": "Course",
+    "teacher": "Teacher",
+    "day": "Day",
+    "section": "Section",
+    "days": {
+      "AllDays": "All Days",
+      "Monday": "Monday",
+      "Tuesday": "Tuesday",
+      "Wednesday": "Wednesday",
+      "Thursday": "Thursday",
+      "Friday": "Friday"
+    }
+  },
+  "sections": {
+    "errorLoading": "Error loading sections",
+    "title": "Sections",
+    "subtitle": "Manage school sections and classes",
+    "addSection": "Add Section",
+    "searchSections": "Search sections...",
+    "name": "Name",
+    "gradeLevel": "Grade Level",
+    "capacity": "Capacity",
+    "status": "Status",
+    "levels": {
+      "Todoslosniveles": "All Levels",
+      "Primaria": "Primary",
+      "Secondaria": "Secondary"
+    },
+    "statusOptions": {
+      "Activo": "Active",
+      "Inactivo": "Inactive"
+    }
+  },
+  "timeSlots": {
+    "errorLoading": "Error loading time slots",
+    "retry": "Retry",
+    "title": "Time Slots",
+    "subtitle": "Manage available time slots for classes",
+    "newTimeSlot": "New Time Slot",
+    "noTimeSlots": "No time slots",
+    "createFirstTimeSlot": "Start by creating a new time slot.",
+    "name": "Name",
+    "schedule": "Schedule",
+    "type": "Type",
+    "status": "Status",
+    "actions": "Actions",
+    "viewDetails": "View details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this time slot?",
+    "deleteError": "Error deleting time slot",
+    "types": {
+      "Class": "Class",
+      "Break": "Break",
+      "Lunch": "Lunch"
+    },
+    "statusOptions": {
+      "Active": "Active",
+      "Inactive": "Inactive"
+    }
+  },
+  "attendance": {
+    "title": "Attendance Control",
+    "subtitle": "Manage student attendance by section.",
+    "date": "Date",
+    "section": "Section",
+    "selectSectionPrompt": "Please select a section to view students.",
+    "noStudentsInSection": "No students in this section.",
+    "errorLoadingStudents": "Error loading students",
+    "attendanceRegisteredSuccess": "Attendance registered successfully.",
+    "attendanceRegisteredError": "Error registering attendance.",
+    "statusOptions": {
+      "Presente": "Present",
+      "Tardanza": "Late",
+      "Ausente": "Absent",
+      "Justificado": "Justified"
+    },
+    "monthlyReport": "Monthly Attendance Report",
+    "selectMonth": "Select a month",
+    "selectYear": "Select a year",
+    "selectSection": "Select a section",
+    "generateReport": "Generate Report",
+    "noReportData": "No report data for the selected filters.",
+    "totalPresent": "Total Present",
+    "totalAbsent": "Total Absent",
+    "totalLate": "Total Late",
+    "totalJustified": "Total Justified",
+    "status": "Status"
+  },
+  "student": {
+    "name": "Student Name"
+  },
+  "attendanceRecords": {
+    "title": "Attendance Records",
+    "subtitle": "View and manage student attendance records.",
+    "filters": "Filters",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "section": "Section",
+    "allSections": "All Sections",
+    "student": "Student",
+    "allStudents": "All Students",
+    "table": {
+      "student": "Student",
+      "section": "Section",
+      "date": "Date",
+      "status": "Status"
+    },
+    "noRecords": "No attendance records found."
+  },
+  "signOut": "Sign Out",
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "results": "results",
+    "itemsPerPage": "Items per page"
+  }
+}

@@ -4,7 +4,6 @@ export interface ITimeSlot extends Document {
   name: string;
   startTime: string;
   endTime: string;
-  //dayOfWeek: number; // Añadido
   type: string;
   status: string;
   createdAt: Date;
@@ -28,12 +27,6 @@ const TimeSlotSchema: Schema = new Schema(
       required: [true, 'La hora de fin es requerida'],
       match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (HH:MM)'],
     },
-    /*dayOfWeek: { // Añadido
-      type: Number,
-      required: [true, 'El día de la semana es requerido'],
-      min: 1,
-      max: 7,
-    },¨*/
     type: {
       type: String,
       enum: ['Clase', 'Receso', 'Almuerzo'],
@@ -50,7 +43,6 @@ const TimeSlotSchema: Schema = new Schema(
   }
 );
 
-// Validación para asegurar que la hora de fin sea posterior a la hora de inicio
 TimeSlotSchema.pre<ITimeSlot>('validate', function (next) {
   const startHour = parseInt(this.startTime.split(':')[0]);
   const startMinute = parseInt(this.startTime.split(':')[1]);
@@ -63,7 +55,6 @@ TimeSlotSchema.pre<ITimeSlot>('validate', function (next) {
   next();
 });
 
-// Validación para asegurar que no haya superposición de horarios
 TimeSlotSchema.pre<ITimeSlot>('save', async function (next) {
   const overlappingSlots = await this.model('TimeSlot').find({
     _id: { $ne: this._id }, // Excluir el propio horario
@@ -80,10 +71,9 @@ TimeSlotSchema.pre<ITimeSlot>('save', async function (next) {
   next();
 });
 
-// Validación para asegurar que no haya superposición de horarios para el mismo día
 TimeSlotSchema.pre<ITimeSlot>('save', async function (next) {
   const overlappingSlots = await this.model('TimeSlot').find({
-    _id: { $ne: this._id }, // Excluir el propio horario
+    _id: { $ne: this._id },
     $or: [
       { startTime: { $lt: this.endTime }, endTime: { $gt: this.startTime } },
     ],
@@ -96,10 +86,9 @@ TimeSlotSchema.pre<ITimeSlot>('save', async function (next) {
   next();
 });
 
-// Validación para asegurar que no haya superposición de horarios para el mismo día y tipo
 TimeSlotSchema.pre<ITimeSlot>('save', async function (next) {
   const overlappingSlots = await this.model('TimeSlot').find({
-    _id: { $ne: this._id }, // Excluir el propio horario
+    _id: { $ne: this._id },
     type: this.type,
     $or: [
       { startTime: { $lt: this.endTime }, endTime: { $gt: this.startTime } },
@@ -113,7 +102,6 @@ TimeSlotSchema.pre<ITimeSlot>('save', async function (next) {
   next();
 });
 
-// Transform para convertir _id a id
 TimeSlotSchema.set('toJSON', {
   transform: function(doc, ret) {
     ret.id = ret._id;
@@ -123,7 +111,6 @@ TimeSlotSchema.set('toJSON', {
   }
 });
 
-// Índices para búsquedas eficientes
 TimeSlotSchema.index({ name: 1 }, { unique: true });
 TimeSlotSchema.index({ type: 1 });
 TimeSlotSchema.index({ status: 1 });

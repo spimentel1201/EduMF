@@ -1,59 +1,38 @@
 import express from 'express';
+import { registerUser, bulkRegisterUsers, getAllUsers } from '../controllers/userController';
 import { body } from 'express-validator';
-import * as userController from '../controllers/userController';
-import { protect, authorize } from '../middleware/authMiddleware';
+import multer from 'multer';
 
 const router = express.Router();
 
-// Validaciones para crear/actualizar usuario
-const userValidation = [
-  body('name').notEmpty().withMessage('El nombre es requerido'),
-  body('email').isEmail().withMessage('Email inválido'),
-  body('role')
-    .isIn(['admin', 'teacher', 'student'])
-    .withMessage('Rol inválido'),
-  body('dni')
-    .notEmpty()
-    .withMessage('El DNI es requerido')
-    .isLength({ min: 8, max: 8 })
-    .withMessage('El DNI debe tener 8 dígitos')
-    .isNumeric()
-    .withMessage('El DNI debe contener solo números'),
-  body('status')
-    .optional()
-    .isIn(['active', 'inactive'])
-    .withMessage('Estado inválido'),
-];
+// Configuración de Multer para la subida de archivos
+const upload = multer({ dest: 'uploads/' }); // 'uploads/' es la carpeta donde se guardarán temporalmente los archivos
 
-// Validación para crear usuario (incluye contraseña)
-const createUserValidation = [
-  ...userValidation,
-  body('password')
-    .isLength({ min: 6 })
-    .withMessage('La contraseña debe tener al menos 6 caracteres'),
-];
+// @route   POST api/users/register
+// @desc    Register a new user (student by default)
+// @access  Public
+router.post(
+  '/register',
+  [
+    body('firstName', 'El nombre es requerido').not().isEmpty(),
+    body('lastName', 'El apellido es requerido').not().isEmpty(),
+    body('dni', 'El DNI es requerido').not().isEmpty(),
+    body('dni', 'El DNI debe tener 8 dígitos').isLength({ min: 8, max: 8 }),
+    body('email', 'Por favor, incluya un email válido').optional().isEmail(),
+    body('password', 'La contraseña debe tener 6 o más caracteres').optional().isLength({ min: 6 }),
+    body('gender', 'El género es requerido').optional().not().isEmpty(),
+    body('birthdate', 'La fecha de nacimiento es requerida').optional().not().isEmpty(),
+  ],
+  registerUser
+);
 
-// Validación para cambiar contraseña
-const changePasswordValidation = [
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('La nueva contraseña debe tener al menos 6 caracteres'),
-];
+// @route   POST api/users/bulk-register
+// @desc    Bulk register users from CSV/Excel
+// @access  Private (Admin only) - Se añadirá middleware de autenticación y autorización
+router.post('/bulk-register', upload.single('file'), bulkRegisterUsers); // 'file' es el nombre del campo en el formulario que contendrá el archivo
 
-// Aplicar middleware de protección y autorización a todas las rutas
-router.use(protect);
-router.use(authorize('admin'));
-
-// Rutas para gestión de usuarios
-router.route('/')
-  .get(userController.getUsers)
-  .post(createUserValidation, userController.createUser);
-
-router.route('/:id')
-  .get(userController.getUserById)
-  .put(userValidation, userController.updateUser)
-  .delete(userController.deleteUser);
-
-router.put('/:id/change-password', changePasswordValidation, userController.changePassword);
+// @route   GET api/users
+// @desc    Get all users
+router.get('/', getAllUsers);
 
 export default router;

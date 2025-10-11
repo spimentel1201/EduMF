@@ -10,7 +10,6 @@ export const validateTimeSlot = [
     .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Formato de hora inválido (HH:MM)'),
   body('endTime').notEmpty().withMessage('La hora de fin es requerida')
     .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Formato de hora inválido (HH:MM)'),
-  //body('dayOfWeek').isInt({ min: 1, max: 7 }).withMessage('El día de la semana debe ser un número entre 1 y 7'),
   body('status').optional().isString()
 ];
 
@@ -23,7 +22,6 @@ export const getTimeSlots = async (req: Request, res: Response, next: NextFuncti
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    // Filtros
     const filter: any = {};
     if (req.query.dayOfWeek) {
       filter.dayOfWeek = parseInt(req.query.dayOfWeek as string);
@@ -32,7 +30,6 @@ export const getTimeSlots = async (req: Request, res: Response, next: NextFuncti
       filter.status = req.query.status === 'true';
     }
 
-    // Búsqueda por nombre
     if (req.query.search) {
       filter.name = { $regex: req.query.search, $options: 'i' };
     }
@@ -90,20 +87,17 @@ export const createTimeSlot = async (req: Request, res: Response, next: NextFunc
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Verificar si ya existe un time slot con el mismo nombre
     const existingTimeSlot = await TimeSlot.findOne({ name: req.body.name });
     if (existingTimeSlot) {
       return next(new ApiError('Ya existe un time slot con este nombre', 400));
     }
 
-    // Verificar que la hora de fin sea posterior a la hora de inicio
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     if (startTime >= endTime) {
       return next(new ApiError('La hora de fin debe ser posterior a la hora de inicio', 400));
     }
 
-    // Verificar si hay solapamiento con otros time slots del mismo día
     const overlappingTimeSlot = await TimeSlot.findOne({
       dayOfWeek: req.body.dayOfWeek,
       $or: [

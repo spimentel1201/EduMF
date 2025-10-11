@@ -21,7 +21,6 @@ import { sectionService } from '@/services/sectionService';
 import { schoolYearService } from '@/services/schoolYearService';
 import { timeSlotService } from '@/services/timeSlotService';
 
-// Solo días laborables (lunes a viernes)
 const WORK_DAYS: DayOfWeek[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 const SCHEDULE_STATUSES: CourseScheduleStatus[] = ['Activo', 'Inactivo'];
 
@@ -70,7 +69,6 @@ export default function NewSchedulePage() {
   const selectedDay = watch('dayOfWeek');
   const selectedClassroom = watch('classroom');
 
-  // Queries para obtener datos
   const { data: staffData, isLoading: isLoadingStaff, error: staffError } = useQuery({
     queryKey: ['staff'],
     queryFn: staffService.getAll,
@@ -110,9 +108,8 @@ export default function NewSchedulePage() {
 
   const onSubmit = (data: ScheduleFormDataLocal) => {
 
-    // Validate that we have actual IDs, not display names
     const validateId = (id: string, fieldName: string) => {
-      if (!id || id.length < 10) { // ObjectIds are typically 24 characters, but at least should be longer than display names
+      if (!id || id.length < 10) {
         console.error(`Invalid ${fieldName} ID:`, id);
         alert(`Error: ${fieldName} no válido. Por favor, seleccione una opción válida.`);
         return false;

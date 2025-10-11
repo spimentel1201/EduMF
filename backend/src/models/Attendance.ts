@@ -72,7 +72,6 @@ const AttendanceSchema: Schema = new Schema(
   }
 );
 
-// Índices para búsquedas eficientes
 AttendanceSchema.index({ date: 1, sectionId: 1, courseScheduleId: 1 });
 AttendanceSchema.index({ teacherId: 1, date: 1 });
 

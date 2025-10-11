@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { attendanceService } from '../services/attendanceService';
 import { sectionService } from '../services/sectionService';
-import { enrollmentService } from '../services/enrollmentService'; // Importar enrollmentService
+import { enrollmentService } from '../services/enrollmentService';
 import { useTranslation } from 'react-i18next';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -39,7 +39,7 @@ export default function AttendancePage() {
       if (!selectedSection) return Promise.resolve([]);
       return enrollmentService.getStudentsBySection(selectedSection);
     },
-    enabled: !!selectedSection, // Solo ejecutar si hay una sección seleccionada
+    enabled: !!selectedSection,
   });
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function AttendancePage() {
         if (prevAttendance.length > 0) {
           return [];
         }
-        return prevAttendance; // No change, return previous state
+        return prevAttendance;
       });
     }
   }, [students]);
@@ -111,7 +111,6 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-gray-700">{t('attendance.date')}</label>
@@ -152,7 +151,6 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* Students List for Attendance */}
       {selectedSection && students.length > 0 ? (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-300">

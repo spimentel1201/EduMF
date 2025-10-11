@@ -4,10 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import {staffService} from '../services/staffService';
 import { useTranslation } from 'react-i18next';
-import { StaffMember } from '@/types/staff';
 import { STAFF_ROLES, STAFF_STATUSES } from '@/types/staff';
 
-// Función auxiliar para convertir el rol del backend a la clave de traducción
 const getStaffRoleTranslationKey = (role: string) => {
   switch (role) {
     case 'Docente':
@@ -23,11 +21,10 @@ const getStaffRoleTranslationKey = (role: string) => {
     case 'Auxiliar':
       return 'auxiliary';
     default:
-      return role.toLowerCase(); // Fallback si no se encuentra una traducción específica
+      return role.toLowerCase();
   }
 };
 
-// Función auxiliar para convertir el estado del backend a la clave de traducción
 const getStaffStatusTranslationKey = (status: string) => {
   switch (status) {
     case 'Activo':
@@ -99,7 +96,6 @@ export default function StaffPage() {
         </div>
       </div>
 
-      {/* Search and filter */}
       <div className="space-y-4">
         <div className="relative">
           <div className="relative rounded-md shadow-sm">
@@ -144,8 +140,6 @@ export default function StaffPage() {
           </select>
         </div>
       </div>
-
-      {/* Staff table */}
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">

@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { ApiError } from './errorHandler';
 import User from '../models/User';
 
-// Extender la interfaz Request para incluir el usuario autenticado
 declare global {
   namespace Express {
     interface Request {

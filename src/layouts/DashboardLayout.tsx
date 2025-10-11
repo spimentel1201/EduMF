@@ -5,7 +5,6 @@ import {
   AcademicCapIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
-  BookOpenIcon,
   CalendarDaysIcon,
   ChartPieIcon,
   ChevronDownIcon,
@@ -13,7 +12,6 @@ import {
   DocumentTextIcon,
   HomeIcon,
   UserCircleIcon,
-  UserGroupIcon,
   UsersIcon,
   XMarkIcon,
   ClockIcon,
@@ -25,7 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '@/components/LanguageSwitcher'; // Importar el componente LanguageSwitcher
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface NavigationItem {
   name: string;
@@ -189,7 +187,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                  <LanguageSwitcher /> {/* Añadir el componente LanguageSwitcher aquí */}
+                  <LanguageSwitcher />
                   <Menu as="div" className="relative ml-3">
                     <div>
                       <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">

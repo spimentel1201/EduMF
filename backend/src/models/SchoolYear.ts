@@ -36,7 +36,6 @@ const SchoolYearSchema: Schema = new Schema(
   }
 );
 
-// Validación para asegurar que la fecha de fin sea posterior a la fecha de inicio
 SchoolYearSchema.pre<ISchoolYear>('validate', function (next) {
   if (this.endDate <= this.startDate) {
     this.invalidate('endDate', 'La fecha de fin debe ser posterior a la fecha de inicio');
@@ -44,7 +43,6 @@ SchoolYearSchema.pre<ISchoolYear>('validate', function (next) {
   next();
 });
 
-// Transform para convertir _id a id
 SchoolYearSchema.set('toJSON', {
   transform: function(doc, ret) {
     ret.id = ret._id;
@@ -54,7 +52,6 @@ SchoolYearSchema.set('toJSON', {
   }
 });
 
-// Índices para búsquedas eficientes
 SchoolYearSchema.index({ name: 1 });
 SchoolYearSchema.index({ status: 1 });
 SchoolYearSchema.index({ startDate: 1, endDate: 1 });

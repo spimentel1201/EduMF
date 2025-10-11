@@ -5,7 +5,6 @@ import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Validaciones para crear/actualizar año escolar
 const schoolYearValidation = [
   body('name')
     .notEmpty()
@@ -32,7 +31,6 @@ const schoolYearValidation = [
     .withMessage('Estado inválido'),
 ];
 
-// Aplicar middleware de protección a todas las rutas
 router.use(protect);
 
 // Rutas públicas para usuarios autenticados

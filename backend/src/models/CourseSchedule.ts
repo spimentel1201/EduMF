@@ -35,7 +35,7 @@ const CourseScheduleSchema: Schema = new Schema(
       ref: 'TimeSlot',
       required: [true, 'La franja horaria es requerida'],
     },
-    schoolYearId: { // Añadir este campo
+    schoolYearId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SchoolYear',
       required: [true, 'El año escolar es requerido'],
@@ -61,7 +61,6 @@ const CourseScheduleSchema: Schema = new Schema(
   }
 );
 
-// Transform para convertir _id a id
 CourseScheduleSchema.set('toJSON', {
   transform: function(doc, ret) {
     ret.id = ret._id;
@@ -71,7 +70,6 @@ CourseScheduleSchema.set('toJSON', {
   }
 });
 
-// Índices para evitar conflictos de horario
 CourseScheduleSchema.index({ 
   teacherId: 1, 
   dayOfWeek: 1, 

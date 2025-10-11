@@ -16,7 +16,7 @@ type StudentAttendanceDetail = {
 };
 
 type AttendanceReportData = {
-  _id: string; // La fecha del reporte
+  _id: string;
   students: StudentAttendanceDetail[];
   totalPresent: number;
   totalAbsent: number;
@@ -45,7 +45,6 @@ export default function MonthlyAttendanceReportPage() {
     fetchSections();
   }, []);
 
-  // Obtener reporte cuando cambian los filtros
   useEffect(() => {
     if (selectedSection) {
       fetchReport();

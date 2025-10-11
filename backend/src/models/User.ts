@@ -6,16 +6,16 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   dni: string;
-  gender?: 'male' | 'female' | 'other'; // Nuevo campo
-  birthdate?: Date; // Nuevo campo
-  email?: string; // Ahora opcional
-  password?: string; // Ahora opcional
+  gender?: 'male' | 'female' | 'other';
+  birthdate?: Date;
+  email?: string;
+  password?: string;
   role: 'admin' | 'teacher' | 'student';
   status: 'active' | 'inactive';
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>; // Ya no es opcional
-  generateAuthToken(): string; // Ya no es opcional
+  comparePassword(candidatePassword: string): Promise<boolean>;
+  generateAuthToken(): string;
 }
 
 const UserSchema: Schema = new Schema(
@@ -39,11 +39,11 @@ const UserSchema: Schema = new Schema(
     gender: {
       type: String,
       enum: ['M', 'F', 'O'],
-      required: false, // Opcional
+      required: false,
     },
     birthdate: {
       type: Date,
-      required: false, // Opcional
+      required: false,
     },
     email: {
       type: String,
@@ -51,14 +51,13 @@ const UserSchema: Schema = new Schema(
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Por favor ingrese un email válido'],
-      required: [true, 'El email es requerido'], // Ahora requerido
-      // sparse: true, // Eliminado
+      required: [true, 'El email es requerido'],
     },
     password: {
       type: String,
       minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
       select: false,
-      required: false, // Ahora opcional
+      required: false,
     },
     role: {
       type: String,
@@ -76,7 +75,6 @@ const UserSchema: Schema = new Schema(
   }
 );
 
-// Middleware para encriptar la contraseña antes de guardar
 UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password') || !this.password) {
     return next();
@@ -91,7 +89,6 @@ UserSchema.pre<IUser>('save', async function (next) {
   }
 });
 
-// Método para comparar contraseñas
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   if (!this.password) {
     return false;
@@ -99,7 +96,6 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string):
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Método para generar token JWT
 UserSchema.methods.generateAuthToken = function (): string {
   const jwtSecret = process.env.JWT_SECRET || 'defaultsecret';
   

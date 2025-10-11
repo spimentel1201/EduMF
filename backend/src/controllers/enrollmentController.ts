@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { createEnrollment } from '../services/enrollmentService';
-import User, { IUser } from '../models/User'; // Importar el modelo de Usuario
-import Section from '../models/Section'; // Importar el modelo de Sección
-import SchoolYear from '../models/SchoolYear'; // Importar el modelo de Año Escolar
-import mongoose from 'mongoose'; // Importar mongoose para transacciones
+import User, { IUser } from '../models/User';
+import Section from '../models/Section';
+import SchoolYear from '../models/SchoolYear';
+import mongoose from 'mongoose';
 import Enrollment from '../models/Enrollment';
 import * as XLSX from 'xlsx';
 
@@ -38,15 +38,14 @@ export const bulkEnrollStudents = async (req: Request, res: Response) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    // Extract student data starting from row 12 (index 11)
     const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 11 });
 
     const studentsToEnroll = jsonData.map((row: any) => ({
-      firstName: row[0], // NOMBRES
-      lastName: row[1],  // APELLIDOS
-      dni: row[2],       // DNI
-      gender: row[3],    // GENERO
-      birthDate: row[4], // FECHA_NAC
+      firstName: row[0],
+      lastName: row[1],
+      dni: row[2],
+      gender: row[3],
+      birthDate: row[4],
     }));
 
     const section = await Section.findOne({ name: sectionName }).session(session);
@@ -81,7 +80,7 @@ export const bulkEnrollStudents = async (req: Request, res: Response) => {
             lastName: String(lastName),
             email: generatedEmail,
             role: 'student',
-            password: String(dni), // Contraseña temporal
+            password: String(dni),
           }], { session });
         } else if (student.role !== 'student') {
           throw new Error(`El usuario con DNI ${dni} ya existe pero no es un estudiante.`);
@@ -106,7 +105,7 @@ export const bulkEnrollStudents = async (req: Request, res: Response) => {
           studentId: student._id,
           sectionId: section._id,
           schoolYearId: schoolYear._id,
-          level: section._id, // Asignar el ID de la sección como el nivel
+          level: section._id,
         });
         await enrollment.save({ session });
         createdEnrollments.push(enrollment);
@@ -148,7 +147,7 @@ export const getStudentsBySection = async (req: Request, res: Response) => {
     }
 
     const enrollments = await Enrollment.find({ sectionId })
-      .populate('studentId', 'firstName lastName dni') // Popula solo los campos necesarios del estudiante
+      .populate('studentId', 'firstName lastName dni')
       .exec();
 
     const students = enrollments.map(enrollment => enrollment.studentId);

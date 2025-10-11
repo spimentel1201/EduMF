@@ -5,7 +5,6 @@ import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Validaciones para crear/actualizar curso
 const courseValidation = [
   body('name')
     .notEmpty()
@@ -23,7 +22,6 @@ const courseValidation = [
     .withMessage('Estado inválido'),
 ];
 
-// Aplicar middleware de protección a todas las rutas
 router.use(protect);
 
 // Rutas públicas para usuarios autenticados

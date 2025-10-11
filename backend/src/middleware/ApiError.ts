@@ -1,8 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 
-/**
- * Clase para errores personalizados de la API
- */
 class ApiError extends Error {
   statusCode: number;
   errors?: any;
@@ -50,7 +47,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     });
   }
 
-  // Error no controlado
   return res.status(500).json({
     success: false,
     message: 'Error interno del servidor',

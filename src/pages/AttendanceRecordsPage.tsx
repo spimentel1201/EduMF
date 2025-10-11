@@ -19,7 +19,6 @@ export default function AttendanceRecordsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Placeholder for filters state
   const [filters, setFilters] = useState<AttendanceFilterParams>({
     startDate: '',
     endDate: '',
@@ -64,7 +63,7 @@ export default function AttendanceRecordsPage() {
 
   const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when items per page changes
+    setCurrentPage(1);
   };
 
   return (
@@ -78,12 +77,10 @@ export default function AttendanceRecordsPage() {
         </div>
       </div>
 
-      {/* Filters Section */}
       <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
         <div className="px-4 py-6 sm:p-8">
           <h2 className="text-base font-semibold leading-7 text-gray-900">{t('attendanceRecords.filters')}</h2>
           <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-            {/* Date Range Filter */}
             <div className="sm:col-span-3">
               <label htmlFor="startDate" className="block text-sm font-medium leading-6 text-gray-900">
                 {t('attendanceRecords.startDate')}
@@ -115,7 +112,6 @@ export default function AttendanceRecordsPage() {
               </div>
             </div>
 
-            {/* Section Filter */}
             <div className="sm:col-span-3">
               <label htmlFor="section" className="block text-sm font-medium leading-6 text-gray-900">
                 {t('attendanceRecords.section')}
@@ -138,7 +134,6 @@ export default function AttendanceRecordsPage() {
               </div>
             </div>
 
-            {/* Student Filter */}
             <div className="sm:col-span-3">
               <label htmlFor="student" className="block text-sm font-medium leading-6 text-gray-900">
                 {t('attendanceRecords.student')}
@@ -161,7 +156,6 @@ export default function AttendanceRecordsPage() {
               </div>
             </div>
 
-            {/* Items per page Filter */}
             <div className="sm:col-span-3">
               <label htmlFor="itemsPerPage" className="block text-sm font-medium leading-6 text-gray-900">
                 {t('common.itemsPerPage')}
@@ -185,7 +179,6 @@ export default function AttendanceRecordsPage() {
         </div>
       </div>
 
-      {/* Attendance Records Table */}
       <div className="mt-8 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -239,7 +232,6 @@ export default function AttendanceRecordsPage() {
         </div>
       </div>
 
-      {/* Pagination Controls */}
       <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
           <button

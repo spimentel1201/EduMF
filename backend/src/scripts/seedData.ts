@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import { connectDB, closeDB } from '../config/database';
+import { closeDB } from '../config/database';
 import User from '../models/User';
 import Staff from '../models/Staff';
 import SchoolYear from '../models/SchoolYear';
@@ -11,10 +10,8 @@ import Attendance from '../models/Attendance';
 
 const seedData = async () => {
   try {
-    // await connectDB(); // Eliminar esta línea
     console.log('🌱 Iniciando carga de datos iniciales...');
 
-    // 1. Crear usuario administrador
     const adminUser = await User.create({
       firstName: 'Administrador',
       lastName: 'Principal',
@@ -28,7 +25,6 @@ const seedData = async () => {
     });
     console.log('✅ Usuario administrador creado:', adminUser.email);
 
-    // 2. Crear usuarios de ejemplo
     const teacherUser = await User.create({
       firstName: 'Profesor',
       lastName: 'Ejemplo',
@@ -53,7 +49,6 @@ const seedData = async () => {
       status: 'active'
     });
 
-    // 3. Crear personal docente
     const teacherStaff = await Staff.create({
       dni: '87654321',
       firstName: 'Carlos',
@@ -80,16 +75,14 @@ const seedData = async () => {
       userId: adminUser._id
     });
 
-    // 4. Crear año escolar
     const currentYear = new Date().getFullYear();
     const schoolYear = await SchoolYear.create({
       name: `${currentYear}-${currentYear + 1}`,
-      startDate: new Date(currentYear, 2, 1), // 1 de marzo
-      endDate: new Date(currentYear + 1, 11, 15), // 15 de diciembre
+      startDate: new Date(currentYear, 2, 1),
+      endDate: new Date(currentYear + 1, 11, 15),
       status: 'Activo'
     });
 
-    // 5. Crear secciones
     const sections = await Section.create([
       {
         name: '1A Secundaria',
@@ -115,7 +108,6 @@ const seedData = async () => {
       }
     ]);
 
-    // 6. Crear cursos
     const courses = await Course.create([
       {
         name: 'Matemáticas',
@@ -146,7 +138,6 @@ const seedData = async () => {
       }
     ]);
 
-    // 7. Crear franjas horarias
     const timeSlots = await TimeSlot.create([
       {
         name: 'Primera hora',
@@ -171,14 +162,13 @@ const seedData = async () => {
       }
     ]);
 
-    // 8. Crear horarios de cursos
     const schedules = await CourseSchedule.create([
       {
         courseId: courses[0]._id,
         sectionId: sections[0]._id,
         teacherId: teacherStaff._id,
         timeSlotId: timeSlots[0]._id,
-        schoolYearId: schoolYear._id, // Añadir schoolYearId
+        schoolYearId: schoolYear._id,
         dayOfWeek: 'Lunes',
         classroom: 'A-101',
         status: 'Activo'
@@ -188,7 +178,7 @@ const seedData = async () => {
         sectionId: sections[0]._id,
         teacherId: teacherStaff._id,
         timeSlotId: timeSlots[1]._id,
-        schoolYearId: schoolYear._id, // Añadir schoolYearId
+        schoolYearId: schoolYear._id,
         dayOfWeek: 'Martes',
         classroom: 'A-101',
         status: 'Activo'
@@ -198,14 +188,13 @@ const seedData = async () => {
         sectionId: sections[0]._id,
         teacherId: teacherStaff._id,
         timeSlotId: timeSlots[2]._id,
-        schoolYearId: schoolYear._id, // Añadir schoolYearId
+        schoolYearId: schoolYear._id,
         dayOfWeek: 'Miércoles',
         classroom: 'A-102',
         status: 'Activo'
       }
     ]);
 
-    // 9. Crear asistencia de ejemplo
     const attendance = await Attendance.create({
       date: new Date(),
       sectionId: sections[0]._id,
@@ -239,13 +228,10 @@ const seedData = async () => {
   }
 };
 
-// Verificar si la base de datos está vacía antes de sembrar
 const shouldSeed = async () => {
   try {
-    // await connectDB(); // Eliminar esta línea
     const userCount = await User.countDocuments();
     const shouldSeed = userCount === 0;
-    // await closeDB(); // Eliminar esta línea
     return shouldSeed;
   } catch (error) {
     console.error('Error verificando base de datos:', error);
@@ -253,7 +239,6 @@ const shouldSeed = async () => {
   }
 };
 
-// Ejecutar solo si está vacío
 if (require.main === module) {
   shouldSeed().then(seed => {
     if (seed) {

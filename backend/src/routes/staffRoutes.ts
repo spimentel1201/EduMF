@@ -5,7 +5,6 @@ import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Validaciones para crear/actualizar miembro del personal
 const staffValidation = [
   body('dni')
     .notEmpty()
@@ -48,8 +47,6 @@ const staffValidation = [
     .isMongoId()
     .withMessage('ID de usuario inválido'),
 ];
-
-// Aplicar middleware de protección y autorización a todas las rutas
 router.use(protect);
 router.use(authorize('admin'));
 

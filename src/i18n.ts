@@ -5,7 +5,7 @@ import enTranslation from './locales/en/translation.json';
 import esTranslation from './locales/es/translation.json';
 
 i18n
-  .use(initReactI18next) // passes i18n down to react-i18next
+  .use(initReactI18next)
   .init({
     resources: {
       en: {
@@ -15,11 +15,11 @@ i18n
         translation: esTranslation,
       },
     },
-    lng: 'es', // default language
+    lng: 'es',
     fallbackLng: 'en',
 
     interpolation: {
-      escapeValue: false, // react already safes from xss
+      escapeValue: false,
     },
   });
 

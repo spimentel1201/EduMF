@@ -16,7 +16,8 @@ import courseRoutes from './routes/courseRoutes';
 import courseScheduleRoutes from './routes/courseScheduleRoutes';
 import timeSlotRoutes from './routes/timeSlotRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
-import enrollmentRoutes from './routes/enrollmentRoutes'; // Importar las rutas de matrícula
+import enrollmentRoutes from './routes/enrollmentRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
 
 // Cargar variables de entorno
 config();
@@ -28,17 +29,13 @@ const PORT = process.env.PORT || 5000;
 // Función para iniciar el servidor
 const startServer = async () => {
   try {
-    // Conectar a la base de datos
     await connectDB();
     
-    // Verificar y ejecutar seed si es necesario
     const needsSeeding = await shouldSeed();
     if (needsSeeding) {
       console.log('🌱 Ejecutando seed de datos iniciales...');
       await seedData();
     }
-    // Middleware
-    //app.use(cors());
     app.use(cors({
       origin: ['http://localhost:5173', 'http://localhost:3000'],
       credentials: true,
@@ -57,6 +54,7 @@ const startServer = async () => {
     app.use('/api/time-slots', timeSlotRoutes);
     app.use('/api/attendances', attendanceRoutes);
     app.use('/api/enrollments', enrollmentRoutes);
+    app.use('/api/dashboard', dashboardRoutes);
     
     // Middleware de manejo de errores
     app.use(errorHandler);
@@ -71,5 +69,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-export default app;

@@ -40,18 +40,14 @@ export default function NewSchoolYearPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Configurar la mutación para crear un año escolar
   const createSchoolYearMutation = useMutation({
     mutationFn: (data: SchoolYearFormData) => schoolYearService.create(data),
     onSuccess: () => {
-      // Invalidar la caché de años escolares
       queryClient.invalidateQueries({ queryKey: ['school-years'] });
-      // Navegar de regreso a la lista
       navigate('/school-years');
     },
     onError: (error: any) => {
       console.error('Error al crear año escolar:', error);
-      // Aquí podrías manejar errores específicos del servidor
     },
   });
 
@@ -61,7 +57,6 @@ export default function NewSchoolYearPage() {
       ...prev,
       [name]: value,
     }));
-    // Clear error when field is edited
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -79,7 +74,6 @@ export default function NewSchoolYearPage() {
           ...prev,
           [name]: date,
         }));
-        // Clear error when field is edited
         if (errors[name]) {
           setErrors(prev => {
             const newErrors = { ...prev };
@@ -97,14 +91,10 @@ export default function NewSchoolYearPage() {
     e.preventDefault();
     
     try {
-      // Validar formulario
       const validatedData = schoolYearSchema.parse(formData);
-      
-      // Ejecutar la mutación
       createSchoolYearMutation.mutate(validatedData);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Convertir errores de Zod a un formato más usable
         const newErrors: Record<string, string> = {};
         error.errors.forEach(err => {
           if (err.path) {

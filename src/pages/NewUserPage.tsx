@@ -25,7 +25,6 @@ const NewUserPage: React.FC = () => {
     setMessage('');
     setError('');
 
-    // Basic validation for required fields
     if (!formData.firstName || !formData.lastName || !formData.dni || !formData.gender || !formData.birthdate) {
       setError('Por favor, complete todos los campos obligatorios.');
       return;
@@ -88,7 +87,7 @@ const NewUserPage: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Individual User Registration Form */}
+        {/* Formulario de Registro de Usuarios de forma Individual*/}
         <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Register Individual User</h2>
           <form onSubmit={handleSubmit} className="space-y-4">

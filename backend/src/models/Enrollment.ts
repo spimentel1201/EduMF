@@ -4,7 +4,7 @@ export interface IEnrollment extends Document {
   studentId: mongoose.Types.ObjectId;
   sectionId: mongoose.Types.ObjectId;
   schoolYearId: mongoose.Types.ObjectId;
-  level: string; // Añadir la propiedad level
+  level: string;
   enrollmentDate: Date;
   status: 'active' | 'inactive' | 'completed';
   createdAt: Date;
@@ -47,7 +47,6 @@ const EnrollmentSchema: Schema = new Schema(
   }
 );
 
-// Índices para búsquedas eficientes y para asegurar que un estudiante solo pueda estar matriculado una vez por sección y año escolar
 EnrollmentSchema.index({ studentId: 1, sectionId: 1, schoolYearId: 1 }, { unique: true });
 EnrollmentSchema.index({ schoolYearId: 1 });
 EnrollmentSchema.index({ sectionId: 1 });

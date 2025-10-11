@@ -106,16 +106,13 @@ export const createSection = async (req: Request, res: Response, next: NextFunct
       return next(ApiError.badRequest('Error de validación', errors.array()));
     }
 
-    // En la función createSection, línea 109-129
     const { name, grade, level, section, maxStudents, schoolYearId, status } = req.body;
     
-    // Verificar si el año escolar existe
     const schoolYear = await SchoolYear.findById(schoolYearId);
     if (!schoolYear) {
       return next(ApiError.badRequest('El año escolar no existe'));
     }
     
-    // Verificar si ya existe una sección con el mismo nombre, grado, nivel y sección
     const sectionExists = await Section.findOne({ 
       name, 
       grade,
@@ -188,7 +185,6 @@ export const updateSection = async (req: Request, res: Response, next: NextFunct
       }
     }
 
-    // Actualizar sección
     section = await Section.findByIdAndUpdate(
       req.params.id,
       { name, grade, level, schoolYearId, status },
@@ -211,13 +207,11 @@ export const updateSection = async (req: Request, res: Response, next: NextFunct
  */
 export const deleteSection = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Verificar si la sección existe
     const section = await Section.findById(req.params.id);
     if (!section) {
       return next(ApiError.notFound('Sección no encontrada'));
     }
 
-    // Eliminar sección
     await section.deleteOne();
 
     res.status(200).json({

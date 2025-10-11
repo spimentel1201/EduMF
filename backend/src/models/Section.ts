@@ -67,7 +67,6 @@ const SectionSchema: Schema = new Schema(
   }
 );
 
-// Transform para convertir _id a id
 SectionSchema.set('toJSON', {
   transform: function(doc, ret) {
     ret.id = ret._id;
@@ -77,7 +76,6 @@ SectionSchema.set('toJSON', {
   }
 });
 
-// Índices para búsquedas eficientes
 SectionSchema.index({ schoolYearId: 1 });
 SectionSchema.index({ level: 1, grade: 1, section: 1 });
 SectionSchema.index({ teacherId: 1 });

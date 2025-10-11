@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import { validationResult } from 'express-validator';
-import fs from 'fs'; // Importar el módulo 'fs' para manejar archivos
-import csv from 'csv-parser'; // Importar csv-parser
+import fs from 'fs';
+import csv from 'csv-parser';
 
 // @route   POST api/users/register
 // @desc    Register a new user (student by default)
@@ -21,7 +21,7 @@ export const registerUser = async (req: Request, res: Response) => {
       return res.status(400).json({ msg: 'El usuario con este DNI ya existe' });
     }
 
-    if (email) { // Solo verificar si el email existe si se proporciona
+    if (email) {
       user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ msg: 'El usuario con este email ya existe' });
@@ -32,14 +32,14 @@ export const registerUser = async (req: Request, res: Response) => {
       firstName,
       lastName,
       dni,
-      role: 'student', // Por defecto, registramos como estudiante
+      role: 'student',
       status: 'active',
     };
 
     if (gender) userData.gender = gender;
     if (birthdate) userData.birthdate = birthdate;
     if (email) userData.email = email;
-    if (password) userData.password = password; // La encriptación se maneja en el middleware del modelo
+    if (password) userData.password = password;
 
     user = new User(userData);
 
@@ -55,7 +55,6 @@ export const registerUser = async (req: Request, res: Response) => {
 
 // @route   POST api/users/bulk-register
 // @desc    Bulk register users from CSV/Excel
-// @access  Private (Admin only) - Esto se definirá con middleware de autenticación y autorización
 export const bulkRegisterUsers = async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ msg: 'No se ha subido ningún archivo.' });
@@ -65,26 +64,23 @@ export const bulkRegisterUsers = async (req: Request, res: Response) => {
   const errors: any[] = [];
   let successCount = 0;
 
-  // Determinar el tipo de archivo y procesarlo
   if (req.file.mimetype === 'text/csv') {
-    fs.createReadStream(req.file.path, { encoding: 'utf8' }) // Añadir la opción de codificación UTF-8
+    fs.createReadStream(req.file.path, { encoding: 'utf8' })
       .pipe(csv())
       .on('data', (row) => {
-        // Asumiendo que el CSV tiene encabezados como firstName, lastName, dni, gender, birthdate, email, password
         usersToCreate.push({
           firstName: row.firstName,
           lastName: row.lastName,
           dni: row.dni,
           gender: row.gender,
           birthdate: row.birthdate,
-          email: row.email || undefined, // Hacer email opcional
-          password: row.password || undefined, // Hacer password opcional
+          email: row.email || undefined,
+          password: row.password || undefined,
           role: 'student',
           status: 'active',
         });
       })
       .on('end', async () => {
-        // Eliminar el archivo temporal después de procesarlo
         fs.unlinkSync(req.file!.path);
 
         console.log('Iniciando procesamiento de usuarios en lote. Total a procesar:', usersToCreate.length);
@@ -130,12 +126,12 @@ export const bulkRegisterUsers = async (req: Request, res: Response) => {
         });
       })
       .on('error', (err) => {
-        fs.unlinkSync(req.file!.path); // Asegurarse de eliminar el archivo temporal en caso de error
+        fs.unlinkSync(req.file!.path);
         console.error(err.message);
         res.status(500).json({ msg: 'Error al procesar el archivo CSV', error: err.message });
       });
   } else {
-    fs.unlinkSync(req.file.path); // Eliminar el archivo si no es CSV
+    fs.unlinkSync(req.file.path);
     return res.status(400).json({ msg: 'Tipo de archivo no soportado. Por favor, suba un archivo CSV.' });
   }
 };

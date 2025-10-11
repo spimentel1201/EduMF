@@ -3,7 +3,7 @@ import { enrollStudent, bulkEnrollStudents, getStudentsBySection } from '../cont
 import multer from 'multer';
 
 const router = Router();
-const upload = multer(); // Para manejar la subida de archivos
+const upload = multer();
 
 router.post('/', enrollStudent);
 router.post('/bulk', upload.single('file'), bulkEnrollStudents);

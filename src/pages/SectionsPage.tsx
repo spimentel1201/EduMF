@@ -16,13 +16,6 @@ export default function SectionsPage() {
     queryFn: sectionService.getAll,
   });
 
-  const filteredSections = sections.filter(section => {
-    const matchesSearch = section.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         section.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         section.level.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = selectedLevel === 'Todos los niveles' || section.level === selectedLevel;
-    return matchesSearch && matchesLevel;
-  });
 
   if (isLoading) {
     return (
@@ -60,7 +53,7 @@ export default function SectionsPage() {
         </div>
       </div>
 
-      {/* Search and filter */}
+      {/* Controiles para filtros y busqueda */}
       <div className="space-y-4">
         <div className="relative">
           <div className="relative rounded-md shadow-sm">
@@ -92,7 +85,6 @@ export default function SectionsPage() {
         </div>
       </div>
 
-      {/* Sections table */}
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">

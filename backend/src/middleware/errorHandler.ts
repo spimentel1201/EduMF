@@ -50,7 +50,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     });
   }
 
-  // Error de Mongoose - Validación
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
@@ -60,7 +59,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     });
   }
 
-  // Error de Mongoose - CastError (ID inválido)
   if (err.name === 'CastError') {
     return res.status(400).json({
       success: false,
@@ -70,7 +68,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     });
   }
 
-  // Error de Mongoose - Duplicado
   if (err.name === 'MongoError' && (err as any).code === 11000) {
     return res.status(400).json({
       success: false,
@@ -80,7 +77,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     });
   }
 
-  // Error genérico
   return res.status(500).json({
     success: false,
     message: 'Error interno del servidor',

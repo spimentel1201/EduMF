@@ -4,6 +4,6 @@ import { Student } from '../types/users';
 export const studentService = {
   getStudents: async (): Promise<Student[]> => {
     const response = await api.get('/users', { params: { role: 'student' } });
-    return response.data.data; // Acceder a la propiedad 'data' dentro de la respuesta
+    return response.data.data;
   },
 };

@@ -11,10 +11,9 @@ export default function SchedulesPage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDay, setSelectedDay] = useState('All Days');
-  const [selectedSectionId, setSelectedSectionId] = useState<string | 'All Sections'>('All Sections'); // Nuevo estado para la sección
+  const [selectedSectionId, setSelectedSectionId] = useState<string | 'All Sections'>('All Sections');
   const days = ['All Days', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
-  // Helper function to get the correct translation key for days
   const getDayTranslationKey = (day: string) => {
     switch (day) {
       case 'Lunes': return 'Monday';
@@ -48,7 +47,7 @@ export default function SchedulesPage() {
     return matchesSearch && matchesDay && matchesSection;
   });
 
-  if (isLoading || isLoadingSections) { // Incluir isLoadingSections
+  if (isLoading || isLoadingSections) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -56,7 +55,7 @@ export default function SchedulesPage() {
     );
   }
 
-  if (error || sectionsError) { // Incluir sectionsError
+  if (error || sectionsError) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600">{t('schedules.errorLoading')}: {error?.message || sectionsError?.message}</p>
@@ -64,11 +63,9 @@ export default function SchedulesPage() {
     );
   }
 
-  // Función auxiliar para agrupar horarios por día y hora
   const groupSchedulesByTimeAndDay = (schedulesToGroup: CourseSchedule[]) => {
     const grouped: { [time: string]: { [day: string]: CourseSchedule[] } } = {};
 
-    // Obtener todas las franjas horarias únicas y ordenarlas
     const allTimeSlots = Array.from(new Set(schedulesToGroup.map(s => s.timeSlotId.startTime)))
       .sort((a, b) => {
         const [ha, ma] = a.split(':').map(Number);
@@ -210,9 +207,6 @@ export default function SchedulesPage() {
           </div>
         </div>
       </div>
-
-      {/* Schedules table (old) */}
-      {/* Puedes mantener esta tabla si aún la necesitas, o eliminarla si la grilla la reemplaza */}
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">

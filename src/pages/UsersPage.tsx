@@ -5,35 +5,28 @@ import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { userService } from '../services/userService';
 import { useTranslation } from 'react-i18next';
 
-// Función auxiliar para convertir el rol del backend a la clave de traducción
 const getRoleTranslationKey = (role: string) => {
   if (!role) return '';
-  // Aseguramos que el rol siempre esté en minúsculas para coincidir con las claves de traducción.
   return role.toLowerCase();
 };
 
-// Función auxiliar para convertir el estado del backend a la clave de traducción
 const getStatusTranslationKey = (status: string) => {
   if (!status) return '';
-  // Asumiendo que los estados del backend pueden ser 'Activo', 'Inactivo' (español)
-  // y las claves de traducción son 'Active', 'Inactive' (inglés)
   switch (status) {
     case 'Activo':
       return 'Active';
     case 'Inactivo':
       return 'Inactive';
     default:
-      return status; // Fallback para otros casos
+      return status;
   }
 };
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
-  // El estado selectedRole y el array roles deben usar los valores del backend para el filtrado
-  // y luego traducir para la visualización.
   const [selectedRole, setSelectedRole] = useState('All Roles');
-  const roles = ['All Roles', 'admin', 'teacher', 'student']; // Estos deben coincidir con los valores del backend si es posible, o ser mapeados.
+  const roles = ['All Roles', 'admin', 'teacher', 'student'];
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -43,7 +36,6 @@ export default function UsersPage() {
   const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    // Comparar con el valor real del rol del objeto de usuario, después de normalizarlo
     const matchesRole = selectedRole === 'All Roles' || getRoleTranslationKey(user.role) === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -84,7 +76,6 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Search and filter */}
       <div className="space-y-4">
         <div className="relative">
           <div className="relative rounded-md shadow-sm">
@@ -116,7 +107,6 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Users table */}
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">

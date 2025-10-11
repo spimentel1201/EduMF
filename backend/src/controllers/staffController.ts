@@ -47,7 +47,6 @@ export const getAllStaff = async (req: Request, res: Response, next: NextFunctio
       ];
     }
 
-    // Ejecutar query con paginación
     const total = await Staff.countDocuments(query);
     const staff = await Staff.find(query)
       .populate('userId', 'name email role')

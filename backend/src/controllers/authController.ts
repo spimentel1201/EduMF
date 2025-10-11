@@ -33,7 +33,6 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       }
     }
 
-    // Crear nuevo usuario
     const user = await User.create({
       firstName,
       lastName,
@@ -46,7 +45,6 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       status: 'active',
     });
 
-    // Generar token solo si el usuario tiene email y password
     let token;
     if (user.email && user.password) {
       token = user.generateAuthToken();
@@ -94,18 +92,15 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       return next(ApiError.unauthorized('Este usuario no tiene una contraseña configurada para iniciar sesión.'));
     }
 
-    // Verificar si la contraseña es correcta
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return next(ApiError.unauthorized('Credenciales inválidas'));
     }
 
-    // Verificar si el usuario está activo
     if (user.status !== 'active') {
       return next(ApiError.unauthorized('Usuario inactivo'));
     }
 
-    // Generar token
     const token = user.generateAuthToken();
 
     res.status(200).json({
@@ -227,7 +222,6 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const user = await User.findById(req.user.id);
 
-    // Verificar si el usuario tiene un perfil de staff asociado
     let staffProfile = null;
     if (user && (user.role === 'admin' || user.role === 'teacher')) {
       staffProfile = await Staff.findOne({ userId: user._id });

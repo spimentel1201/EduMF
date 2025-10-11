@@ -80,7 +80,6 @@ export default function NewSectionPage() {
     }
   };
 
-  // En handleSubmit, asegurar que se envíen todos los campos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     

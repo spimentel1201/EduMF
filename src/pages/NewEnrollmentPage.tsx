@@ -25,9 +25,6 @@ export default function NewEnrollmentPage() {
     resolver: zodResolver(enrollmentSchema),
   });
 
-  const sectionIdValue = watch('sectionId');
-  const schoolYearIdValue = watch('schoolYearId');
-
   const { data: students, isLoading: isLoadingStudents } = useQuery({
     queryKey: ['users', { role: 'student' }],
     queryFn: () => userService.getAll(),

@@ -76,7 +76,6 @@ const StaffSchema: Schema = new Schema(
   }
 );
 
-// Transform para convertir _id a id
 StaffSchema.set('toJSON', {
   transform: function(doc, ret) {
     ret.id = ret._id;
@@ -86,14 +85,12 @@ StaffSchema.set('toJSON', {
   }
 });
 
-// Índices para búsquedas eficientes
 StaffSchema.index({ dni: 1 });
 StaffSchema.index({ email: 1 });
 StaffSchema.index({ role: 1 });
 StaffSchema.index({ level: 1 });
 StaffSchema.index({ status: 1 });
 
-// Método virtual para obtener el nombre completo
 StaffSchema.virtual('fullName').get(function (this: IStaff) {
   return `${this.firstName} ${this.lastName}`;
 });

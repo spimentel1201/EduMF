@@ -24,7 +24,7 @@ export default function BulkUploadUsers() {
     try {
       const response = await userService.bulkRegisterUsers(selectedFile);
       toast.success(response.msg || 'Usuarios subidos masivamente con éxito.');
-      setSelectedFile(null); // Limpiar el archivo seleccionado
+      setSelectedFile(null);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al subir usuarios masivamente.');
     } finally {

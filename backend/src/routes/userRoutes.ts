@@ -1,7 +1,7 @@
 import express from 'express';
 import { registerUser, bulkRegisterUsers, getAllUsers } from '../controllers/userController';
 import { body } from 'express-validator';
-import multer from 'multer'; // Importar multer
+import multer from 'multer';
 
 const router = express.Router();
 
@@ -33,7 +33,6 @@ router.post('/bulk-register', upload.single('file'), bulkRegisterUsers); // 'fil
 
 // @route   GET api/users
 // @desc    Get all users
-// @access  Private (Admin only) - Se añadirá middleware de autenticación y autorización
 router.get('/', getAllUsers);
 
 export default router;

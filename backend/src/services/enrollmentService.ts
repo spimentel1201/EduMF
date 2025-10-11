@@ -6,7 +6,6 @@ import SchoolYear from '../models/SchoolYear';
 export const createEnrollment = async (enrollmentData: Partial<IEnrollment>): Promise<IEnrollment> => {
   const { studentId, sectionId, schoolYearId } = enrollmentData;
 
-  // Validar que el estudiante, sección y año escolar existan
   const student = await User.findById(studentId);
   if (!student || student.role !== 'student') {
     throw new Error('Estudiante no encontrado o no es un estudiante válido.');
@@ -22,13 +21,11 @@ export const createEnrollment = async (enrollmentData: Partial<IEnrollment>): Pr
     throw new Error('Año escolar no encontrado.');
   }
 
-  // Verificar si el estudiante ya está matriculado en esta sección para este año escolar
   const existingEnrollment = await Enrollment.findOne({ studentId, sectionId, schoolYearId });
   if (existingEnrollment) {
     throw new Error('El estudiante ya está matriculado en esta sección para el año escolar actual.');
   }
 
-  // Incrementar el contador de estudiantes en la sección
   if (section.currentStudents >= section.maxStudents) {
     throw new Error('La sección ha alcanzado su capacidad máxima de estudiantes.');
   }

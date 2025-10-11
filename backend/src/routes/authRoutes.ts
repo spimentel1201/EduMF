@@ -5,16 +5,15 @@ import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Validaciones para registro
 const registerValidation = [
   body('firstName').notEmpty().withMessage('El nombre es requerido'),
   body('lastName').notEmpty().withMessage('El apellido es requerido'),
   body('email')
-    .optional() // Hace que el campo email sea opcional para la validación
+    .optional()
     .isEmail()
     .withMessage('Email inválido'),
   body('password')
-    .optional() // Hace que el campo password sea opcional para la validación
+    .optional()
     .isLength({ min: 6 })
     .withMessage('La contraseña debe tener al menos 6 caracteres'),
   body('role')
@@ -29,7 +28,6 @@ const registerValidation = [
     .withMessage('El DNI debe contener solo números'),
 ];
 
-// Validaciones para login
 const loginValidation = [
   body('dni')
     .notEmpty()
@@ -39,14 +37,12 @@ const loginValidation = [
     .withMessage('La contraseña es requerida'),
 ];
 
-// Validaciones para login con QR
 const loginQRValidation = [
   body('qrData')
     .notEmpty()
     .withMessage('Los datos del QR son requeridos'),
 ];
 
-// Validaciones para actualizar contraseña
 const updatePasswordValidation = [
   body('currentPassword')
     .notEmpty()

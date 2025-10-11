@@ -1,9 +1,8 @@
-// Actualizar las interfaces para usar strings en lugar de números
 export interface SchoolYear {
   id: string;
   name: string;
-  startDate: string; // Backend devuelve string ISO
-  endDate: string;   // Backend devuelve string ISO
+  startDate: string;
+  endDate: string;
   status: SchoolYearStatus;
   createdAt?: string;
   updatedAt?: string;

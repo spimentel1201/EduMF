@@ -2,14 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import Attendance from '../models/Attendance';
 import CourseSchedule from '../models/CourseSchedule';
-import Enrollment from '../models/Enrollment'; // Importar el modelo Enrollment
+import Enrollment from '../models/Enrollment';
 import ApiError from '../middleware/ApiError';
 import mongoose from 'mongoose';
 import { startOfDay, endOfDay } from 'date-fns';
 import Staff from '../models/Staff';
-import Schedule from '../models/CourseSchedule'; // Assuming CourseSchedule is the Schedule model
+import Schedule from '../models/CourseSchedule';
 
-// Validación para asistencia
 export const validateAttendance = [
   body('courseScheduleId').notEmpty().withMessage('El horario del curso es requerido'),
   body('date').notEmpty().withMessage('La fecha es requerida').isDate().withMessage('Formato de fecha inválido'),
@@ -26,8 +25,6 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
-
-    // Filtros
     const { startDate, endDate, sectionId, studentId } = req.query;
 
     const filter: any = {};
@@ -53,7 +50,6 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
         .skip(skip)
         .limit(limit);
 
-      // Calculate total formatted records count using aggregation
       const totalFormattedRecordsPipeline: any[] = [
         { $match: filter },
         { $unwind: '$details' },
@@ -130,13 +126,11 @@ export const createAttendance = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Verificar que el horario del curso existe
     const courseSchedule = await CourseSchedule.findById(req.body.courseScheduleId);
     if (!courseSchedule) {
       return next(new ApiError('Horario del curso no encontrado', 404));
     }
 
-    // Verificar si ya existe una asistencia para este horario y fecha
     const date = new Date(req.body.date);
     const existingAttendance = await Attendance.findOne({
       courseScheduleId: req.body.courseScheduleId,
@@ -150,7 +144,6 @@ export const createAttendance = async (req: Request, res: Response, next: NextFu
       return next(new ApiError('Ya existe una asistencia para este horario y fecha', 400));
     }
 
-    // Asignar el usuario que toma la asistencia
     req.body.takenBy = req.user.id;
 
     const attendance = await Attendance.create(req.body);
@@ -176,8 +169,8 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
 
     const { id } = req.params;
     const { status, studentId, sectionId, date } = req.body;
-    const userId = (req as any).user.id; // Assuming user ID is available from authentication middleware
-    const userRole = (req as any).user.role; // Assuming user role is available from authentication middleware
+    const userId = (req as any).user.id;
+    const userRole = (req as any).user.role;
 
     let attendance = await Attendance.findById(id);
 
@@ -185,7 +178,6 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
       return next(new ApiError('Attendance record not found', 404));
     }
 
-    // Admin can update any attendance record
     if (userRole === 'admin') {
       attendance.status = status || attendance.status;
       await attendance.save();
@@ -194,8 +186,6 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
         data: attendance
       });
     }
-
-    // Teachers can only update attendance for the current day and their own classes
     if (userRole === 'teacher') {
       const today = new Date();
       const attendanceDate = new Date(attendance.date);
@@ -204,7 +194,6 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
         return next(new ApiError('Teachers can only modify attendance for the current day', 403));
       }
 
-      // Verify if the teacher is assigned to the section of the attendance record
       const teacher = await Staff.findOne({ userId: userId });
       if (!teacher) {
         return next(new ApiError('Teacher not found', 404));
@@ -213,7 +202,7 @@ export const updateAttendance = async (req: Request, res: Response, next: NextFu
       const schedule = await Schedule.findOne({
         teacher: teacher._id,
         section: attendance.sectionId,
-        day: attendanceDate.getDay().toString(), // Assuming day is stored as a string (0-6 for Sunday-Saturday)
+        day: attendanceDate.getDay().toString(),
       });
 
       if (!schedule) {
@@ -270,14 +259,13 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
       return res.status(404).json({ message: 'No se encontraron horarios de curso para la sección proporcionada.' });
     }
 
-    const takenBy = req.user.id; // El usuario que registra la asistencia
-
+    const takenBy = req.user.id;
     const results = [];
 
     for (const studentAttendance of studentAttendances) {
       const { studentId, status } = studentAttendance;
       const studentObjectId = new mongoose.Types.ObjectId(studentId);
-      const currentAttendanceDate = new Date(date); // Crear una nueva instancia de fecha para cada iteración
+      const currentAttendanceDate = new Date(date);
 
       const enrollment = await Enrollment.findOne({ studentId: studentObjectId, sectionId });
 
@@ -302,24 +290,22 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
       });
 
       if (attendanceRecord) {
-        // Actualizar el registro existente
         const detailIndex = attendanceRecord.details.findIndex(d => d.studentId.toString() === studentId);
         if (detailIndex > -1) {
           attendanceRecord.details[detailIndex].status = status;
         } else {
           attendanceRecord.details.push({ studentId: new mongoose.Types.ObjectId(studentId), status });
         }
-        // No se actualiza takenBy aquí, ya que es para el registro general de asistencia, no por detalle de estudiante
         await attendanceRecord.save();
         results.push({ studentId, status, success: true, message: 'Asistencia actualizada.' });
       } else {
         // Crear un nuevo registro
         attendanceRecord = await Attendance.create({
           courseScheduleId: courseSchedule._id,
-          sectionId: sectionId, // Añadir sectionId al registro de asistencia
-          teacherId: takenBy, // El takenBy es el teacherId
+          sectionId: sectionId,
+          teacherId: takenBy,
           date: currentAttendanceDate,
-          status: 'Tomada', // Establecer el estado general de la asistencia
+          status: 'Tomada',
           details: [{
             studentId: new mongoose.Types.ObjectId(studentId),
             status: status,

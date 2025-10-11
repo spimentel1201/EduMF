@@ -32,7 +32,6 @@ export default function LoginPage() {
   const { login, loginWithQR, isLoading } = useAuth();
   const { t } = useTranslation();
 
-  // Actualizar fecha y hora cada segundo
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -51,7 +50,6 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Redirect to root path which will show the dashboard
       await login(data.dni, data.password, '/');
     } catch (error) {
       alert(t('login.loginError'));
@@ -62,17 +60,11 @@ export default function LoginPage() {
     if (data) {
       setScannedData(data);
       setShowAttendanceSuccess(true);
-      
-      // Ocultar la notificación automáticamente después de 5 segundos
       setTimeout(() => {
         setShowAttendanceSuccess(false);
         setScannedData(null);
       }, 5000);
-      
-      // Simular procesamiento de asistencia
-      setTimeout(() => {
-        // Aquí puedes implementar la lógica real de registro de asistencia
-        
+      setTimeout(() => {      
       }, 2000);
     }
   };
@@ -95,9 +87,6 @@ export default function LoginPage() {
     setIsScanning(false);
   };
 
-  // La notificación ahora aparece como overlay sobre la cámara
-
-  // Mostrar pantalla de escaneo QR
   if (isScanning) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

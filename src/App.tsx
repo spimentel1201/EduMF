@@ -31,48 +31,42 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AppContent />
+        <AuthProvider>
+          <Toaster position="top-right" />
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<DashboardPage />} />
+              <Route path="users" element={<UsersPage />} />
+              <Route path="users/new" element={<NewUserPage />} /> {/* Añadir esta línea */}
+              <Route path="staff" element={<StaffPage />} />
+              <Route path="staff/new" element={<NewStaffPage />} />
+              <Route path="schedules" element={<SchedulesPage />} />
+              <Route path="schedules/new" element={<NewSchedulePage />} />
+              <Route path="attendance/take" element={<TakeAttendancePage />} />
+              <Route path="attendance" element={<AttendancePage />} />
+              <Route path="school-years" element={<SchoolYearPage />} />
+              <Route path="school-years/new" element={<NewSchoolYearPage />} />
+              <Route path="sections" element={<SectionsPage />} />
+              <Route path="sections/new" element={<NewSectionPage />} />
+              <Route path="time-slots" element={<TimeSlotsPage />} />
+              <Route path="time-slots/new" element={<NewTimeSlotPage />} />
+              <Route path="enrollments/new" element={<NewEnrollmentPage />} /> {/* Añadir esta línea */}
+              <Route path="enrollments/bulk" element={<BulkEnrollmentPage />} /> {/* Añadir esta línea */}
+              <Route path="/attendance-records" element={<AttendanceRecordsPage />} />
+              <Route path="/monthly-attendance-report" element={<MonthlyAttendanceReportPage />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
       </Router>
     </QueryClientProvider>
-  );
-}
-
-function AppContent() {
-  return (
-    <AuthProvider>
-      <Toaster position="top-right" />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="users/new" element={<NewUserPage />} /> {/* Añadir esta línea */}
-          <Route path="staff" element={<StaffPage />} />
-          <Route path="staff/new" element={<NewStaffPage />} />
-          <Route path="schedules" element={<SchedulesPage />} />
-          <Route path="schedules/new" element={<NewSchedulePage />} />
-          <Route path="attendance/take" element={<TakeAttendancePage />} />
-          <Route path="attendance" element={<AttendancePage />} />
-          <Route path="school-years" element={<SchoolYearPage />} />
-          <Route path="school-years/new" element={<NewSchoolYearPage />} />
-          <Route path="sections" element={<SectionsPage />} />
-          <Route path="sections/new" element={<NewSectionPage />} />
-          <Route path="time-slots" element={<TimeSlotsPage />} />
-          <Route path="time-slots/new" element={<NewTimeSlotPage />} />
-          <Route path="enrollments/new" element={<NewEnrollmentPage />} /> {/* Añadir esta línea */}
-          <Route path="enrollments/bulk" element={<BulkEnrollmentPage />} /> {/* Añadir esta línea */}
-          <Route path="/attendance-records" element={<AttendanceRecordsPage />} />
-          <Route path="/monthly-attendance-report" element={<MonthlyAttendanceReportPage />} />
-        </Route>
-      </Routes>
-    </AuthProvider>
   );
 }
 

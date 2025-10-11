@@ -15,7 +15,6 @@ export default function TimeSlotsPage() {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
 
-    // Helper function to get the correct translation key for time slot types
     const getTimeSlotTypeTranslationKey = (type: string) => {
         switch (type) {
             case 'Clase': return 'Class';
@@ -25,7 +24,6 @@ export default function TimeSlotsPage() {
         }
     };
 
-    // Helper function to get the correct translation key for time slot statuses
     const getTimeSlotStatusTranslationKey = (status: string) => {
         switch (status) {
             case 'Activo': return 'Active';

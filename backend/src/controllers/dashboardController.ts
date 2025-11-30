@@ -11,10 +11,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     const presentRate = 75;
 
     res.status(200).json({
-      totalStudents,
-      totalStaff,
-      activeSections,
-      presentRate,
+      data: {
+        totalStudents,
+        totalStaff,
+        activeSections,
+        presentRate,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching dashboard stats', error });

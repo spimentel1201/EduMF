@@ -6,7 +6,7 @@ const router = Router();
 const upload = multer();
 
 router.post('/', enrollStudent);
-router.post('/bulk', upload.single('file'), bulkEnrollStudents);
+router.post('/bulk', upload.single('file') as any, bulkEnrollStudents);
 router.get('/section/:sectionId', getStudentsBySection);
 
 export default router;

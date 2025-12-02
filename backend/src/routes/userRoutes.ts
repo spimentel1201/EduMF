@@ -29,7 +29,7 @@ router.post(
 // @route   POST api/users/bulk-register
 // @desc    Bulk register users from CSV/Excel
 // @access  Private (Admin only) - Se añadirá middleware de autenticación y autorización
-router.post('/bulk-register', upload.single('file'), bulkRegisterUsers); // 'file' es el nombre del campo en el formulario que contendrá el archivo
+router.post('/bulk-register', upload.single('file') as any, bulkRegisterUsers); // 'file' es el nombre del campo en el formulario que contendrá el archivo
 
 // @route   GET api/users
 // @desc    Get all users

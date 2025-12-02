@@ -36,9 +36,25 @@ const startServer = async () => {
       console.log('🌱 Ejecutando seed de datos iniciales...');
       await seedData();
     }
+    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000';
+    const allowAllOrigins = corsOriginsEnv === '*';
+    const allowedOrigins = allowAllOrigins
+      ? []
+      : corsOriginsEnv.split(',').map(o => o.trim()).filter(Boolean);
+
     app.use(cors({
-      origin: ['http://localhost:5173', 'http://localhost:3000'],
+      origin: allowAllOrigins
+        ? true
+        : (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+              callback(null, true);
+            } else {
+              callback(new Error('Not allowed by CORS'));
+            }
+          },
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
     }));
     app.use(express.json());
     app.use(morgan('dev'));

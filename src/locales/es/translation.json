@@ -32,14 +32,14 @@
   "dashboard": {
     "title": "Tablero",
     "welcome": "Bienvenido",
-     "stats": {
+    "stats": {
       "totalStudents": "Total de estudiantes",
       "totalStaff": "Total de personal",
       "presentRate": "Tasa de asistencia",
       "activeSections": "Secciones activas",
       "recentActivity": "Actividad reciente",
       "present": "presentes"
-     },
+    },
     "totalStudents": "Total de Estudiantes",
     "totalTeachers": "Total de Docentes",
     "totalSections": "Total de Secciones",
@@ -259,6 +259,9 @@
       "status": "Estado"
     },
     "noRecords": "No se encontraron registros de asistencia."
+  },
+  "incidents": {
+    "title": "Incidencias"
   },
   "common": {
     "loading": "Cargando...",

@@ -23,6 +23,8 @@ import NewEnrollmentPage from '@/pages/NewEnrollmentPage'; // Importar NewEnroll
 import BulkEnrollmentPage from '@/pages/BulkEnrollmentPage'; // Importar BulkEnrollmentPage
 import NewUserPage from './pages/NewUserPage';
 import MonthlyAttendanceReportPage from './pages/MonthlyAttendanceReportPage';
+import IncidentsPage from './pages/IncidentsPage';
+import NewIncidentPage from './pages/NewIncidentPage';
 
 
 const queryClient = new QueryClient();
@@ -62,6 +64,8 @@ function App() {
               <Route path="enrollments/bulk" element={<BulkEnrollmentPage />} /> {/* Añadir esta línea */}
               <Route path="/attendance-records" element={<AttendanceRecordsPage />} />
               <Route path="/monthly-attendance-report" element={<MonthlyAttendanceReportPage />} />
+              <Route path="incidents" element={<IncidentsPage />} />
+              <Route path="incidents/new" element={<NewIncidentPage />} />
             </Route>
           </Routes>
         </AuthProvider>
@@ -72,7 +76,7 @@ function App() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -80,11 +84,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 }
 

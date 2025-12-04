@@ -10,28 +10,36 @@
     "signInWithDni": "Sign in with DNI and password",
     "dniMinLength": "DNI must be at least 8 characters",
     "passwordMinLength": "Password must be at least 6 characters",
-    "loginTab": "Login",
-    "loginError": "Login error. Please check your credentials.",
+    "loginTab": "Sign In",
+    "loginError": "Login error. Please verify your credentials.",
     "scanQrInstructions": "Scan the QR code to register your attendance.",
     "cancel": "Cancel",
     "currentTime": "Current Time",
     "attendanceRegistered": "Attendance Registered",
-    "scannedQr": "Scanned QR",
+    "scannedQr": "QR Scanned",
     "registeredAt": "Registered at",
     "notificationWillClose": "This notification will close automatically in a few seconds.",
     "instructions": "Instructions",
     "scanQrInstructionsDetail1": "1. Make sure the QR code is well lit and not damaged.",
-    "scanQrInstructionsDetail2": "2. Place the QR code within the camera frame.",
+    "scanQrInstructionsDetail2": "2. Place the QR code inside the camera frame.",
     "qrTab": "QR",
     "dniLabel": "DNI",
     "passwordLabel": "Password",
     "signingIn": "Signing In...",
-    "qrScanInstruction": "Scan the provided QR code to log in.",
+    "qrScanInstruction": "Scan the provided QR code to sign in.",
     "or": "Or"
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome",
+    "stats": {
+      "totalStudents": "Total students",
+      "totalStaff": "Total staff",
+      "presentRate": "Attendance rate",
+      "activeSections": "Active sections",
+      "recentActivity": "Recent activity",
+      "present": "present"
+    },
     "totalStudents": "Total Students",
     "totalTeachers": "Total Teachers",
     "totalSections": "Total Sections",
@@ -117,6 +125,7 @@
     "noStaff": "No staff members",
     "createFirstStaff": "Start by adding a new staff member.",
     "allRoles": "All Roles",
+    "allStatuses": "All Statuses",
     "roles": {
       "teacher": "Teacher",
       "administrator": "Administrator",
@@ -131,8 +140,7 @@
       "active": "Active",
       "inactive": "Inactive",
       "pending": "Pending"
-    },
-    "allStatuses": "All Statuses"
+    }
   },
   "schedules": {
     "errorLoading": "Error loading schedules",
@@ -252,7 +260,9 @@
     },
     "noRecords": "No attendance records found."
   },
-  "signOut": "Sign Out",
+  "incidents": {
+    "title": "Incidents"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -263,5 +273,6 @@
     "of": "of",
     "results": "results",
     "itemsPerPage": "Items per page"
-  }
+  },
+  "signOut": "Sign Out"
 }

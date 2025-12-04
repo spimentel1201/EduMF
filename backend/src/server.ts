@@ -18,6 +18,7 @@ import timeSlotRoutes from './routes/timeSlotRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
 import enrollmentRoutes from './routes/enrollmentRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import incidentRoutes from './routes/incidentRoutes';
 
 // Cargar variables de entorno
 config();
@@ -30,7 +31,7 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
-    
+
     const needsSeeding = await shouldSeed();
     if (needsSeeding) {
       console.log('🌱 Ejecutando seed de datos iniciales...');
@@ -46,19 +47,19 @@ const startServer = async () => {
       origin: allowAllOrigins
         ? true
         : (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
-              callback(null, true);
-            } else {
-              callback(new Error('Not allowed by CORS'));
-            }
-          },
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization']
     }));
     app.use(express.json());
     app.use(morgan('dev'));
-    
+
     // Rutas de la API
     app.use('/api/auth', authRoutes);
     app.use('/api/users', userRoutes);
@@ -71,10 +72,11 @@ const startServer = async () => {
     app.use('/api/attendances', attendanceRoutes);
     app.use('/api/enrollments', enrollmentRoutes);
     app.use('/api/dashboard', dashboardRoutes);
-    
+    app.use('/api/incidents', incidentRoutes);
+
     // Middleware de manejo de errores
     app.use(errorHandler);
-    
+
     app.listen(PORT, () => {
       console.log(`Servidor ejecutándose en el puerto ${PORT}`);
     });

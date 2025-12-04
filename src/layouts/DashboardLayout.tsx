@@ -19,7 +19,8 @@ import {
   UserIcon,
   BriefcaseIcon,
   DocumentDuplicateIcon,
-  TableCellsIcon
+  TableCellsIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,7 @@ const navigation: NavigationItem[] = [
       { name: 'attendance.monthlyReport', href: '/monthly-attendance-report', icon: TableCellsIcon, current: false },
     ],
   },
+  { name: 'incidents.title', href: '/incidents', icon: ExclamationTriangleIcon, current: false },
 ];
 
 function classNames(...classes: string[]) {

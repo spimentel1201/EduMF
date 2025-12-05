@@ -368,3 +368,45 @@ export const updateIncidentStatus = async (req: Request, res: Response, next: Ne
         next(error);
     }
 };
+
+/**
+ * @desc    Obtener incidencias de un usuario (como víctima o agresor)
+ * @route   GET /api/incidents/user/:userId
+ * @access  Private/Admin,Teacher
+ */
+export const getIncidentsByUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId } = req.params;
+
+        // Buscar incidencias donde el usuario es víctima o agresor
+        const incidents = await Incident.find({
+            $or: [
+                { victimId: userId },
+                { aggressorId: userId }
+            ]
+        })
+            .sort({ incidentDate: -1 })
+            .populate('victimId', 'firstName lastName dni')
+            .populate('aggressorId', 'firstName lastName dni')
+            .populate('registeredBy', 'firstName lastName email')
+            .populate('closedBy', 'firstName lastName email');
+
+        // Agregar campo para indicar el rol del usuario en cada incidencia
+        const incidentsWithRole = incidents.map(incident => {
+            const incidentObj = incident.toJSON();
+            let role = 'none';
+            if (incident.victimId?.toString() === userId) role = 'victim';
+            if (incident.aggressorId?.toString() === userId) role = 'aggressor';
+            if (incident.victimId?.toString() === userId && incident.aggressorId?.toString() === userId) role = 'both';
+            return { ...incidentObj, userRole: role };
+        });
+
+        res.status(200).json({
+            success: true,
+            count: incidentsWithRole.length,
+            data: incidentsWithRole,
+        });
+    } catch (error) {
+        next(error);
+    }
+};

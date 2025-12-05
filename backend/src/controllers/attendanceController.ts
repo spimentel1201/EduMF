@@ -40,53 +40,53 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
 
 
 
-      const attendances = await Attendance.find(filter)
-        .populate([
-          { path: 'sectionId', select: 'name' },
-          { path: 'teacherId', select: 'firstName lastName' },
-          { path: 'details.studentId', select: 'firstName lastName' }
-        ])
-        .sort({ date: -1 })
-        .skip(skip)
-        .limit(limit);
+    const attendances = await Attendance.find(filter)
+      .populate([
+        { path: 'sectionId', select: 'name' },
+        { path: 'teacherId', select: 'firstName lastName' },
+        { path: 'details.studentId', select: 'firstName lastName' }
+      ])
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
 
-      const totalFormattedRecordsPipeline: any[] = [
-        { $match: filter },
-        { $unwind: '$details' },
-        { $count: 'total' }
-      ];
+    const totalFormattedRecordsPipeline: any[] = [
+      { $match: filter },
+      { $unwind: '$details' },
+      { $count: 'total' }
+    ];
 
-      const totalFormattedRecordsResult = await Attendance.aggregate(totalFormattedRecordsPipeline);
-      const total = totalFormattedRecordsResult.length > 0 ? totalFormattedRecordsResult[0].total : 0;
+    const totalFormattedRecordsResult = await Attendance.aggregate(totalFormattedRecordsPipeline);
+    const total = totalFormattedRecordsResult.length > 0 ? totalFormattedRecordsResult[0].total : 0;
 
-      const formattedRecords = attendances.flatMap(attendance => {
-        const sectionName = (attendance.sectionId as any)?.name || 'N/A';
-        const teacherName = (attendance.teacherId as any)?.firstName + ' ' + (attendance.teacherId as any)?.lastName || 'N/A';
+    const formattedRecords = attendances.flatMap(attendance => {
+      const sectionName = (attendance.sectionId as any)?.name || 'N/A';
+      const teacherName = (attendance.teacherId as any)?.firstName + ' ' + (attendance.teacherId as any)?.lastName || 'N/A';
 
-        return attendance.details.map(detail => ({
-          id: attendance._id,
-          date: attendance.date.toISOString(),
-          sectionId: attendance.sectionId,
-          sectionName: sectionName,
-          studentId: detail.studentId,
-          studentName: (detail.studentId as any)?.firstName + ' ' + (detail.studentId as any)?.lastName || 'N/A',
-          status: detail.status,
-          notes: detail.notes,
-          teacherId: attendance.teacherId,
-          teacherName: teacherName,
-        }));
-      });
+      return attendance.details.map(detail => ({
+        id: attendance._id,
+        date: attendance.date.toISOString(),
+        sectionId: attendance.sectionId,
+        sectionName: sectionName,
+        studentId: detail.studentId,
+        studentName: (detail.studentId as any)?.firstName + ' ' + (detail.studentId as any)?.lastName || 'N/A',
+        status: detail.status,
+        notes: detail.notes,
+        teacherId: attendance.teacherId,
+        teacherName: teacherName,
+      }));
+    });
     res.status(200).json({
-        success: true,
-        count: formattedRecords.length,
-        total: total,
-        pagination: {
-          page: page,
-          limit: limit,
-          totalPages: Math.ceil(total / limit),
-        },
-        data: formattedRecords,
-      });
+      success: true,
+      count: formattedRecords.length,
+      total: total,
+      pagination: {
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      data: formattedRecords,
+    });
   } catch (error) {
     next(error);
   }
@@ -354,64 +354,366 @@ export const getMonthlyAttendanceReport = async (req: Request, res: Response, ne
       { $match: match },
       { $unwind: '$details' },
       // Obtener datos del estudiante
-      { $lookup: {
+      {
+        $lookup: {
           from: 'users',
           localField: 'details.studentId',
           foreignField: '_id',
           as: 'studentInfo'
-      }},
+        }
+      },
 
       { $unwind: '$studentInfo' },
       // Agrupar por fecha, estudiante y estado de asistencia
-      { $group: {
+      {
+        $group: {
           _id: {
-              date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-              studentId: '$details.studentId',
-              studentName: { $concat: ['$studentInfo.firstName', ' ', '$studentInfo.lastName'] },
-              status: '$details.status'
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+            studentId: '$details.studentId',
+            studentName: { $concat: ['$studentInfo.firstName', ' ', '$studentInfo.lastName'] },
+            status: '$details.status'
           },
           count: { $sum: 1 }
-      }},
+        }
+      },
       // Re-agrupar para consolidar por fecha y calcular totales
-      { $group: {
+      {
+        $group: {
           _id: '$_id.date',
           students: {
-              $push: {
-                  studentId: '$_id.studentId',
-                  studentName: '$_id.studentName',
-                  status: '$_id.status',
-                  count: '$count'
-              }
+            $push: {
+              studentId: '$_id.studentId',
+              studentName: '$_id.studentName',
+              status: '$_id.status',
+              count: '$count'
+            }
           },
           present: {
-              $sum: {
-                  $cond: [ { $eq: ['$_id.status', 'Presente'] }, '$count', 0 ]
-              }
+            $sum: {
+              $cond: [{ $eq: ['$_id.status', 'Presente'] }, '$count', 0]
+            }
           },
           absent: {
-              $sum: {
-                  $cond: [ { $eq: ['$_id.status', 'Ausente'] }, '$count', 0 ]
-              }
+            $sum: {
+              $cond: [{ $eq: ['$_id.status', 'Ausente'] }, '$count', 0]
+            }
           },
           late: {
-              $sum: {
-                  $cond: [ { $eq: ['$_id.status', 'Tardanza'] }, '$count', 0 ]
-              }
+            $sum: {
+              $cond: [{ $eq: ['$_id.status', 'Tardanza'] }, '$count', 0]
+            }
           },
           justified: {
-              $sum: {
-                  $cond: [ { $eq: ['$_id.status', 'Justificado'] }, '$count', 0 ]
-              }
+            $sum: {
+              $cond: [{ $eq: ['$_id.status', 'Justificado'] }, '$count', 0]
+            }
           }
-      }},
+        }
+      },
       { $sort: { _id: 1 } }
     ]);
-        console.log('Monthly Attendance Report - Aggregation Result:', report); 
-        res.status(200).json({
-          success: true,
-          data: report,
-        });
-      } catch (error) {
-        next(error);
+    console.log('Monthly Attendance Report - Aggregation Result:', report);
+    res.status(200).json({
+      success: true,
+      data: report,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtener datos para heatmap de asistencia (por estudiante/día)
+// @route   GET /api/attendances/report/heatmap
+// @access  Private
+export const getHeatmapData = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sectionId, month, year } = req.query;
+
+    if (!sectionId || !month || !year) {
+      return next(new ApiError('Sección, mes y año son requeridos', 400));
+    }
+
+    const startOfMonth = new Date(Number(year), Number(month) - 1, 1);
+    const endOfMonth = new Date(Number(year), Number(month), 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+    const daysInMonth = endOfMonth.getDate();
+
+    // Obtener todos los estudiantes matriculados en la sección
+    const enrollments = await Enrollment.find({ sectionId })
+      .populate('studentId', 'firstName lastName dni');
+
+    // Obtener todas las asistencias del mes para esta sección
+    const attendances = await Attendance.find({
+      sectionId: new mongoose.Types.ObjectId(sectionId as string),
+      date: { $gte: startOfMonth, $lte: endOfMonth }
+    });
+
+    // Crear mapa de asistencia por estudiante y día
+    const attendanceMap: Record<string, Record<number, string>> = {};
+
+    attendances.forEach(attendance => {
+      const day = attendance.date.getDate();
+      attendance.details.forEach((detail: any) => {
+        const studentId = detail.studentId.toString();
+        if (!attendanceMap[studentId]) {
+          attendanceMap[studentId] = {};
+        }
+        attendanceMap[studentId][day] = detail.status;
+      });
+    });
+
+    // Construir datos del heatmap
+    const heatmapData = enrollments.map((enrollment: any) => {
+      const student = enrollment.studentId;
+      const studentId = student._id.toString();
+      const studentName = `${student.firstName} ${student.lastName}`;
+
+      // Generar array de días con estados
+      const days: { day: number; status: string | null }[] = [];
+      let presentCount = 0;
+      let absentCount = 0;
+      let lateCount = 0;
+      let justifiedCount = 0;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(Number(year), Number(month) - 1, d);
+        const dayOfWeek = date.getDay();
+
+        // Marcar fines de semana como no lectivo
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          days.push({ day: d, status: 'weekend' });
+        } else {
+          const status = attendanceMap[studentId]?.[d] || null;
+          days.push({ day: d, status });
+
+          if (status === 'Presente') presentCount++;
+          else if (status === 'Ausente') absentCount++;
+          else if (status === 'Tardanza') lateCount++;
+          else if (status === 'Justificado') justifiedCount++;
+        }
       }
+
+      const totalDays = presentCount + absentCount + lateCount + justifiedCount;
+      const attendanceRate = totalDays > 0 ? Math.round((presentCount / totalDays) * 100) : 0;
+
+      return {
+        studentId,
+        studentName,
+        dni: student.dni,
+        days,
+        summary: {
+          present: presentCount,
+          absent: absentCount,
+          late: lateCount,
+          justified: justifiedCount,
+          attendanceRate
+        }
+      };
+    });
+
+    // Calcular totales generales
+    const totals = heatmapData.reduce((acc, student) => ({
+      present: acc.present + student.summary.present,
+      absent: acc.absent + student.summary.absent,
+      late: acc.late + student.summary.late,
+      justified: acc.justified + student.summary.justified,
+    }), { present: 0, absent: 0, late: 0, justified: 0 });
+
+    const totalRecords = totals.present + totals.absent + totals.late + totals.justified;
+    const overallAttendanceRate = totalRecords > 0
+      ? Math.round((totals.present / totalRecords) * 100)
+      : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        students: heatmapData,
+        daysInMonth,
+        summary: {
+          ...totals,
+          total: totalRecords,
+          attendanceRate: overallAttendanceRate,
+          studentCount: heatmapData.length
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtener comparativo de asistencia entre secciones
+// @route   GET /api/attendances/report/comparison
+// @access  Private
+export const getSectionsComparison = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return next(new ApiError('Mes y año son requeridos', 400));
+    }
+
+    const startOfMonth = new Date(Number(year), Number(month) - 1, 1);
+    const endOfMonth = new Date(Number(year), Number(month), 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const comparison = await Attendance.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfMonth, $lte: endOfMonth }
+        }
+      },
+      { $unwind: '$details' },
+      {
+        $lookup: {
+          from: 'sections',
+          localField: 'sectionId',
+          foreignField: '_id',
+          as: 'sectionInfo'
+        }
+      },
+      { $unwind: '$sectionInfo' },
+      {
+        $group: {
+          _id: '$sectionId',
+          sectionName: { $first: '$sectionInfo.name' },
+          present: {
+            $sum: { $cond: [{ $eq: ['$details.status', 'Presente'] }, 1, 0] }
+          },
+          absent: {
+            $sum: { $cond: [{ $eq: ['$details.status', 'Ausente'] }, 1, 0] }
+          },
+          late: {
+            $sum: { $cond: [{ $eq: ['$details.status', 'Tardanza'] }, 1, 0] }
+          },
+          justified: {
+            $sum: { $cond: [{ $eq: ['$details.status', 'Justificado'] }, 1, 0] }
+          },
+          total: { $sum: 1 }
+        }
+      },
+      {
+        $addFields: {
+          attendanceRate: {
+            $round: [{ $multiply: [{ $divide: ['$present', '$total'] }, 100] }, 1]
+          }
+        }
+      },
+      { $sort: { attendanceRate: -1 } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: comparison
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtener tendencia de asistencia semanal para dashboard
+// @route   GET /api/attendances/weekly-trend
+// @access  Private
+export const getWeeklyTrend = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    // Calcular el lunes de esta semana
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    monday.setHours(0, 0, 0, 0);
+
+    const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const result = [];
+
+    // Obtener datos para cada día de la semana actual (Lun-Vie)
+    for (let i = 0; i < 5; i++) {
+      const currentDay = new Date(monday);
+      currentDay.setDate(monday.getDate() + i);
+      const nextDay = new Date(currentDay);
+      nextDay.setDate(currentDay.getDate() + 1);
+
+      const dayStats = await Attendance.aggregate([
+        {
+          $match: {
+            date: { $gte: currentDay, $lt: nextDay }
+          }
+        },
+        { $unwind: '$details' },
+        {
+          $group: {
+            _id: null,
+            present: {
+              $sum: { $cond: [{ $eq: ['$details.status', 'Presente'] }, 1, 0] }
+            },
+            late: {
+              $sum: { $cond: [{ $eq: ['$details.status', 'Tardanza'] }, 1, 0] }
+            },
+            absent: {
+              $sum: { $cond: [{ $eq: ['$details.status', 'Ausente'] }, 1, 0] }
+            },
+            justified: {
+              $sum: { $cond: [{ $eq: ['$details.status', 'Justificado'] }, 1, 0] }
+            },
+            total: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const stats = dayStats[0] || { present: 0, late: 0, absent: 0, justified: 0, total: 0 };
+      const total = stats.total || 1;
+
+      result.push({
+        day: weekDays[currentDay.getDay()],
+        date: currentDay.toISOString().split('T')[0],
+        asistencia: Math.round((stats.present / total) * 100) || 0,
+        tardanza: Math.round((stats.late / total) * 100) || 0,
+        ausencia: Math.round((stats.absent / total) * 100) || 0,
+        raw: {
+          present: stats.present,
+          late: stats.late,
+          absent: stats.absent,
+          justified: stats.justified,
+          total: stats.total
+        }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtener actividad reciente para dashboard
+// @route   GET /api/attendances/recent-activity
+// @access  Private
+export const getRecentActivity = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Obtener las últimas 5 asistencias registradas
+    const recentAttendances = await Attendance.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('sectionId', 'name')
+      .populate('teacherId', 'firstName lastName');
+
+    const activities = recentAttendances.map(att => ({
+      type: 'attendance',
+      title: 'Asistencia registrada',
+      description: `${(att.sectionId as any)?.name || 'Sección'} - ${att.details.length} estudiantes`,
+      time: att.createdAt,
+      icon: 'CheckCircleIcon',
+      color: 'bg-green-500'
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: activities
+    });
+  } catch (error) {
+    next(error);
+  }
 };

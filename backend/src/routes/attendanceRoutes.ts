@@ -7,7 +7,11 @@ import {
   deleteAttendance,
   validateAttendance,
   bulkCreateAttendances,
-  getMonthlyAttendanceReport
+  getMonthlyAttendanceReport,
+  getHeatmapData,
+  getSectionsComparison,
+  getWeeklyTrend,
+  getRecentActivity
 } from '../controllers/attendanceController';
 import { protect, authorize } from '../middleware/authMiddleware';
 
@@ -20,7 +24,13 @@ router
 
 router.post('/bulk', protect, bulkCreateAttendances);
 
-router.get('/report/monthly', getMonthlyAttendanceReport);
+router.get('/report/monthly', protect, getMonthlyAttendanceReport);
+router.get('/report/heatmap', protect, getHeatmapData);
+router.get('/report/comparison', protect, getSectionsComparison);
+
+// Dashboard endpoints
+router.get('/weekly-trend', protect, getWeeklyTrend);
+router.get('/recent-activity', protect, getRecentActivity);
 
 router.get('/attendance-records', protect, getAttendances);
 

@@ -14,7 +14,7 @@ export const attendanceService = {
     const params = new URLSearchParams();
     params.append('date', date);
     if (sectionId) params.append('sectionId', sectionId);
-    
+
     const response = await api.get(`/attendances?${params.toString()}`);
     return response.data.data;
   },
@@ -33,7 +33,7 @@ export const attendanceService = {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-    
+
     const response = await api.get(`/attendance/stats?${params.toString()}`);
     return response.data.data;
   },
@@ -62,5 +62,32 @@ export const attendanceService = {
       attendanceRecords: response.data.data,
       totalRecords: response.data.total,
     };
+  },
+
+  getHeatmapData: async (params: { sectionId: string; month: number; year: number }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('sectionId', params.sectionId);
+    queryParams.append('month', params.month.toString());
+    queryParams.append('year', params.year.toString());
+    const response = await api.get(`/attendances/report/heatmap?${queryParams.toString()}`);
+    return response.data.data;
+  },
+
+  getSectionsComparison: async (params: { month: number; year: number }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('month', params.month.toString());
+    queryParams.append('year', params.year.toString());
+    const response = await api.get(`/attendances/report/comparison?${queryParams.toString()}`);
+    return response.data.data;
+  },
+
+  getWeeklyTrend: async () => {
+    const response = await api.get('/attendances/weekly-trend');
+    return response.data.data;
+  },
+
+  getRecentActivity: async () => {
+    const response = await api.get('/attendances/recent-activity');
+    return response.data.data;
   },
 };

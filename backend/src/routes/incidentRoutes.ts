@@ -38,7 +38,8 @@ const incidentValidation = [
         .isBoolean()
         .withMessage('El campo isViolent debe ser booleano'),
     body('actionsTaken')
-        .optional(),
+        .notEmpty()
+        .withMessage('Las medidas tomadas son requeridas'),
     body('status')
         .optional()
         .isIn(['Pendiente', 'En Proceso', 'Resuelto', 'Cerrado'])
@@ -64,5 +65,8 @@ router.route('/:id')
 
 // Ruta para cambiar estado de incidencia
 router.patch('/:id/status', incidentController.updateIncidentStatus);
+
+// Ruta para obtener incidencias de un usuario
+router.get('/user/:userId', incidentController.getIncidentsByUser);
 
 export default router;

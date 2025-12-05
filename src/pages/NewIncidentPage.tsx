@@ -26,21 +26,31 @@ import toast from 'react-hot-toast';
 const incidentSchema = z.object({
     incidentType: z.enum(['Conductual', 'Académica', 'Salud', 'Bullying', 'Daño a propiedad', 'Otro'] as const),
     incidentDate: z.string().min(1, 'La fecha del incidente es requerida'),
-    reporterName: z.string().min(2, 'El nombre del informante es requerido'),
-    victimId: z.string().optional(),
-    aggressorId: z.string().optional(),
+    reporterName: z.string().min(1, 'El nombre del informante es requerido'),
+    victimId: z.string().optional().or(z.literal('')),
+    aggressorId: z.string().optional().or(z.literal('')),
     isViolent: z.boolean().default(false),
     description: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
-    location: z.string().min(2, 'El lugar del incidente es requerido'),
-    actionsTaken: z.string().optional(),
+    location: z.string({ required_error: 'El lugar del incidente es requerido' }).min(1, 'El lugar del incidente es requerido'),
+    actionsTaken: z.string({ required_error: 'Las medidas tomadas son requeridas' }).min(1, 'Las medidas tomadas son requeridas'),
     status: z.enum(['Pendiente', 'En Proceso', 'Resuelto', 'Cerrado'] as const).default('Pendiente'),
 });
 
 type IncidentFormData = z.infer<typeof incidentSchema>;
 
+// Interface para errores del backend
+interface BackendValidationError {
+    type: string;
+    value: string;
+    msg: string;
+    path: string;
+    location: string;
+}
+
 export default function NewIncidentPage() {
     const [selectedLocation, setSelectedLocation] = useState<string>('');
     const [customLocation, setCustomLocation] = useState('');
+    const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
     const {
         register,
@@ -49,6 +59,7 @@ export default function NewIncidentPage() {
         reset,
         setValue,
         watch,
+        setError,
     } = useForm<IncidentFormData>({
         resolver: zodResolver(incidentSchema),
         defaultValues: {
@@ -80,8 +91,54 @@ export default function NewIncidentPage() {
         },
         onError: (error: any) => {
             console.error('Error creating incident:', error);
-            const errorMessage = error.response?.data?.message || 'Error al registrar la incidencia';
-            toast.error(errorMessage);
+
+            // Limpiar errores anteriores del servidor
+            setServerErrors({});
+
+            const responseData = error.response?.data;
+
+            // Si hay errores de validación del backend
+            if (responseData?.errors && Array.isArray(responseData.errors)) {
+                const fieldErrors: Record<string, string> = {};
+                const errorMessages: string[] = [];
+
+                responseData.errors.forEach((err: BackendValidationError) => {
+                    // Mapear el error al campo correspondiente
+                    if (err.path) {
+                        fieldErrors[err.path] = err.msg;
+                        // También setear el error en react-hook-form
+                        setError(err.path as keyof IncidentFormData, {
+                            type: 'server',
+                            message: err.msg
+                        });
+                    }
+                    errorMessages.push(err.msg);
+                });
+
+                setServerErrors(fieldErrors);
+
+                // Mostrar toast con lista de errores
+                if (errorMessages.length > 0) {
+                    toast.error(
+                        <div>
+                            <strong>Errores de validación:</strong>
+                            <ul className="mt-1 list-disc list-inside text-sm">
+                                {errorMessages.slice(0, 3).map((msg, idx) => (
+                                    <li key={idx}>{msg}</li>
+                                ))}
+                                {errorMessages.length > 3 && (
+                                    <li>...y {errorMessages.length - 3} más</li>
+                                )}
+                            </ul>
+                        </div>,
+                        { duration: 5000 }
+                    );
+                }
+            } else {
+                // Error general
+                const errorMessage = responseData?.message || 'Error al registrar la incidencia';
+                toast.error(errorMessage);
+            }
         },
     });
 
@@ -89,19 +146,33 @@ export default function NewIncidentPage() {
         setSelectedLocation(loc);
         setValue('location', loc);
         setCustomLocation('');
+        // Limpiar error del servidor para este campo
+        if (serverErrors.location) {
+            setServerErrors(prev => ({ ...prev, location: '' }));
+        }
     };
 
     const handleCustomLocationChange = (value: string) => {
         setCustomLocation(value);
         setSelectedLocation('');
         setValue('location', value);
+        // Limpiar error del servidor para este campo
+        if (serverErrors.location) {
+            setServerErrors(prev => ({ ...prev, location: '' }));
+        }
     };
 
     const onSubmit = (data: IncidentFormData) => {
+        setServerErrors({});
         createIncidentMutation.mutate(data);
     };
 
     const isViolent = watch('isViolent');
+
+    // Helper para obtener el mensaje de error (primero local, luego del servidor)
+    const getFieldError = (fieldName: keyof IncidentFormData) => {
+        return errors[fieldName]?.message || serverErrors[fieldName];
+    };
 
     return (
         <div className="space-y-6">
@@ -134,15 +205,18 @@ export default function NewIncidentPage() {
                             </label>
                             <select
                                 id="incidentType"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${getFieldError('incidentType')
+                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                    }`}
                                 {...register('incidentType')}
                             >
                                 {INCIDENT_TYPES.map((type) => (
                                     <option key={type} value={type}>{type}</option>
                                 ))}
                             </select>
-                            {errors.incidentType && (
-                                <p className="mt-1 text-sm text-red-600">{errors.incidentType.message}</p>
+                            {getFieldError('incidentType') && (
+                                <p className="mt-1 text-sm text-red-600">{getFieldError('incidentType')}</p>
                             )}
                         </div>
 
@@ -157,12 +231,15 @@ export default function NewIncidentPage() {
                                 <input
                                     type="date"
                                     id="incidentDate"
-                                    className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('incidentDate')
+                                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                        }`}
                                     {...register('incidentDate')}
                                 />
                             </div>
-                            {errors.incidentDate && (
-                                <p className="mt-1 text-sm text-red-600">{errors.incidentDate.message}</p>
+                            {getFieldError('incidentDate') && (
+                                <p className="mt-1 text-sm text-red-600">{getFieldError('incidentDate')}</p>
                             )}
                         </div>
                     </div>
@@ -184,12 +261,15 @@ export default function NewIncidentPage() {
                                     type="text"
                                     id="reporterName"
                                     placeholder="Nombre y rol"
-                                    className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('reporterName')
+                                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                        }`}
                                     {...register('reporterName')}
                                 />
                             </div>
-                            {errors.reporterName && (
-                                <p className="mt-1 text-sm text-red-600">{errors.reporterName.message}</p>
+                            {getFieldError('reporterName') && (
+                                <p className="mt-1 text-sm text-red-600">{getFieldError('reporterName')}</p>
                             )}
                         </div>
 
@@ -269,12 +349,15 @@ export default function NewIncidentPage() {
                                 id="description"
                                 rows={4}
                                 placeholder="Describa detalladamente lo sucedido..."
-                                className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('description')
+                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                    }`}
                                 {...register('description')}
                             />
                         </div>
-                        {errors.description && (
-                            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                        {getFieldError('description') && (
+                            <p className="mt-1 text-sm text-red-600">{getFieldError('description')}</p>
                         )}
                     </div>
 
@@ -290,8 +373,8 @@ export default function NewIncidentPage() {
                                     type="button"
                                     onClick={() => handleLocationSelect(loc)}
                                     className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${selectedLocation === loc
-                                            ? 'bg-primary-600 text-white border-primary-600'
-                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                        ? 'bg-primary-600 text-white border-primary-600'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                         }`}
                                 >
                                     {loc}
@@ -307,11 +390,14 @@ export default function NewIncidentPage() {
                                 placeholder="Otro lugar..."
                                 value={customLocation}
                                 onChange={(e) => handleCustomLocationChange(e.target.value)}
-                                className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('location')
+                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                    }`}
                             />
                         </div>
-                        {errors.location && (
-                            <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
+                        {getFieldError('location') && (
+                            <p className="mt-1 text-sm text-red-600">{getFieldError('location')}</p>
                         )}
                     </div>
                 </div>
@@ -322,15 +408,21 @@ export default function NewIncidentPage() {
                     <div className="space-y-6">
                         <div>
                             <label htmlFor="actionsTaken" className="block text-sm font-medium text-gray-700">
-                                Medidas tomadas
+                                Medidas tomadas *
                             </label>
                             <textarea
                                 id="actionsTaken"
                                 rows={3}
                                 placeholder="Describa las acciones inmediatas o seguimiento..."
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${getFieldError('actionsTaken')
+                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                    }`}
                                 {...register('actionsTaken')}
                             />
+                            {getFieldError('actionsTaken') && (
+                                <p className="mt-1 text-sm text-red-600">{getFieldError('actionsTaken')}</p>
+                            )}
                         </div>
 
                         <div className="sm:w-1/3">

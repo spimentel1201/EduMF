@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, MagnifyingGlassIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { userService } from '../services/userService';
 import { useTranslation } from 'react-i18next';
+import IncidentTimeline from '@/components/IncidentTimeline';
 
 const getRoleTranslationKey = (role: string) => {
   if (!role) return '';
@@ -26,6 +27,8 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState('All Roles');
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
   const roles = ['All Roles', 'admin', 'teacher', 'student'];
 
   const { data: users = [], isLoading, error } = useQuery({
@@ -35,10 +38,20 @@ export default function UsersPage() {
 
   const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'All Roles' || getRoleTranslationKey(user.role) === selectedRole;
     return matchesSearch && matchesRole;
   });
+
+  const openTimeline = (userId: string, userName: string) => {
+    setSelectedUser({ id: userId, name: userName });
+    setTimelineOpen(true);
+  };
+
+  const closeTimeline = () => {
+    setTimelineOpen(false);
+    setSelectedUser(null);
+  };
 
   if (isLoading) {
     return (
@@ -123,6 +136,9 @@ export default function UsersPage() {
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 {t('users.status')}
               </th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
@@ -138,21 +154,40 @@ export default function UsersPage() {
                   {t(`users.roles.${getRoleTranslationKey(user.role)}`)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm">
-                  <td className="py-2 px-4 border-b">
-                    <span className={`text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full ${
-                    getStatusTranslationKey(user.status) === 'Active'
+                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${getStatusTranslationKey(user.status) === 'Active'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
-                  }`}>
+                    }`}>
                     {t(`users.statusOptions.${getStatusTranslationKey(user.status)}`)}
                   </span>
-                  </td>
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm">
+                  {getRoleTranslationKey(user.role) === 'student' && (
+                    <button
+                      onClick={() => openTimeline(user.id, user.name)}
+                      className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
+                      title="Ver historial de incidencias"
+                    >
+                      <ClipboardDocumentListIcon className="h-5 w-5" />
+                      <span className="text-xs">Incidencias</span>
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Modal de Timeline */}
+      {selectedUser && (
+        <IncidentTimeline
+          isOpen={timelineOpen}
+          onClose={closeTimeline}
+          userId={selectedUser.id}
+          userName={selectedUser.name}
+        />
+      )}
     </div>
   );
 }

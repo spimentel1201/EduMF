@@ -58,4 +58,9 @@ export const incidentService = {
         const response = await api.patch(`/incidents/${id}/status`, { status });
         return response.data.data;
     },
+
+    getByUser: async (userId: string): Promise<(Incident & { userRole: string })[]> => {
+        const response = await api.get(`/incidents/user/${userId}`);
+        return response.data.data;
+    },
 };

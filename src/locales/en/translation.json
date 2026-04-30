@@ -263,6 +263,87 @@
   "incidents": {
     "title": "Incidents"
   },
+  "events": {
+    "title": "Events",
+    "catalog": "Event Catalog",
+    "attendance": "Event Attendance",
+    "new": "New Event",
+    "categories": {
+      "academic": "Academic",
+      "arts": "Arts",
+      "sports": "Sports",
+      "culture": "Culture",
+      "other": "Other"
+    }
+  },
+  "payments": {
+    "title": "Cash & Payments",
+    "searchPlaceholder": "Search students or invoices...",
+    "summaryTitle": "Cash Summary",
+    "summaryDesc": "Manage Terra Academy's centralized income and expenses.",
+    "newChargeBtn": "+ Generate New Charge",
+    "kpi": {
+      "totalCollection": "TOTAL COLLECTION (MONTH)",
+      "totalCollectionSub": "vs previous month",
+      "pendingCharges": "PENDING CHARGES",
+      "pendingChargesSub": "open invoices",
+      "defaulters": "DEFAULTING STUDENTS",
+      "defaultersReport": "Defaulters Report"
+    },
+    "table": {
+      "title": "Current Charges",
+      "concept": "Concept",
+      "gradeSection": "Grade/Section",
+      "frequency": "Frequency",
+      "issueDate": "Issue Date",
+      "status": "Status",
+      "actions": "Actions",
+      "viewDetail": "View details",
+      "showing": "Showing",
+      "of": "of",
+      "conceptsRegistered": "registered concepts"
+    },
+    "reports": {
+      "title": "Advanced Reports",
+      "desc": "Download bank reconciliations and cash flow projections for this period."
+    },
+    "management": {
+      "title": "Collection Management",
+      "desc": "Send automatic email and SMS reminders to the current defaulting students."
+    },
+    "new": {
+      "title": "Create New Charge",
+      "desc": "Configure parameters for massive or specific generation of school charges.",
+      "detailsTitle": "Payment Details",
+      "conceptLabel": "Payment Concept",
+      "conceptPlaceholder": "E.g. Parent Association Fee 2024",
+      "amountLabel": "Amount",
+      "frequencyLabel": "Frequency",
+      "frequencies": {
+        "oneTime": "One-time",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "startDateLabel": "Start Date",
+      "scopeTitle": "Charge Scope",
+      "scopeGeneral": "General (Whole School)",
+      "scopeSpecific": "By Grade/Section",
+      "gradeLabel": "Grade",
+      "gradePlaceholder": "Select grade...",
+      "sectionLabel": "Section",
+      "sectionPlaceholder": "Select section...",
+      "resumeTitle": "Operation Summary",
+      "affectedStudents": "Affected students",
+      "totalProjection": "Total projection",
+      "issueDateLabel": "Issue date",
+      "today": "Today",
+      "generateBtn": "Generate Charges",
+      "notice": "When generating charges, an automatic notification will be sent to parents via the mobile application.",
+      "tipTitle": "Management Tip",
+      "tipDesc": "You can schedule automatic reminders 3 days before the due date from the settings tab."
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

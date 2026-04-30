@@ -263,6 +263,87 @@
   "incidents": {
     "title": "Incidencias"
   },
+  "events": {
+    "title": "Eventos",
+    "catalog": "Catálogo de Eventos",
+    "attendance": "Asistencia a Eventos",
+    "new": "Nuevo Evento",
+    "categories": {
+      "academic": "Académico",
+      "arts": "Artes",
+      "sports": "Deportes",
+      "culture": "Cultura",
+      "other": "Otro"
+    }
+  },
+  "payments": {
+    "title": "Caja y Pagos",
+    "searchPlaceholder": "Buscar alumnos o facturas...",
+    "summaryTitle": "Resumen de Caja",
+    "summaryDesc": "Gestiona los ingresos y egresos de Terra Academy de forma centralizada.",
+    "newChargeBtn": "+ Generar Nuevo Cargo",
+    "kpi": {
+      "totalCollection": "RECAUDACIÓN TOTAL (MES)",
+      "totalCollectionSub": "vs mes anterior",
+      "pendingCharges": "COBROS PENDIENTES",
+      "pendingChargesSub": "comprobantes abiertos",
+      "defaulters": "ALUMNOS MOROSOS",
+      "defaultersReport": "Reporte de Morosidad"
+    },
+    "table": {
+      "title": "Cobros Vigentes",
+      "concept": "Concepto",
+      "gradeSection": "Grado/Sección",
+      "frequency": "Frecuencia",
+      "issueDate": "Emisión",
+      "status": "Estado",
+      "actions": "Acciones",
+      "viewDetail": "Ver detalle",
+      "showing": "Mostrando",
+      "of": "de",
+      "conceptsRegistered": "conceptos registrados"
+    },
+    "reports": {
+      "title": "Reportes Avanzados",
+      "desc": "Descarga conciliaciones bancarias y proyecciones de flujo de caja para este periodo."
+    },
+    "management": {
+      "title": "Gestión de Cobranzas",
+      "desc": "Enviar recordatorios automáticos vía email y SMS a los alumnos morosos actuales."
+    },
+    "new": {
+      "title": "Crear Nuevo Cargo",
+      "desc": "Configura los parámetros para la generación masiva o específica de cobros escolares.",
+      "detailsTitle": "Detalles del Pago",
+      "conceptLabel": "Concepto de Pago",
+      "conceptPlaceholder": "Ej. Cuota de APAFA 2024",
+      "amountLabel": "Monto (Soles)",
+      "frequencyLabel": "Frecuencia",
+      "frequencies": {
+        "oneTime": "Un solo pago",
+        "daily": "Diario",
+        "weekly": "Semanal",
+        "monthly": "Mensual"
+      },
+      "startDateLabel": "Fecha de inicio",
+      "scopeTitle": "Alcance del Cobro",
+      "scopeGeneral": "General (Toda la escuela)",
+      "scopeSpecific": "Por Grado/Sección",
+      "gradeLabel": "Grado",
+      "gradePlaceholder": "Seleccione grado...",
+      "sectionLabel": "Sección",
+      "sectionPlaceholder": "Seleccione sección...",
+      "resumeTitle": "Resumen de Operación",
+      "affectedStudents": "Estudiantes afectados",
+      "totalProjection": "Proyección total",
+      "issueDateLabel": "Fecha de emisión",
+      "today": "Hoy",
+      "generateBtn": "Generar Cobros",
+      "notice": "Al generar los cobros, se enviará una notificación automática a los padres de familia a través de la aplicación móvil.",
+      "tipTitle": "Tip de Gestión",
+      "tipDesc": "Puedes programar recordatorios automáticos 3 días antes de la fecha de vencimiento desde la pestaña de configuración."
+    }
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Error",

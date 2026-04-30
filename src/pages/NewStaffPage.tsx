@@ -24,7 +24,7 @@ const staffSchema = z.object({
   email: z.string().email('Email inválido'),
   role: z.enum(['Psicólogo(a)', 'Mantenimiento', 'CIST', 'Dirección', 'Docente', 'Auxiliar']),
   level: z.enum(['Inicial', 'Primaria', 'Secundaria', 'General']),
-  status: z.enum(['Activo', 'Inactivo']).default('Activo'),
+  status: z.enum(['Activo', 'Inactivo']),
   phone: z.string().min(9, 'El teléfono debe tener al menos 9 caracteres'),
   address: z.string().min(10, 'La dirección debe tener al menos 10 caracteres'),
 });
@@ -44,7 +44,7 @@ const LEVEL_DISPLAY_MAP = {
   'Inicial': 'Inicial',
   'Primaria': 'Primaria',
   'Secundaria': 'Secundaria',
-  'Todos': 'General'
+  'General': 'General'
 };
 
 export default function NewStaffPage() {
@@ -277,7 +277,7 @@ export default function NewStaffPage() {
                       className="block w-full pl-10 border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                       {...register('level')}
                     >
-                      {['Inicial', 'Primaria', 'Secundaria', 'Todos'].map((level) => (
+                      {['Inicial', 'Primaria', 'Secundaria', 'General'].map((level) => (
                         <option key={level} value={level}>
                           {LEVEL_DISPLAY_MAP[level as keyof typeof LEVEL_DISPLAY_MAP] || level}
                         </option>

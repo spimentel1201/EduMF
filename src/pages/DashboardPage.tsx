@@ -156,7 +156,7 @@ export default function DashboardPage() {
   });
 
   // Tendencia semanal de asistencia (real)
-  const { data: weeklyTrend = [] } = useQuery({
+  const { data: weeklyTrend = [] as { day: string; asistencia: number; tardanza: number; ausencia: number }[] } = useQuery({
     queryKey: ['weeklyTrend'],
     queryFn: attendanceService.getWeeklyTrend,
   });
@@ -173,7 +173,7 @@ export default function DashboardPage() {
     };
 
     if (incidentStats?.byType && Array.isArray(incidentStats.byType)) {
-      return incidentStats.byType.map(item => ({
+      return incidentStats.byType.map((item: { _id: string; count: number }) => ({
         name: item._id,
         value: item.count,
         color: typeColors[item._id] || '#6b7280'
@@ -302,7 +302,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
-                <Tooltip formatter={(value: number) => `${value}%`} />
+                <Tooltip formatter={(value: string | number | (string | number)[]) => `${value}%`} />
                 <Area type="monotone" dataKey="asistencia" stroke="#22c55e" strokeWidth={2} fill="url(#colorAsistencia)" />
                 <Line type="monotone" dataKey="tardanza" stroke="#eab308" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="ausencia" stroke="#ef4444" strokeWidth={2} dot={false} />
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {incidentTypeData.map((entry, index) => (
+                    {incidentTypeData.map((entry: { name: string; value: number; color: string }, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="grid grid-cols-2 gap-2 mt-4">
-                {incidentTypeData.map((item) => (
+                {incidentTypeData.map((item: { name: string; value: number; color: string }) => (
                   <div key={item.name} className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
                     <span className="text-xs text-gray-600">{item.name}</span>

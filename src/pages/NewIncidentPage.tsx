@@ -61,7 +61,7 @@ export default function NewIncidentPage() {
         watch,
         setError,
     } = useForm<IncidentFormData>({
-        resolver: zodResolver(incidentSchema),
+        resolver: zodResolver(incidentSchema) as any,
         defaultValues: {
             incidentType: 'Conductual',
             status: 'Pendiente',
@@ -175,39 +175,37 @@ export default function NewIncidentPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="max-w-4xl mx-auto pb-10 space-y-8 font-sans">
             {/* Header */}
-            <div className="border-b border-gray-200 pb-5">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Registro de Incidencia Escolar</h1>
-                        <p className="mt-2 text-sm text-gray-500">
-                            Por favor, complete todos los campos requeridos para registrar una nueva incidencia.
-                        </p>
-                    </div>
-                    <Link
-                        to="/incidents"
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                        Cancelar
-                    </Link>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-[2rem] font-bold text-gray-800 leading-tight">Registro de Incidencia Escolar</h1>
+                    <p className="text-[15px] font-medium text-gray-500 mt-1">
+                        Por favor, complete todos los campos requeridos para registrar una nueva incidencia.
+                    </p>
                 </div>
+                <Link
+                    to="/incidents"
+                    className="inline-flex items-center px-6 py-2.5 bg-white border border-[#EBE8DD] text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                    Cancelar
+                </Link>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8">
                 {/* Información General */}
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Información General</h2>
+                <div className="bg-white border border-[#EBE8DD] rounded-[2rem] p-8 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6">Información General</h2>
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <label htmlFor="incidentType" className="block text-sm font-medium text-gray-700">
-                                Tipo de incidencia *
+                            <label htmlFor="incidentType" className="block text-sm font-bold text-gray-700 mb-2">
+                                Tipo de incidencia <span className="text-[#D24545]">*</span>
                             </label>
                             <select
                                 id="incidentType"
-                                className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${getFieldError('incidentType')
-                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                className={`block w-full rounded-xl py-3 px-4 bg-[#FAF9F6] border text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm ${getFieldError('incidentType')
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-[#EBE8DD]'
                                     }`}
                                 {...register('incidentType')}
                             >
@@ -216,70 +214,70 @@ export default function NewIncidentPage() {
                                 ))}
                             </select>
                             {getFieldError('incidentType') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('incidentType')}</p>
+                                <p className="mt-2 text-[13px] font-bold text-[#D24545]">{getFieldError('incidentType')}</p>
                             )}
                         </div>
 
                         <div>
-                            <label htmlFor="incidentDate" className="block text-sm font-medium text-gray-700">
-                                Fecha del incidente *
+                            <label htmlFor="incidentDate" className="block text-sm font-bold text-gray-700 mb-2">
+                                Fecha del incidente <span className="text-[#D24545]">*</span>
                             </label>
-                            <div className="mt-1 relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
                                     type="date"
                                     id="incidentDate"
-                                    className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('incidentDate')
-                                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                    className={`block w-full pl-12 pr-4 py-3 rounded-xl bg-[#FAF9F6] border text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm ${getFieldError('incidentDate')
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-[#EBE8DD]'
                                         }`}
                                     {...register('incidentDate')}
                                 />
                             </div>
                             {getFieldError('incidentDate') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('incidentDate')}</p>
+                                <p className="mt-2 text-[13px] font-bold text-[#D24545]">{getFieldError('incidentDate')}</p>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {/* Personas Involucradas */}
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Personas Involucradas</h2>
+                <div className="bg-white border border-[#EBE8DD] rounded-[2rem] p-8 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6">Personas Involucradas</h2>
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                         <div>
-                            <label htmlFor="reporterName" className="block text-sm font-medium text-gray-700">
-                                Datos del informante *
+                            <label htmlFor="reporterName" className="block text-sm font-bold text-gray-700 mb-2">
+                                Datos del informante <span className="text-[#D24545]">*</span>
                             </label>
-                            <div className="mt-1 relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <UserCircleIcon className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
                                     type="text"
                                     id="reporterName"
                                     placeholder="Nombre y rol"
-                                    className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('reporterName')
-                                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                    className={`block w-full pl-12 pr-4 py-3 rounded-xl bg-[#FAF9F6] border text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm ${getFieldError('reporterName')
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-[#EBE8DD]'
                                         }`}
                                     {...register('reporterName')}
                                 />
                             </div>
                             {getFieldError('reporterName') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('reporterName')}</p>
+                                <p className="mt-2 text-[13px] font-bold text-[#D24545]">{getFieldError('reporterName')}</p>
                             )}
                         </div>
 
                         <div>
-                            <label htmlFor="victimId" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="victimId" className="block text-sm font-bold text-[#4B79A1] mb-2">
                                 Datos del Agredido
                             </label>
                             <select
                                 id="victimId"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                className="block w-full rounded-xl bg-[#F0F7FF] border-[#DCEAFC] py-3 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors sm:text-sm"
                                 {...register('victimId')}
                             >
                                 <option value="">Buscar alumno o personal...</option>
@@ -292,12 +290,12 @@ export default function NewIncidentPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="aggressorId" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="aggressorId" className="block text-sm font-bold text-[#D24545] mb-2">
                                 Datos del Agresor
                             </label>
                             <select
                                 id="aggressorId"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                className="block w-full rounded-xl bg-[#FFF5F5] border-[#FCE8E8] py-3 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500/40 transition-colors sm:text-sm"
                                 {...register('aggressorId')}
                             >
                                 <option value="">Buscar alumno o personal...</option>
@@ -312,69 +310,72 @@ export default function NewIncidentPage() {
                 </div>
 
                 {/* Descripción del Incidente */}
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Descripción del Incidente</h2>
+                <div className="bg-white border border-[#EBE8DD] rounded-[2rem] p-8 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6">Descripción del Incidente</h2>
 
                     {/* Toggle de violencia */}
-                    <div className="mb-6">
-                        <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-700 mr-4">¿Sucedió acto de violencia?</span>
+                    <div className="mb-6 p-5 bg-[#FAF9F6] border border-[#EBE8DD] rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span className="block text-sm font-bold text-gray-800">¿Sucedió acto de violencia?</span>
+                            <span className="block text-[13px] font-medium text-gray-500 mt-1">Marque si hubo agresión física o verbal directa</span>
+                        </div>
+                        <div className="flex items-center gap-3">
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
                                     className="sr-only peer"
                                     {...register('isViolent')}
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
-                                <span className="ml-3 text-sm font-medium text-gray-700">
-                                    {isViolent ? 'Sí' : 'No'}
-                                </span>
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D24545]"></div>
                             </label>
+                            <span className={`text-sm font-bold w-6 ${isViolent ? 'text-[#D24545]' : 'text-gray-400'}`}>
+                                {isViolent ? 'Sí' : 'No'}
+                            </span>
                             {isViolent && (
-                                <ExclamationTriangleIcon className="h-5 w-5 text-red-500 ml-2" />
+                                <ExclamationTriangleIcon className="h-5 w-5 text-[#D24545]" />
                             )}
                         </div>
                     </div>
 
                     {/* Descripción */}
                     <div className="mb-6">
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                            Descripción de hechos *
+                        <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-2">
+                            Descripción de hechos <span className="text-[#D24545]">*</span>
                         </label>
-                        <div className="mt-1 relative">
-                            <div className="absolute top-3 left-3 pointer-events-none">
+                        <div className="relative">
+                            <div className="absolute top-4 left-4 pointer-events-none">
                                 <DocumentTextIcon className="h-5 w-5 text-gray-400" />
                             </div>
                             <textarea
                                 id="description"
                                 rows={4}
                                 placeholder="Describa detalladamente lo sucedido..."
-                                className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('description')
-                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                className={`block w-full pl-12 pr-4 py-4 rounded-xl bg-[#FAF9F6] border text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm ${getFieldError('description')
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-[#EBE8DD]'
                                     }`}
                                 {...register('description')}
                             />
                         </div>
                         {getFieldError('description') && (
-                            <p className="mt-1 text-sm text-red-600">{getFieldError('description')}</p>
+                            <p className="mt-2 text-[13px] font-bold text-[#D24545]">{getFieldError('description')}</p>
                         )}
                     </div>
 
                     {/* Lugar */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Lugar *
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                            Lugar <span className="text-[#D24545]">*</span>
                         </label>
-                        <div className="flex flex-wrap gap-2 mb-3">
+                        <div className="flex flex-wrap gap-2 mb-4">
                             {INCIDENT_LOCATIONS.map((loc) => (
                                 <button
                                     key={loc}
                                     type="button"
                                     onClick={() => handleLocationSelect(loc)}
-                                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${selectedLocation === loc
-                                        ? 'bg-primary-600 text-white border-primary-600'
-                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${selectedLocation === loc
+                                        ? 'bg-[#538f65] text-white border-[#538f65]'
+                                        : 'bg-white text-gray-600 border-[#EBE8DD] hover:bg-gray-50'
                                         }`}
                                 >
                                     {loc}
@@ -382,7 +383,7 @@ export default function NewIncidentPage() {
                             ))}
                         </div>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <MapPinIcon className="h-5 w-5 text-gray-400" />
                             </div>
                             <input
@@ -390,52 +391,52 @@ export default function NewIncidentPage() {
                                 placeholder="Otro lugar..."
                                 value={customLocation}
                                 onChange={(e) => handleCustomLocationChange(e.target.value)}
-                                className={`block w-full pl-10 rounded-md shadow-sm sm:text-sm ${getFieldError('location')
-                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                className={`block w-full pl-12 pr-4 py-3 rounded-xl bg-[#FAF9F6] border text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm ${getFieldError('location')
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-[#EBE8DD]'
                                     }`}
                             />
                         </div>
                         {getFieldError('location') && (
-                            <p className="mt-1 text-sm text-red-600">{getFieldError('location')}</p>
+                            <p className="mt-2 text-[13px] font-bold text-[#D24545]">{getFieldError('location')}</p>
                         )}
                     </div>
                 </div>
 
                 {/* Acciones y Cierre */}
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones y Cierre</h2>
+                <div className="bg-white border border-[#EBE8DD] rounded-[2rem] p-8 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6">Acciones y Cierre</h2>
                     <div className="space-y-6">
                         <div>
-                            <label htmlFor="actionsTaken" className="block text-sm font-medium text-gray-700">
-                                Medidas tomadas *
+                            <label htmlFor="actionsTaken" className="block text-sm font-bold text-gray-700 mb-2">
+                                Medidas tomadas <span className="text-[#D24545]">*</span>
                             </label>
                             <textarea
                                 id="actionsTaken"
                                 rows={3}
                                 placeholder="Describa las acciones inmediatas o seguimiento..."
-                                className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${getFieldError('actionsTaken')
-                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                className={`block w-full p-4 rounded-xl bg-[#FAF9F6] border text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm ${getFieldError('actionsTaken')
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-[#EBE8DD]'
                                     }`}
                                 {...register('actionsTaken')}
                             />
                             {getFieldError('actionsTaken') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('actionsTaken')}</p>
+                                <p className="mt-2 text-[13px] font-bold text-[#D24545]">{getFieldError('actionsTaken')}</p>
                             )}
                         </div>
 
                         <div className="sm:w-1/3">
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="status" className="block text-sm font-bold text-gray-700 mb-2">
                                 Estado
                             </label>
-                            <div className="mt-1 relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <CheckCircleIcon className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <select
                                     id="status"
-                                    className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    className="block w-full pl-12 pr-4 py-3 rounded-xl bg-[#FAF9F6] border border-[#EBE8DD] text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm"
                                     {...register('status')}
                                 >
                                     {INCIDENT_STATUSES.map((status) => (
@@ -448,18 +449,18 @@ export default function NewIncidentPage() {
                 </div>
 
                 {/* Botones de acción */}
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-3 pt-4">
                     <button
                         type="button"
                         onClick={() => reset()}
-                        className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        className="px-6 py-3 border border-[#EBE8DD] rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={createIncidentMutation.isPending}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                        className="px-8 py-3 rounded-xl shadow-sm text-sm font-bold text-white bg-[#538f65] hover:bg-[#3f7350] focus:outline-none transition-colors disabled:opacity-50"
                     >
                         {createIncidentMutation.isPending ? 'Registrando...' : 'Registrar Incidencia'}
                     </button>

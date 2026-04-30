@@ -25,7 +25,12 @@ import NewUserPage from './pages/NewUserPage';
 import MonthlyAttendanceReportPage from './pages/MonthlyAttendanceReportPage';
 import IncidentsPage from './pages/IncidentsPage';
 import NewIncidentPage from './pages/NewIncidentPage';
-
+import EventsPage from './pages/EventsPage';
+import EventAttendancePage from './pages/EventAttendancePage';
+import NewEventPage from './pages/NewEventPage';
+import PaymentsPage from './pages/PaymentsPage';
+import NewChargePage from './pages/NewChargePage';
+import DefaultersReportPage from './pages/DefaultersReportPage';
 
 const queryClient = new QueryClient();
 
@@ -66,6 +71,12 @@ function App() {
               <Route path="/monthly-attendance-report" element={<MonthlyAttendanceReportPage />} />
               <Route path="incidents" element={<IncidentsPage />} />
               <Route path="incidents/new" element={<NewIncidentPage />} />
+              <Route path="events" element={<EventsPage />} />
+              <Route path="events/new" element={<NewEventPage />} />
+              <Route path="events/:eventId/attendance" element={<EventAttendancePage />} />
+              <Route path="payments" element={<PaymentsPage />} />
+              <Route path="payments/new" element={<NewChargePage />} />
+              <Route path="payments/defaulters" element={<DefaultersReportPage />} />
             </Route>
           </Routes>
         </AuthProvider>

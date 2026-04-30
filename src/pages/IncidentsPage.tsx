@@ -131,35 +131,31 @@ export default function IncidentsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="max-w-6xl mx-auto pb-10 space-y-8 h-full flex flex-col font-sans">
             {/* Header */}
-            <div className="sm:flex sm:items-center">
-                <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-bold text-gray-900">Incidencias Escolares</h1>
-                    <p className="mt-2 text-sm text-gray-700">
-                        Registro y seguimiento de incidencias en la institución educativa
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-[2rem] font-bold text-gray-800 leading-tight">Incidencias Escolares</h1>
+                    <p className="text-[15px] font-medium text-gray-500 mt-1">
+                        Registro y seguimiento de incidencias en la institución educativa.
                     </p>
                 </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <Link
-                        to="/incidents/new"
-                        className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                        <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
-                        Nueva Incidencia
-                    </Link>
-                </div>
+                <Link
+                    to="/incidents/new"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[#538f65] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#3f7350] transition-colors"
+                >
+                    <PlusIcon className="w-5 h-5" />
+                    Nueva Incidencia
+                </Link>
             </div>
 
             {/* Search and Filter Toggle */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                    </div>
+                    <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                         type="text"
-                        className="block w-full rounded-md border-0 py-2 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm"
+                        className="block w-full rounded-2xl py-3 pl-12 pr-4 bg-white border border-[#EBE8DD] text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors sm:text-sm"
                         placeholder="Buscar por descripción, ubicación o informante..."
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
@@ -167,21 +163,21 @@ export default function IncidentsPage() {
                 </div>
                 <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-[#EBE8DD] text-gray-700 font-bold text-sm rounded-2xl hover:bg-gray-50 transition-colors shadow-sm"
                 >
-                    <FunnelIcon className="h-5 w-5 mr-1.5 text-gray-400" />
+                    <FunnelIcon className="h-5 w-5 text-gray-400" />
                     Filtros
                 </button>
             </div>
 
             {/* Filters Panel */}
             {showFilters && (
-                <div className="bg-white p-4 rounded-lg shadow ring-1 ring-gray-200">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="bg-[#FAF9F6] border border-[#EBE8DD] rounded-[2rem] p-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                            <label className="block text-xs font-bold text-gray-600 mb-2">Tipo</label>
                             <select
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm"
+                                className="block w-full rounded-xl py-2.5 px-3 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 sm:text-sm shadow-sm"
                                 value={selectedType}
                                 onChange={(e) => { setSelectedType(e.target.value); setPage(1); }}
                             >
@@ -192,9 +188,9 @@ export default function IncidentsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                            <label className="block text-xs font-bold text-gray-600 mb-2">Estado</label>
                             <select
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm"
+                                className="block w-full rounded-xl py-2.5 px-3 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 sm:text-sm shadow-sm"
                                 value={selectedStatus}
                                 onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
                             >
@@ -205,39 +201,39 @@ export default function IncidentsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                            <label className="block text-xs font-bold text-gray-600 mb-2">Desde</label>
                             <input
                                 type="date"
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm"
+                                className="block w-full rounded-xl py-2.5 px-3 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 sm:text-sm shadow-sm"
                                 value={startDate}
                                 onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                            <label className="block text-xs font-bold text-gray-600 mb-2">Hasta</label>
                             <input
                                 type="date"
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm"
+                                className="block w-full rounded-xl py-2.5 px-3 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 sm:text-sm shadow-sm"
                                 value={endDate}
                                 onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
                             />
                         </div>
                         <div className="flex items-end">
-                            <label className="flex items-center">
+                            <label className="flex items-center cursor-pointer pb-2">
                                 <input
                                     type="checkbox"
-                                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                                    className="h-5 w-5 rounded border-gray-300 text-[#538f65] focus:ring-[#538f65]"
                                     checked={showViolentOnly}
                                     onChange={(e) => { setShowViolentOnly(e.target.checked); setPage(1); }}
                                 />
-                                <span className="ml-2 text-sm text-gray-700">Solo violentas</span>
+                                <span className="ml-2 text-sm font-medium text-gray-700">Solo violentas</span>
                             </label>
                         </div>
                     </div>
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-6 flex justify-end">
                         <button
                             onClick={clearFilters}
-                            className="text-sm text-gray-600 hover:text-gray-900"
+                            className="text-sm font-bold text-[#538f65] hover:text-[#3f7350] transition-colors"
                         >
                             Limpiar filtros
                         </button>
@@ -253,34 +249,21 @@ export default function IncidentsPage() {
             )}
 
             {/* Incidents Table */}
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                                Fecha
-                            </th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Tipo
-                            </th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Ubicación
-                            </th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Informante
-                            </th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Violencia
-                            </th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Estado
-                            </th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Acciones
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+            <div className="bg-white rounded-[2rem] border border-[#EBE8DD] overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-[#EBE8DD] bg-white">
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider">Fecha</th>
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider">Tipo</th>
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider">Ubicación</th>
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider">Informante</th>
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider">Violencia</th>
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#F4F2EC]">
                         {incidents.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="py-12 text-center text-gray-500">
@@ -289,51 +272,51 @@ export default function IncidentsPage() {
                             </tr>
                         ) : (
                             incidents.map((incident) => (
-                                <tr key={incident.id} className="hover:bg-gray-50">
-                                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-6">
+                                <tr key={incident.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="whitespace-nowrap px-6 py-5 text-sm font-bold text-gray-900">
                                         {formatDate(incident.incidentDate)}
                                     </td>
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getIncidentTypeColor(incident.incidentType)}`}>
+                                    <td className="whitespace-nowrap px-6 py-5 text-sm">
+                                        <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${getIncidentTypeColor(incident.incidentType)}`}>
                                             {incident.incidentType}
                                         </span>
                                     </td>
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                    <td className="whitespace-nowrap px-6 py-5 text-sm font-medium text-gray-600">
                                         {incident.location}
                                     </td>
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                    <td className="whitespace-nowrap px-6 py-5 text-sm font-medium text-gray-600">
                                         {incident.reporterName}
                                     </td>
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <td className="whitespace-nowrap px-6 py-5 text-sm">
                                         {incident.isViolent ? (
-                                            <span className="inline-flex items-center text-red-600">
+                                            <span className="inline-flex items-center font-bold text-[#D24545] text-xs">
                                                 <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
                                                 Sí
                                             </span>
                                         ) : (
-                                            <span className="text-gray-400">No</span>
+                                            <span className="text-gray-400 font-medium text-xs">No</span>
                                         )}
                                     </td>
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <td className="whitespace-nowrap px-6 py-5 text-sm">
                                         <select
                                             value={incident.status}
                                             onChange={(e) => handleStatusChange(incident.id, e.target.value as IncidentStatus)}
                                             disabled={updateStatusMutation.isPending}
-                                            className={`rounded-md border-0 py-1 pl-2 pr-8 text-xs font-semibold ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 ${getIncidentStatusColor(incident.status)} cursor-pointer disabled:opacity-50`}
+                                            className={`rounded-lg border-0 py-1.5 pl-3 pr-8 text-xs font-bold focus:ring-2 focus:ring-[#538f65] ${getIncidentStatusColor(incident.status)} cursor-pointer disabled:opacity-50`}
                                         >
                                             {INCIDENT_STATUSES.map((status) => (
                                                 <option key={status} value={status}>{status}</option>
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <td className="whitespace-nowrap px-6 py-5 text-right">
                                         <button
                                             onClick={() => openDetails(incident)}
-                                            className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
+                                            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#538f65] hover:text-[#3f7350] transition-colors"
                                             title="Ver detalles"
                                         >
                                             <EyeIcon className="h-5 w-5" />
-                                            <span className="sr-only">Ver detalles</span>
+                                            Ver detalle
                                         </button>
                                     </td>
                                 </tr>
@@ -405,33 +388,33 @@ export default function IncidentsPage() {
                                 <div className="pointer-events-auto w-screen max-w-md">
                                     <div className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
                                         {/* Header */}
-                                        <div className="bg-primary-600 px-4 py-6 sm:px-6">
-                                            <div className="flex items-center justify-between">
+                                        <div className="bg-[#1C1F1E] px-8 py-8">
+                                            <div className="flex items-start justify-between">
                                                 <div>
-                                                    <h2 className="text-lg font-semibold text-white">
+                                                    <h2 className="text-xl font-bold text-white">
                                                         Detalles de Incidencia
                                                     </h2>
-                                                    <p className="mt-1 text-sm text-primary-100">
+                                                    <p className="mt-1 text-sm font-medium text-gray-400">
                                                         {formatDate(selectedIncident.incidentDate)}
                                                     </p>
                                                 </div>
                                                 <button
                                                     onClick={closeDetails}
-                                                    className="rounded-md text-primary-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                                                    className="rounded-full p-2 bg-white/10 text-gray-300 hover:text-white hover:bg-white/20 transition-colors"
                                                 >
                                                     <XMarkIcon className="h-6 w-6" />
                                                 </button>
                                             </div>
                                             {/* Status and Type badges */}
-                                            <div className="mt-4 flex gap-2">
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getIncidentTypeColor(selectedIncident.incidentType)}`}>
+                                            <div className="mt-6 flex flex-wrap gap-2">
+                                                <span className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${getIncidentTypeColor(selectedIncident.incidentType)}`}>
                                                     {selectedIncident.incidentType}
                                                 </span>
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getIncidentStatusColor(selectedIncident.status)}`}>
+                                                <span className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${getIncidentStatusColor(selectedIncident.status)}`}>
                                                     {selectedIncident.status}
                                                 </span>
                                                 {selectedIncident.isViolent && (
-                                                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-800">
+                                                    <span className="inline-flex items-center rounded-md bg-[#FFEBEB] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-[#D24545]">
                                                         <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
                                                         Violencia
                                                     </span>
@@ -440,46 +423,50 @@ export default function IncidentsPage() {
                                         </div>
 
                                         {/* Content */}
-                                        <div className="flex-1 px-4 py-6 sm:px-6 space-y-6">
+                                        <div className="flex-1 px-8 py-8 bg-[#FAF9F6] space-y-8">
                                             {/* Ubicación */}
-                                            <div className="flex items-start gap-3">
-                                                <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5" />
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-white border border-[#EBE8DD] flex items-center justify-center shrink-0">
+                                                    <MapPinIcon className="h-5 w-5 text-[#538f65]" />
+                                                </div>
                                                 <div>
-                                                    <h3 className="text-sm font-medium text-gray-500">Ubicación</h3>
-                                                    <p className="text-sm text-gray-900">{selectedIncident.location}</p>
+                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Ubicación</h3>
+                                                    <p className="text-sm font-bold text-gray-900">{selectedIncident.location}</p>
                                                 </div>
                                             </div>
 
                                             {/* Informante */}
-                                            <div className="flex items-start gap-3">
-                                                <UserIcon className="h-5 w-5 text-gray-400 mt-0.5" />
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-white border border-[#EBE8DD] flex items-center justify-center shrink-0">
+                                                    <UserIcon className="h-5 w-5 text-[#538f65]" />
+                                                </div>
                                                 <div>
-                                                    <h3 className="text-sm font-medium text-gray-500">Informante</h3>
-                                                    <p className="text-sm text-gray-900">{selectedIncident.reporterName}</p>
+                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Informante</h3>
+                                                    <p className="text-sm font-bold text-gray-900">{selectedIncident.reporterName}</p>
                                                 </div>
                                             </div>
 
                                             {/* Personas involucradas */}
                                             {(selectedIncident.victim || selectedIncident.aggressor) && (
-                                                <div className="border-t border-gray-200 pt-4">
-                                                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Personas Involucradas</h3>
+                                                <div className="pt-2">
+                                                    <h3 className="text-sm font-bold text-gray-900 mb-4">Personas Involucradas</h3>
                                                     <div className="space-y-3">
                                                         {selectedIncident.victim && (
-                                                            <div className="bg-blue-50 rounded-lg p-3">
-                                                                <span className="text-xs font-medium text-blue-600">Agredido</span>
-                                                                <p className="text-sm text-gray-900">
+                                                            <div className="bg-white border border-[#EBE8DD] rounded-xl p-4">
+                                                                <span className="inline-block text-[10px] font-black uppercase text-blue-600 mb-1">Agredido</span>
+                                                                <p className="text-sm font-bold text-gray-900">
                                                                     {selectedIncident.victim.firstName} {selectedIncident.victim.lastName}
                                                                 </p>
-                                                                <p className="text-xs text-gray-500">DNI: {selectedIncident.victim.dni}</p>
+                                                                <p className="text-xs font-medium text-gray-500">DNI: {selectedIncident.victim.dni}</p>
                                                             </div>
                                                         )}
                                                         {selectedIncident.aggressor && (
-                                                            <div className="bg-red-50 rounded-lg p-3">
-                                                                <span className="text-xs font-medium text-red-600">Agresor</span>
-                                                                <p className="text-sm text-gray-900">
+                                                            <div className="bg-white border border-[#EBE8DD] rounded-xl p-4">
+                                                                <span className="inline-block text-[10px] font-black uppercase text-[#D24545] mb-1">Agresor</span>
+                                                                <p className="text-sm font-bold text-gray-900">
                                                                     {selectedIncident.aggressor.firstName} {selectedIncident.aggressor.lastName}
                                                                 </p>
-                                                                <p className="text-xs text-gray-500">DNI: {selectedIncident.aggressor.dni}</p>
+                                                                <p className="text-xs font-medium text-gray-500">DNI: {selectedIncident.aggressor.dni}</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -487,37 +474,43 @@ export default function IncidentsPage() {
                                             )}
 
                                             {/* Descripción */}
-                                            <div className="border-t border-gray-200 pt-4">
-                                                <div className="flex items-start gap-3">
-                                                    <DocumentTextIcon className="h-5 w-5 text-gray-400 mt-0.5" />
+                                            <div className="border-t border-[#EBE8DD] pt-8">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-[#EBE8DD] flex items-center justify-center shrink-0">
+                                                        <DocumentTextIcon className="h-5 w-5 text-[#538f65]" />
+                                                    </div>
                                                     <div className="flex-1">
-                                                        <h3 className="text-sm font-medium text-gray-500">Descripción de los hechos</h3>
-                                                        <p className="mt-2 text-sm text-gray-900 whitespace-pre-wrap">
-                                                            {selectedIncident.description}
-                                                        </p>
+                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Descripción de los hechos</h3>
+                                                        <div className="bg-white border border-[#EBE8DD] rounded-xl p-4">
+                                                            <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                                                {selectedIncident.description}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Acciones tomadas */}
                                             {selectedIncident.actionsTaken && (
-                                                <div className="border-t border-gray-200 pt-4">
-                                                    <h3 className="text-sm font-medium text-gray-500">Medidas tomadas</h3>
-                                                    <p className="mt-2 text-sm text-gray-900 whitespace-pre-wrap">
-                                                        {selectedIncident.actionsTaken}
-                                                    </p>
+                                                <div className="pt-2">
+                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Medidas tomadas</h3>
+                                                    <div className="bg-white border border-[#EBE8DD] rounded-xl p-4">
+                                                        <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                                            {selectedIncident.actionsTaken}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             )}
 
                                             {/* Información de cierre */}
                                             {selectedIncident.closedAt && selectedIncident.closedBy && (
-                                                <div className="border-t border-gray-200 pt-4">
-                                                    <div className="bg-gray-50 rounded-lg p-3">
-                                                        <h3 className="text-sm font-medium text-gray-700">Información de cierre</h3>
-                                                        <p className="text-xs text-gray-500 mt-1">
+                                                <div className="pt-2">
+                                                    <div className="bg-[#EAE4D9] rounded-xl p-4">
+                                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Información de cierre</h3>
+                                                        <p className="text-[13px] font-medium text-gray-600 mt-1">
                                                             Cerrado el {formatDateTime(selectedIncident.closedAt)}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-[13px] font-bold text-gray-800 mt-1">
                                                             Por: {selectedIncident.closedBy.firstName} {selectedIncident.closedBy.lastName}
                                                         </p>
                                                     </div>
@@ -525,14 +518,16 @@ export default function IncidentsPage() {
                                             )}
 
                                             {/* Metadatos */}
-                                            <div className="border-t border-gray-200 pt-4">
-                                                <div className="flex items-start gap-3">
-                                                    <CalendarDaysIcon className="h-5 w-5 text-gray-400 mt-0.5" />
-                                                    <div className="text-xs text-gray-500 space-y-1">
-                                                        <p>Registrado: {formatDateTime(selectedIncident.createdAt)}</p>
-                                                        <p>Por: {selectedIncident.registeredBy.firstName} {selectedIncident.registeredBy.lastName}</p>
+                                            <div className="border-t border-[#EBE8DD] pt-8">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-[#EBE8DD] flex items-center justify-center shrink-0">
+                                                        <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
+                                                    </div>
+                                                    <div className="text-[13px] text-gray-500 space-y-1.5 font-medium">
+                                                        <p>Registrado: <span className="text-gray-700 font-bold">{formatDateTime(selectedIncident.createdAt)}</span></p>
+                                                        <p>Por: <span className="text-gray-700 font-bold">{selectedIncident.registeredBy.firstName} {selectedIncident.registeredBy.lastName}</span></p>
                                                         {selectedIncident.updatedAt !== selectedIncident.createdAt && (
-                                                            <p>Última actualización: {formatDateTime(selectedIncident.updatedAt)}</p>
+                                                            <p>Última actualización: <span className="text-gray-700 font-bold">{formatDateTime(selectedIncident.updatedAt)}</span></p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -540,14 +535,14 @@ export default function IncidentsPage() {
                                         </div>
 
                                         {/* Footer */}
-                                        <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+                                        <div className="border-t border-[#EBE8DD] px-8 py-6 bg-white">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-500">Cambiar estado:</span>
+                                                <span className="text-sm font-bold text-gray-700">Cambiar estado:</span>
                                                 <select
                                                     value={selectedIncident.status}
                                                     onChange={(e) => handleStatusChange(selectedIncident.id, e.target.value as IncidentStatus)}
                                                     disabled={updateStatusMutation.isPending}
-                                                    className="rounded-md border-gray-300 py-1.5 text-sm focus:ring-primary-600 focus:border-primary-600"
+                                                    className="rounded-xl border border-gray-200 py-2.5 pl-3 pr-8 text-sm font-bold focus:ring-2 focus:ring-[#538f65] focus:outline-none"
                                                 >
                                                     {INCIDENT_STATUSES.map((status) => (
                                                         <option key={status} value={status}>{status}</option>
@@ -562,6 +557,7 @@ export default function IncidentsPage() {
                     </div>
                 </div>
             )}
+        </div>
         </div>
     );
 }

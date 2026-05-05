@@ -6,6 +6,7 @@ import {
   CheckIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
+import { eventService } from '../services/eventService';
 
 type EventCategory = 'Académico' | 'Artes' | 'Deportes' | 'Cultura' | 'Otro';
 
@@ -31,13 +32,16 @@ export default function NewEventPage() {
     grade: '',
     section: '',
     date: '',
-    time: '',
+    timeStart: '',
+    timeEnd: '',
     capacity: '',
     location: '',
     isCustomLocation: false,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const set = (field: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -51,9 +55,10 @@ export default function NewEventPage() {
     if (!form.title.trim())    errs.title    = 'El título es requerido.';
     if (!form.category)        errs.category = 'Selecciona una categoría.';
     if (!form.date)            errs.date     = 'La fecha es requerida.';
-    if (!form.time)            errs.time     = 'La hora es requerida.';
+    if (!form.timeStart)       errs.timeStart = 'La hora de inicio es requerida.';
+    if (!form.timeEnd)         errs.timeEnd   = 'La hora de fin es requerida.';
     if (!form.location.trim()) errs.location = 'La ubicación es requerida.';
-    
+
     if (form.capacity && parseInt(form.capacity) <= 0) {
       errs.capacity = 'La capacidad debe ser mayor a 0.';
     }
@@ -66,12 +71,36 @@ export default function NewEventPage() {
     return errs;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    // TODO: API call to create event
-    navigate('/events');
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await eventService.createEvent({
+        title:       form.title.trim(),
+        description: form.description.trim() || undefined,
+        category:    form.category as EventCategory,
+        date:        form.date,
+        timeStart:   form.timeStart,
+        timeEnd:     form.timeEnd,
+        location:    form.location.trim(),
+        imageUrl:    form.imageUrl.trim() || undefined,
+        scope:       form.scope,
+        targetGrade:   form.scope === 'specific' ? form.grade   : undefined,
+        targetSection: form.scope === 'specific' ? form.section : undefined,
+        capacity:    form.capacity ? parseInt(form.capacity) : undefined,
+      });
+      navigate('/events');
+    } catch (err: any) {
+      setSubmitError(
+        err?.response?.data?.message ?? err?.message ?? 'Error al crear el evento'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -223,7 +252,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Bottom Grid: Fecha, Hora, Capacidad */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <label className={LABEL_CLASS}>Fecha</label>
               <input
@@ -235,14 +264,24 @@ export default function NewEventPage() {
               {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date}</p>}
             </div>
             <div>
-              <label className={LABEL_CLASS}>Hora</label>
+              <label className={LABEL_CLASS}>Hora de Inicio</label>
               <input
                 type="time"
-                value={form.time}
-                onChange={set('time')}
+                value={form.timeStart}
+                onChange={set('timeStart')}
                 className={FIELD_CLASS}
               />
-              {errors.time && <p className="mt-1 text-xs text-red-500">{errors.time}</p>}
+              {errors.timeStart && <p className="mt-1 text-xs text-red-500">{errors.timeStart}</p>}
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Hora de Fin</label>
+              <input
+                type="time"
+                value={form.timeEnd}
+                onChange={set('timeEnd')}
+                className={FIELD_CLASS}
+              />
+              {errors.timeEnd && <p className="mt-1 text-xs text-red-500">{errors.timeEnd}</p>}
             </div>
             <div>
               <label className={LABEL_CLASS}>Capacidad Estimada</label>
@@ -304,20 +343,26 @@ export default function NewEventPage() {
           </div>
 
           {/* Spacer to push buttons to the bottom right visually */}
-          <div className="border-t border-gray-100 pt-6 mt-8 flex justify-end gap-4">
-            <Link
-              to="/events"
-              className="px-8 py-3 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors"
-            >
-              Cancelar
-            </Link>
-            <button
-              type="submit"
-              className="px-8 py-3 text-sm font-bold text-white rounded-full bg-[#538f65] hover:bg-[#47795a] transition-colors flex items-center gap-2"
-            >
-              <CalendarDaysIcon className="w-5 h-5 text-white/80" />
-              Crear Evento
-            </button>
+          <div className="border-t border-gray-100 pt-6 mt-8 flex flex-col items-end gap-3">
+            {submitError && (
+              <p className="text-sm text-red-500">{submitError}</p>
+            )}
+            <div className="flex justify-end gap-4">
+              <Link
+                to="/events"
+                className="px-8 py-3 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </Link>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-8 py-3 text-sm font-bold text-white rounded-full bg-[#538f65] hover:bg-[#47795a] transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <CalendarDaysIcon className="w-5 h-5 text-white/80" />
+                {submitting ? 'Creando…' : 'Crear Evento'}
+              </button>
+            </div>
           </div>
 
         </div>

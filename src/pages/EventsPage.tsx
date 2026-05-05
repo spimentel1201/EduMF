@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CalendarDaysIcon,
@@ -12,23 +12,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  category: EventCategory;
-  date: string;
-  timeStart: string;
-  timeEnd: string;
-  location: string;
-  imageUrl?: string;
-  attendeesCount?: number;
-  featured?: boolean;
-}
-
-type EventCategory = 'Académico' | 'Artes' | 'Deportes' | 'Cultura' | 'Otro';
+import { eventService, EventDTO, EventCategory } from '../services/eventService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORY_STYLES: Record<EventCategory, { bg: string; text: string }> = {
@@ -42,84 +26,6 @@ const CATEGORY_STYLES: Record<EventCategory, { bg: string; text: string }> = {
 const ALL_CATEGORIES: ('all' | EventCategory)[] = [
   'all', 'Académico', 'Artes', 'Deportes', 'Cultura', 'Otro',
 ];
-
-// ─── Mock data (will be replaced by API) ─────────────────────────────────────
-const MOCK_EVENTS: Event[] = [
-  {
-    id: '1',
-    title: 'Feria de Ciencias',
-    description: 'Explora las innovaciones y proyectos experimentales desarrollados por los estudiantes de secundaria.',
-    category: 'Académico',
-    date: '15 de Octubre, 2024',
-    timeStart: '09:00 AM',
-    timeEnd: '14:00 PM',
-    location: 'Gimnasio Central',
-    attendeesCount: 120,
-    featured: false,
-  },
-  {
-    id: '2',
-    title: 'Concierto de Otoño',
-    description: 'Una velada mágica con la orquesta sinfónica escolar interpretando piezas clásicas y modernas.',
-    category: 'Artes',
-    date: '22 de Octubre, 2024',
-    timeStart: '18:30 PM',
-    timeEnd: '20:30 PM',
-    location: 'Auditorio Principal',
-    attendeesCount: 85,
-    featured: false,
-  },
-  {
-    id: '3',
-    title: 'Maratón Solidaria',
-    description: 'Corre por una causa. Evento deportivo anual para recaudar fondos destinados a mejoras en la institución.',
-    category: 'Deportes',
-    date: '5 de Noviembre, 2024',
-    timeStart: '08:00 AM',
-    timeEnd: '12:00 PM',
-    location: 'Campo de Atletismo',
-    attendeesCount: 200,
-    featured: false,
-  },
-  {
-    id: '4',
-    title: 'Feria Literaria',
-    description: 'Encuentros con autores locales, talleres de escritura creativa e intercambio de libros. Un espacio para fomentar la lectura.',
-    category: 'Cultura',
-    date: '10-12 Nov, 2024',
-    timeStart: '10:00 AM',
-    timeEnd: '18:00 PM',
-    location: 'Biblioteca Central',
-    attendeesCount: 60,
-    featured: false,
-  },
-  {
-    id: '5',
-    title: 'Gran Gala de Fin de Año',
-    description: 'No te pierdas la Gran Gala de Fin de Año. Las plazas son limitadas y se requiere reserva previa.',
-    category: 'Cultura',
-    date: '20 de Diciembre, 2024',
-    timeStart: '19:00 PM',
-    timeEnd: '23:00 PM',
-    location: 'Salón de Actos',
-    attendeesCount: 0,
-    featured: true,
-  },
-  {
-    id: '6',
-    title: 'Olimpiadas Internas',
-    description: 'Competencias deportivas entre secciones en distintas disciplinas: fútbol, básquet, atletismo y más.',
-    category: 'Deportes',
-    date: '18 de Noviembre, 2024',
-    timeStart: '08:00 AM',
-    timeEnd: '17:00 PM',
-    location: 'Canchas Exteriores',
-    attendeesCount: 310,
-    featured: false,
-  },
-];
-
-const ITEMS_PER_PAGE = 6;
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
@@ -142,7 +48,7 @@ function CategoryBadge({ category }: { category: EventCategory }) {
   );
 }
 
-function EventCard({ event }: { event: Event }) {
+function EventCard({ event }: { event: EventDTO }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
       {/* Image / Placeholder */}
@@ -203,7 +109,7 @@ function EventCard({ event }: { event: Event }) {
   );
 }
 
-function FeaturedEventCard({ event }: { event: Event }) {
+function FeaturedEventCard({ event }: { event: EventDTO }) {
   return (
     <div
       className="rounded-2xl p-5 flex flex-col justify-between text-white h-full"
@@ -231,18 +137,50 @@ export default function EventsPage() {
   const [activeCategory, setActiveCategory] = useState<'all' | EventCategory>('all');
   const [page, setPage] = useState(1);
 
-  const filtered = MOCK_EVENTS.filter((e) => {
-    const matchCat = activeCategory === 'all' || e.category === activeCategory;
-    const matchSearch =
-      e.title.toLowerCase().includes(search.toLowerCase()) ||
-      e.description.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch && !e.featured;
-  });
+  const [events, setEvents] = useState<EventDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const featuredEvent = MOCK_EVENTS.find((e) => e.featured);
+  useEffect(() => {
+    let cancelled = false;
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+    const fetchEvents = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await eventService.getEvents({
+          search: search || undefined,
+          category: activeCategory !== 'all' ? activeCategory : undefined,
+          page,
+          limit: 6,
+        });
+        if (!cancelled) {
+          setEvents(response.data);
+          setTotal(response.total);
+          setTotalPages(response.totalPages);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError('No se pudieron cargar los eventos. Intenta de nuevo.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchEvents();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [search, activeCategory, page]);
+
+  const featuredEvent = events.find((e) => e.featured);
+  const nonFeaturedEvents = events.filter((e) => !e.featured);
 
   const handleCategoryChange = (cat: 'all' | EventCategory) => {
     setActiveCategory(cat);
@@ -310,27 +248,43 @@ export default function EventsPage() {
         </div>
       </div>
 
+      {/* ── Loading Spinner ── */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* ── Error Message ── */}
+      {!loading && error && (
+        <div className="flex items-center justify-center py-10">
+          <p className="text-sm text-red-500">{error}</p>
+        </div>
+      )}
+
       {/* ── Grid + Featured ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paginated.map((event) => (
-          <EventCard key={event.id} event={event} />
-        ))}
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {nonFeaturedEvents.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
 
-        {/* Featured card occupies one cell when it fits */}
-        {featuredEvent && page === 1 && (
-          <FeaturedEventCard event={featuredEvent} />
-        )}
+          {/* Featured card occupies one cell when it fits */}
+          {featuredEvent && page === 1 && (
+            <FeaturedEventCard event={featuredEvent} />
+          )}
 
-        {paginated.length === 0 && (
-          <div className="col-span-3 flex flex-col items-center justify-center py-20 text-gray-400">
-            <CalendarDaysIcon className="w-12 h-12 mb-3 opacity-30" />
-            <p className="text-sm">No se encontraron eventos</p>
-          </div>
-        )}
-      </div>
+          {nonFeaturedEvents.length === 0 && !featuredEvent && (
+            <div className="col-span-3 flex flex-col items-center justify-center py-20 text-gray-400">
+              <CalendarDaysIcon className="w-12 h-12 mb-3 opacity-30" />
+              <p className="text-sm">No se encontraron eventos</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Pagination ── */}
-      {totalPages > 1 && (
+      {!loading && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}

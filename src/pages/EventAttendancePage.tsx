@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeftIcon,
@@ -11,6 +11,11 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
+import {
+  eventService,
+  EventDTO,
+  SaveAttendanceEntry,
+} from '../services/eventService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AttendanceStatus = 'present' | 'absent' | null;
@@ -26,38 +31,6 @@ interface StudentRecord {
   tutorPresence: TutorPresence;
   tutorName: string;
 }
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_EVENT = {
-  id: '1',
-  title: 'Feria de Ciencias 2024',
-  category: 'Académico',
-  date: '15 de Octubre',
-  timeStart: '09:00 AM',
-  timeEnd: '14:00 PM',
-  location: 'Gimnasio Central',
-};
-
-const generateMockStudents = (): StudentRecord[] =>
-  Array.from({ length: 32 }, (_, i) => {
-    const names = [
-      'Alvarado, Valeria', 'Castillo, Ricardo', 'García, Helena', 'Mendoza, Luis',
-      'Torres, Sofía',     'Ramírez, Pedro',    'López, Lucía',   'Herrera, Miguel',
-      'Vargas, Camila',    'Flores, Andrés',    'Castro, Diana',  'Ortega, Fabio',
-      'Silva, Natalia',    'Rojas, Emilio',     'Vega, Paola',    'Mora, Sebastian',
-    ];
-    const grades = ['Primaria - 3ro', 'Primaria - 4to', 'Primaria - 5to', 'Secundaria - 1ro'];
-    return {
-      id: String(i + 1),
-      name: names[i % names.length],
-      studentId: `2024-${String(i + 42).padStart(4, '0')}`,
-      grade: grades[i % grades.length],
-      section: ['A', 'B', 'C'][i % 3],
-      attendance: null,
-      tutorPresence: null,
-      tutorName: '',
-    };
-  });
 
 const ITEMS_PER_PAGE = 10;
 
@@ -172,11 +145,9 @@ function TutorNameField({
   attendance: AttendanceStatus;
   onChange: (v: string) => void;
 }) {
-  // No aplica: absent or no tutor
   if (attendance === 'absent' || tutorPresence === null) {
     return <span className="text-sm italic text-gray-300">No aplica</span>;
   }
-  // Only "apoderado" requires entering a name; padre/madre don't store name
   if (tutorPresence === 'apoderado') {
     return (
       <input
@@ -188,7 +159,6 @@ function TutorNameField({
       />
     );
   }
-  // Padre or madre: name not required
   return <span className="text-sm italic text-gray-400">—</span>;
 }
 
@@ -223,13 +193,91 @@ function StatsCard({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function EventAttendancePage() {
   const { eventId } = useParams<{ eventId: string }>();
-  const event = MOCK_EVENT;
 
-  const [records, setRecords] = useState<StudentRecord[]>(generateMockStudents);
+  // ── Event state ──
+  const [event, setEvent] = useState<EventDTO | null>(null);
+  const [eventLoading, setEventLoading] = useState(true);
+
+  // ── Records state ──
+  const [records, setRecords] = useState<StudentRecord[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+
+  // ── Save state ──
+  const [hasSavedRecord, setHasSavedRecord] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // ── Filter / pagination state ──
   const [gradeFilter,   setGradeFilter]   = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
   const [page, setPage] = useState(1);
-  const [saved, setSaved] = useState(false);
+
+  // ── Fetch event + existing attendance on mount ──
+  useEffect(() => {
+    if (!eventId) return;
+
+    setEventLoading(true);
+    eventService.getEventById(eventId)
+      .then((data) => setEvent(data))
+      .catch((err) => console.error('Failed to load event:', err))
+      .finally(() => setEventLoading(false));
+
+    // Try to load existing attendance record
+    eventService.getEventAttendance(eventId)
+      .then(({ record }) => {
+        if (record && Array.isArray(record.entries) && record.entries.length > 0) {
+          const mapped: StudentRecord[] = record.entries.map((entry: any) => ({
+            id:           entry.studentId?._id ?? entry.studentId ?? '',
+            name:         entry.studentId?.lastName
+                            ? `${entry.studentId.lastName}, ${entry.studentId.firstName}`
+                            : entry.name ?? '',
+            studentId:    entry.studentId?.dni ?? entry.studentDni ?? '',
+            grade:        entry.grade ?? '',
+            section:      entry.section ?? '',
+            attendance:   entry.attendance ?? null,
+            tutorPresence: entry.tutorPresence ?? null,
+            tutorName:    entry.tutorName ?? '',
+          }));
+          setRecords(mapped);
+          setHasSavedRecord(true);
+          setStudentsLoading(false);
+        }
+      })
+      .catch((err) => {
+        const status = err?.response?.status;
+        if (status !== 404) {
+          console.error('Failed to load existing attendance:', err);
+        }
+        // 404 → no saved record yet, fall through to load fresh student list
+      });
+  }, [eventId]);
+
+  // ── Fetch students when filters change (skip if saved record already loaded) ──
+  useEffect(() => {
+    if (!eventId) return;
+    if (hasSavedRecord) return;
+
+    setStudentsLoading(true);
+    eventService
+      .getStudentsForEvent(eventId, {
+        grade:   gradeFilter   !== 'all' ? gradeFilter   : undefined,
+        section: sectionFilter !== 'all' ? sectionFilter : undefined,
+      })
+      .then((students) => {
+        setRecords(students.map((s) => ({
+          id:            s.id,
+          name:          s.name,
+          studentId:     s.studentId,
+          grade:         s.grade,
+          section:       s.section,
+          attendance:    s.attendance,
+          tutorPresence: s.tutorPresence,
+          tutorName:     s.tutorName,
+        })));
+      })
+      .catch((err) => console.error('Failed to load students:', err))
+      .finally(() => setStudentsLoading(false));
+  }, [eventId, gradeFilter, sectionFilter, hasSavedRecord]);
 
   // Derived filter options
   const grades   = ['all', ...Array.from(new Set(records.map((r) => r.grade)))];
@@ -250,12 +298,10 @@ export default function EventAttendancePage() {
       prev.map((r) => {
         if (r.id !== id) return r;
         const updated = { ...r, ...patch };
-        // If marked absent → clear tutor fields
         if (patch.attendance === 'absent') {
           updated.tutorPresence = null;
           updated.tutorName = '';
         }
-        // If tutor changes from apoderado → clear name
         if (patch.tutorPresence !== undefined && patch.tutorPresence !== 'apoderado') {
           updated.tutorName = '';
         }
@@ -266,15 +312,51 @@ export default function EventAttendancePage() {
   };
 
   // Summary stats
-  const present     = records.filter((r) => r.attendance === 'present').length;
-  const tutorCount  = records.filter((r) => r.tutorPresence !== null).length;
-  const pct         = records.length ? Math.round((present / records.length) * 100) : 0;
+  const present    = records.filter((r) => r.attendance === 'present').length;
+  const tutorCount = records.filter((r) => r.tutorPresence !== null).length;
+  const pct        = records.length ? Math.round((present / records.length) * 100) : 0;
 
-  const handleSave = () => {
-    // TODO: API call
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    if (!eventId) return;
+    setSaveError(null);
+
+    const entries: SaveAttendanceEntry[] = records.map((r) => ({
+      studentId:     r.id,
+      attendance:    r.attendance,
+      tutorPresence: r.tutorPresence,
+      tutorName:     r.tutorName,
+    }));
+
+    try {
+      if (hasSavedRecord) {
+        await eventService.updateEventAttendance(eventId, entries);
+      } else {
+        await eventService.saveEventAttendance(eventId, entries);
+        setHasSavedRecord(true);
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Error al guardar la asistencia';
+      setSaveError(msg);
+    }
   };
+
+  const isLoading = eventLoading || studentsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-3 text-gray-400">
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
+          <p className="text-sm">Cargando datos del evento…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 pb-8">
@@ -292,16 +374,16 @@ export default function EventAttendancePage() {
               Registro de Asistencia
             </h1>
             <p className="text-sm mt-0.5" style={{ color: '#718096' }}>
-              {event.title} • {event.date}
+              {event?.title} • {event?.date}
             </p>
             <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-400">
               <span className="flex items-center gap-1">
                 <ClockIcon className="w-3.5 h-3.5" />
-                {event.timeStart} – {event.timeEnd}
+                {event?.timeStart} – {event?.timeEnd}
               </span>
               <span className="flex items-center gap-1">
                 <MapPinIcon className="w-3.5 h-3.5" />
-                {event.location}
+                {event?.location}
               </span>
             </div>
           </div>
@@ -340,21 +422,26 @@ export default function EventAttendancePage() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 mt-4 sm:mt-0 self-end">
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors"
-              style={{ background: '#538f65' }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#47795a')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#538f65')}
-            >
-              <CalendarDaysIcon className="w-4 h-4" />
-              Guardar Asistencia
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 shadow-sm transition-colors">
-              <ArrowDownTrayIcon className="w-4 h-4" />
-              Exportar Borrador
-            </button>
+          <div className="flex flex-col items-end gap-1 mt-4 sm:mt-0 self-end">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors"
+                style={{ background: '#538f65' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#47795a')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#538f65')}
+              >
+                <CalendarDaysIcon className="w-4 h-4" />
+                Guardar Asistencia
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 shadow-sm transition-colors">
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Exportar Borrador
+              </button>
+            </div>
+            {saveError && (
+              <p className="text-xs text-red-500 mt-1">{saveError}</p>
+            )}
           </div>
         </div>
       </div>
@@ -440,7 +527,7 @@ export default function EventAttendancePage() {
         {/* Table footer: count + pagination */}
         <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-gray-50/50">
           <p className="text-xs text-gray-400">
-            Mostrando {(page - 1) * ITEMS_PER_PAGE + 1}–
+            Mostrando {filtered.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}–
             {Math.min(page * ITEMS_PER_PAGE, filtered.length)} de {filtered.length} estudiantes
           </p>
           <div className="flex items-center gap-1.5">

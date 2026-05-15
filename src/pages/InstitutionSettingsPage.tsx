@@ -177,6 +177,7 @@ export default function InstitutionSettingsPage() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { name: '', address: '', phone: '', email: '', logoBase64: '' },
+    shouldUseNativeValidation: false,
   });
 
   const logoBase64 = watch('logoBase64');

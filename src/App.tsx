@@ -31,6 +31,7 @@ import NewEventPage from './pages/NewEventPage';
 import PaymentsPage from './pages/PaymentsPage';
 import NewChargePage from './pages/NewChargePage';
 import DefaultersReportPage from './pages/DefaultersReportPage';
+import DebtsByGradePage from './pages/DebtsByGradePage';
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ function App() {
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="payments/new" element={<NewChargePage />} />
               <Route path="payments/defaulters" element={<DefaultersReportPage />} />
+              <Route path="payments/by-grade" element={<DebtsByGradePage />} />
             </Route>
           </Routes>
         </AuthProvider>

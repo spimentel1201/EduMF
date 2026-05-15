@@ -131,7 +131,7 @@ export default function IncidentsPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto pb-10 space-y-8 h-full flex flex-col font-sans">
+        <div className="pb-10 space-y-6 font-sans">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>

@@ -20,6 +20,7 @@ import enrollmentRoutes from './routes/enrollmentRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import incidentRoutes from './routes/incidentRoutes';
 import eventRoutes from './routes/eventRoutes';
+import treasuryRoutes from './routes/treasuryRoutes';
 
 // Cargar variables de entorno
 config();
@@ -75,6 +76,7 @@ const startServer = async () => {
     app.use('/api/dashboard', dashboardRoutes);
     app.use('/api/incidents', incidentRoutes);
     app.use('/api/events', eventRoutes);
+    app.use('/api/treasury', treasuryRoutes);
 
     // Middleware de manejo de errores
     app.use(errorHandler);

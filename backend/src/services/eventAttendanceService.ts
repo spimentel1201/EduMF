@@ -59,8 +59,9 @@ export const getStudentsForEvent = async (
       .populate('sectionId', 'grade section');
   } else {
     // specific scope: find the matching section first
+    // targetGrade is stored as a string in Event but grade is a Number in Section — cast it
     const section = await Section.findOne({
-      grade: event.targetGrade,
+      grade: Number(event.targetGrade),
       section: event.targetSection,
       schoolYearId: activeYear._id,
     });
@@ -86,7 +87,7 @@ export const getStudentsForEvent = async (
       const student = enrollment.studentId as any;
       const sec = enrollment.sectionId as any;
       return {
-        id: enrollment._id.toString(),
+        id: student._id.toString(),   // ← use the User _id, not the enrollment _id
         name: `${student.lastName}, ${student.firstName}`,
         studentId: student.dni,
         grade: String(sec.grade),

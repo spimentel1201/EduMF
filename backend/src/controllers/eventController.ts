@@ -204,7 +204,13 @@ export const getEventAttendance = async (req: Request, res: Response, next: Next
 
     const record = await EventAttendanceRecord.findOne({
       eventId: new mongoose.Types.ObjectId(eventId),
-    }).populate('entries.studentId', 'firstName lastName dni');
+    }).populate({
+      path: 'entries.studentId',
+      select: 'firstName lastName dni',
+      // If a studentId references a non-existent User (e.g. old enrollment IDs),
+      // Mongoose will set it to null — we handle that gracefully on the frontend.
+      options: { strictPopulate: false },
+    });
 
     if (!record) {
       return next(ApiError.notFound('Registro de asistencia no encontrado'));

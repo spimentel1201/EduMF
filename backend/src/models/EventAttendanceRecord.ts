@@ -8,6 +8,8 @@ export interface IStudentAttendanceEntry {
   attendance: AttendanceStatus;
   tutorPresence: TutorPresence;
   tutorName?: string;
+  grade?: string;
+  section?: string;
 }
 
 export interface IEventAttendanceRecord extends Document {
@@ -37,6 +39,8 @@ const StudentAttendanceEntrySchema = new Schema(
       default: null,
     },
     tutorName: { type: String, trim: true },
+    grade:     { type: String, trim: true },
+    section:   { type: String, trim: true },
   },
   { _id: false }
 );

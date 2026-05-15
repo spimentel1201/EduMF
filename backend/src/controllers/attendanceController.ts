@@ -17,75 +17,101 @@ export const validateAttendance = [
   body('status').optional().isIn(['Pendiente', 'Completado']).withMessage('Estado inválido')
 ];
 
-// @desc    Obtener todas las asistencias
-// @route   GET /api/attendance
+// @desc    Obtener todas las asistencias (registros individuales por estudiante)
+// @route   GET /api/attendances/attendance-records  (also GET /api/attendances)
 // @access  Private
 export const getAttendances = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
+    const page  = parseInt(req.query.page  as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
+    const skip  = (page - 1) * limit;
     const { startDate, endDate, sectionId, studentId } = req.query;
 
-    const filter: any = {};
-    if (startDate && endDate) {
-      filter.date = { $gte: startOfDay(new Date(startDate as string)), $lte: endOfDay(new Date(endDate as string)) };
+    // ── Build the top-level match (on the Attendance document) ──
+    const docMatch: any = {};
+
+    if (startDate || endDate) {
+      docMatch.date = {};
+      if (startDate) docMatch.date.$gte = startOfDay(new Date(startDate as string));
+      if (endDate)   docMatch.date.$lte = endOfDay(new Date(endDate   as string));
     }
+
     if (sectionId) {
-      filter.sectionId = sectionId;
+      docMatch.sectionId = new mongoose.Types.ObjectId(sectionId as string);
     }
+
+    // ── Build the post-unwind match (on individual detail entries) ──
+    const detailMatch: any = {};
     if (studentId) {
-      filter['details.studentId'] = studentId;
+      detailMatch['details.studentId'] = new mongoose.Types.ObjectId(studentId as string);
     }
 
-
-
-    const attendances = await Attendance.find(filter)
-      .populate([
-        { path: 'sectionId', select: 'name' },
-        { path: 'teacherId', select: 'firstName lastName' },
-        { path: 'details.studentId', select: 'firstName lastName' }
-      ])
-      .sort({ date: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalFormattedRecordsPipeline: any[] = [
-      { $match: filter },
+    // Use aggregation so we can paginate over individual student records
+    const pipeline: any[] = [
+      { $match: docMatch },
       { $unwind: '$details' },
-      { $count: 'total' }
+      ...(Object.keys(detailMatch).length > 0 ? [{ $match: detailMatch }] : []),
+      {
+        $lookup: {
+          from: 'sections',
+          localField: 'sectionId',
+          foreignField: '_id',
+          as: 'sectionInfo',
+        },
+      },
+      { $unwind: { path: '$sectionInfo', preserveNullAndEmpty: true } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'details.studentId',
+          foreignField: '_id',
+          as: 'studentInfo',
+        },
+      },
+      { $unwind: { path: '$studentInfo', preserveNullAndEmpty: true } },
+      {
+        $project: {
+          id:          '$_id',
+          date:        { $dateToString: { format: '%Y-%m-%dT%H:%M:%S.000Z', date: '$date' } },
+          sectionId:   '$sectionId',
+          sectionName: { $ifNull: ['$sectionInfo.name', 'N/A'] },
+          studentId:   '$details.studentId',
+          studentName: {
+            $concat: [
+              { $ifNull: ['$studentInfo.firstName', ''] },
+              ' ',
+              { $ifNull: ['$studentInfo.lastName',  ''] },
+            ],
+          },
+          status: '$details.status',
+          notes:  '$details.notes',
+        },
+      },
+      { $sort: { date: -1 } },
     ];
 
-    const totalFormattedRecordsResult = await Attendance.aggregate(totalFormattedRecordsPipeline);
-    const total = totalFormattedRecordsResult.length > 0 ? totalFormattedRecordsResult[0].total : 0;
+    // Count total matching records
+    const countPipeline = [...pipeline, { $count: 'total' }];
+    const countResult = await Attendance.aggregate(countPipeline);
+    const total = countResult[0]?.total ?? 0;
 
-    const formattedRecords = attendances.flatMap(attendance => {
-      const sectionName = (attendance.sectionId as any)?.name || 'N/A';
-      const teacherName = (attendance.teacherId as any)?.firstName + ' ' + (attendance.teacherId as any)?.lastName || 'N/A';
+    // Fetch paginated records
+    const records = await Attendance.aggregate([
+      ...pipeline,
+      { $skip: skip },
+      { $limit: limit },
+    ]);
 
-      return attendance.details.map(detail => ({
-        id: attendance._id,
-        date: attendance.date.toISOString(),
-        sectionId: attendance.sectionId,
-        sectionName: sectionName,
-        studentId: detail.studentId,
-        studentName: (detail.studentId as any)?.firstName + ' ' + (detail.studentId as any)?.lastName || 'N/A',
-        status: detail.status,
-        notes: detail.notes,
-        teacherId: attendance.teacherId,
-        teacherName: teacherName,
-      }));
-    });
     res.status(200).json({
       success: true,
-      count: formattedRecords.length,
-      total: total,
+      count: records.length,
+      total,
       pagination: {
-        page: page,
-        limit: limit,
+        page,
+        limit,
         totalPages: Math.ceil(total / limit),
       },
-      data: formattedRecords,
+      data: records,
     });
   } catch (error) {
     next(error);

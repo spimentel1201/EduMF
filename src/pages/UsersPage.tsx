@@ -5,11 +5,12 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
   ClipboardDocumentListIcon,
-  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { userService } from '../services/userService';
 import { useTranslation } from 'react-i18next';
 import IncidentTimeline from '@/components/IncidentTimeline';
+import Pagination from '@/components/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 const ROLE_LABELS: Record<string, { label: string; bg: string; text: string }> = {
   admin:   { label: 'Admin',    bg: 'bg-purple-100', text: 'text-purple-700' },
@@ -25,6 +26,7 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState('all');
+  const [pageSize, setPageSize] = useState(10);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
@@ -40,6 +42,12 @@ export default function UsersPage() {
     const matchesRole = selectedRole === 'all' || user.role?.toLowerCase() === selectedRole;
     return matchesSearch && matchesRole;
   });
+
+  const { currentPage, totalPages, paginated, goTo, setCurrentPage } = usePagination(filteredUsers, pageSize);
+
+  // Reset page when filters change
+  const handleSearch = (value: string) => { setSearchTerm(value); setCurrentPage(1); };
+  const handleRole   = (value: string) => { setSelectedRole(value); setCurrentPage(1); };
 
   const openTimeline = (userId: string, userName: string) => {
     setSelectedUser({ id: userId, name: userName });
@@ -96,7 +104,7 @@ export default function UsersPage() {
             type="text"
             placeholder={t('users.searchUsers')}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 shadow-sm"
           />
         </div>
@@ -104,7 +112,7 @@ export default function UsersPage() {
           {roles.map((role) => (
             <button
               key={role}
-              onClick={() => setSelectedRole(role)}
+              onClick={() => handleRole(role)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                 selectedRole === role
                   ? 'text-white border-transparent shadow-sm'
@@ -142,7 +150,7 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredUsers.map((user: any, index: number) => {
+              {paginated.map((user: any, index: number) => {
                 const roleKey = user.role?.toLowerCase() ?? '';
                 const roleStyle = ROLE_LABELS[roleKey] ?? { label: user.role, bg: 'bg-gray-100', text: 'text-gray-600' };
                 const isActive = user.status === 'Activo';
@@ -196,9 +204,16 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
-          <p className="text-xs text-gray-400">{filteredUsers.length} usuario{filteredUsers.length !== 1 ? 's' : ''}</p>
-        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers.length}
+          pageSize={pageSize}
+          onPageChange={goTo}
+          onPageSizeChange={setPageSize}
+          itemLabel="usuarios"
+        />
       </div>
 
       {selectedUser && (

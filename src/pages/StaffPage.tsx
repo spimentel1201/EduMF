@@ -5,14 +5,16 @@ import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { staffService } from '../services/staffService';
 import { useTranslation } from 'react-i18next';
 import { STAFF_ROLES, STAFF_STATUSES } from '@/types/staff';
+import Pagination from '@/components/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  Docente:       { bg: 'bg-blue-100',   text: 'text-blue-700'   },
-  'Psicólogo(a)':{ bg: 'bg-purple-100', text: 'text-purple-700' },
-  Mantenimiento: { bg: 'bg-orange-100', text: 'text-orange-700' },
-  CIST:          { bg: 'bg-cyan-100',   text: 'text-cyan-700'   },
-  Dirección:     { bg: 'bg-amber-100',  text: 'text-amber-700'  },
-  Auxiliar:      { bg: 'bg-gray-100',   text: 'text-gray-600'   },
+  Docente:        { bg: 'bg-blue-100',   text: 'text-blue-700'   },
+  'Psicólogo(a)': { bg: 'bg-purple-100', text: 'text-purple-700' },
+  Mantenimiento:  { bg: 'bg-orange-100', text: 'text-orange-700' },
+  CIST:           { bg: 'bg-cyan-100',   text: 'text-cyan-700'   },
+  Dirección:      { bg: 'bg-amber-100',  text: 'text-amber-700'  },
+  Auxiliar:       { bg: 'bg-gray-100',   text: 'text-gray-600'   },
 };
 
 function initials(first: string, last: string) {
@@ -24,6 +26,7 @@ export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: staff = [], isLoading, error } = useQuery({
     queryKey: ['staff'],
@@ -39,6 +42,12 @@ export default function StaffPage() {
     const matchesStatus = !selectedStatus || member.status === selectedStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const { currentPage, totalPages, paginated, goTo, setCurrentPage } = usePagination(filteredStaff, pageSize);
+
+  const handleSearch = (value: string) => { setSearchTerm(value); setCurrentPage(1); };
+  const handleRole   = (value: string) => { setSelectedRole(value); setCurrentPage(1); };
+  const handleStatus = (value: string) => { setSelectedStatus(value); setCurrentPage(1); };
 
   if (isLoading) {
     return (
@@ -88,13 +97,13 @@ export default function StaffPage() {
             type="text"
             placeholder={t('staff.searchStaff')}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 shadow-sm"
           />
         </div>
         <select
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onChange={(e) => handleRole(e.target.value)}
           className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
         >
           <option value="">{t('staff.allRoles')}</option>
@@ -102,7 +111,7 @@ export default function StaffPage() {
         </select>
         <select
           value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
+          onChange={(e) => handleStatus(e.target.value)}
           className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
         >
           <option value="">{t('staff.allStatuses')}</option>
@@ -123,7 +132,7 @@ export default function StaffPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredStaff.map((member) => {
+              {paginated.map((member) => {
                 const roleStyle = ROLE_COLORS[member.role] ?? { bg: 'bg-gray-100', text: 'text-gray-600' };
                 const isActive = member.status === 'Activo';
                 return (
@@ -165,9 +174,16 @@ export default function StaffPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
-          <p className="text-xs text-gray-400">{filteredStaff.length} miembro{filteredStaff.length !== 1 ? 's' : ''}</p>
-        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredStaff.length}
+          pageSize={pageSize}
+          onPageChange={goTo}
+          onPageSizeChange={setPageSize}
+          itemLabel="miembros"
+        />
       </div>
     </div>
   );

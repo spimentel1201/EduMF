@@ -3,15 +3,30 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { enrollmentService } from '../services/enrollmentService';
 import { schoolYearService } from '../services/schoolYearService';
 import { sectionService } from '../services/sectionService';
-import { CloudArrowUpIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { CloudArrowUpIcon, DocumentArrowDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
+// ── Reusable field wrapper ──────────────────────────────────────────────────
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+const selectCls =
+  'w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-colors';
+
 export default function BulkEnrollment() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('');
-  const [selectedSection, setSelectedSection] = useState<string>('');
-  const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedFile, setSelectedFile]       = useState<File | null>(null);
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  const [selectedLevel, setSelectedLevel]     = useState('');
   const queryClient = useQueryClient();
 
   const { data: schoolYears, isLoading: isLoadingSchoolYears } = useQuery({
@@ -24,13 +39,11 @@ export default function BulkEnrollment() {
     queryFn: sectionService.getAll,
   });
 
-  const levels = ['Inicial', 'Primaria', 'Secundaria'];
-
   const bulkEnrollmentMutation = useMutation({
     mutationFn: enrollmentService.bulkEnrollStudents,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['enrollments'] });
-      toast.success(data.msg || 'Matrículas masivas creadas exitosamente!');
+      toast.success(data.msg || 'Matrículas masivas creadas exitosamente.');
       setSelectedFile(null);
     },
     onError: (error: any) => {
@@ -38,28 +51,24 @@ export default function BulkEnrollment() {
     },
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedFile(e.target.files?.[0] ?? null);
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      toast.error('Por favor, seleccione un archivo para subir.');
+      toast.error('Por favor, selecciona un archivo para subir.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const data = e.target?.result;
+      const data     = e.target?.result;
       const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      const ws       = workbook.Sheets[workbook.SheetNames[0]];
 
-      // Extract general data
-      const schoolYearName = worksheet['C7']?.v;
-      const sectionName = worksheet['C8']?.v;
+      const schoolYearName = ws['C7']?.v;
+      const sectionName    = ws['C8']?.v;
 
       if (!schoolYearName || !sectionName) {
         toast.error('Faltan datos generales (Año académico o Grado y Sección) en el archivo.');
@@ -67,22 +76,10 @@ export default function BulkEnrollment() {
         return;
       }
 
-      // Extract student data starting from row 12
-      const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 11 });
-
-      const studentsToEnroll = jsonData.map((row: any) => ({
-        firstName: row[0], // NOMBRES
-        lastName: row[1],  // APELLIDOS
-        dni: row[2],       // DNI
-        gender: row[3],    // GENERO
-        birthDate: row[4], // FECHA_NAC
-      }));
-
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('schoolYearName', schoolYearName);
       formData.append('sectionName', sectionName);
-
       bulkEnrollmentMutation.mutate(formData);
     };
     reader.readAsArrayBuffer(selectedFile);
@@ -90,44 +87,34 @@ export default function BulkEnrollment() {
 
   const handleDownloadTemplate = () => {
     if (!selectedSchoolYear || !selectedSection || !selectedLevel) {
-      toast.error('Por favor, seleccione un Año Académico, Sección y Nivel para descargar la plantilla.');
+      toast.error('Selecciona Año Académico, Sección y Nivel para descargar la plantilla.');
       return;
     }
 
     const ws_data = [
       ['DATOS GENERALES:'],
       [],
-      ['Institución educativa:', '', '' ],
+      ['Institución educativa:', '', ''],
       ['Nivel:', '', selectedLevel],
-      ['Nombre:', '', '' ], // Placeholder for institution name if needed
+      ['Nombre:', '', ''],
       ['Datos referentes al registro de notas:'],
-      ['Año académico:', '', schoolYears?.find(year => year.id === selectedSchoolYear)?.name || ''],
-      ['Grado y Seccion:', '', sections?.find(section => section.id === selectedSection)?.name || ''],
+      ['Año académico:', '', schoolYears?.find((y) => y.id === selectedSchoolYear)?.name || ''],
+      ['Grado y Seccion:', '', sections?.find((s) => s.id === selectedSection)?.name || ''],
       [],
       [],
       ['NOMBRES', 'APELLIDOS', 'DNI', 'GENERO', 'FECHA_NAC'],
     ];
+
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-    // Set column widths
-    const wscols = [
-      { wch: 15 }, // NOMBRES
-      { wch: 20 }, // APELLIDOS
-      { wch: 15 }, // DNI
-      { wch: 15 }, // GENERO
-      { wch: 15 }  // FECHA_NAC
-    ];
-    ws['!cols'] = wscols;
-
-    // Merge cells for general data
+    ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
     ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // DATOS GENERALES
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, // Institución educativa
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } }, // Nivel
-      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } }, // Nombre
-      { s: { r: 5, c: 0 }, e: { r: 5, c: 4 } }, // Datos referentes al registro de notas
-      { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } }, // Año académico
-      { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } }, // Grado y Seccion
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } },
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },
+      { s: { r: 5, c: 0 }, e: { r: 5, c: 4 } },
+      { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } },
+      { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } },
     ];
 
     const wb = XLSX.utils.book_new();
@@ -136,105 +123,123 @@ export default function BulkEnrollment() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <input
-          type="file"
-          accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-          onChange={handleFileChange}
-          className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-md file:border-0
-            file:text-sm file:font-semibold
-            file:bg-primary-50 file:text-primary-700
-            hover:file:bg-primary-100"
-        />
-        <button
-          type="button"
-          onClick={handleUpload}
-          disabled={!selectedFile || bulkEnrollmentMutation.isPending}
-          className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-        >
-          <CloudArrowUpIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-          {bulkEnrollmentMutation.isPending ? 'Subiendo...' : 'Subir Archivo'}
-        </button>
-      </div>
+    <div className="space-y-6">
+      {/* ── Step 1: Selectors for template download ── */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          1. Configura y descarga la plantilla
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Field label="Año Académico">
+            <select
+              value={selectedSchoolYear}
+              onChange={(e) => setSelectedSchoolYear(e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Seleccionar año</option>
+              {isLoadingSchoolYears ? (
+                <option>Cargando...</option>
+              ) : (
+                schoolYears?.map((year: any) => (
+                  <option key={year.id} value={year.id}>{year.name}</option>
+                ))
+              )}
+            </select>
+          </Field>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label htmlFor="schoolYear" className="block text-sm font-medium leading-6 text-gray-900">
-            Año Académico
-          </label>
-          <select
-            id="schoolYear"
-            value={selectedSchoolYear}
-            onChange={(e) => setSelectedSchoolYear(e.target.value)}
-            className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm sm:leading-6"
-          >
-            <option value="">Seleccione Año</option>
-            {isLoadingSchoolYears ? (
-              <option>Cargando...</option>
-            ) : (
-              schoolYears?.map((year: any) => (
-                <option key={year.id} value={year.id}>
-                  {year.name}
-                </option>
-              ))
-            )}
-          </select>
+          <Field label="Sección">
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Seleccionar sección</option>
+              {isLoadingSections ? (
+                <option>Cargando...</option>
+              ) : (
+                sections?.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.name} — {s.level}</option>
+                ))
+              )}
+            </select>
+          </Field>
+
+          <Field label="Nivel">
+            <select
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Seleccionar nivel</option>
+              {['Inicial', 'Primaria', 'Secundaria'].map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </Field>
         </div>
 
-        <div>
-          <label htmlFor="section" className="block text-sm font-medium leading-6 text-gray-900">
-            Sección
-          </label>
-          <select
-            id="section"
-            value={selectedSection}
-            onChange={(e) => setSelectedSection(e.target.value)}
-            className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm sm:leading-6"
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={handleDownloadTemplate}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm transition-colors"
           >
-            <option value="">Seleccione Sección</option>
-            {isLoadingSections ? (
-              <option>Cargando...</option>
-            ) : (
-              sections?.map((section: any) => (
-                <option key={section.id} value={section.id}>
-                  {section.name} - {section.level}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="level" className="block text-sm font-medium leading-6 text-gray-900">
-            Nivel
-          </label>
-          <select
-            id="level"
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-600 sm:text-sm sm:leading-6"
-          >
-            <option value="">Seleccione Nivel</option>
-            {sections?.map((section) => (
-              <option key={section.id} value={section.id}>
-                {section.name}
-              </option>
-            ))}
-          </select>
+            <DocumentArrowDownIcon className="w-4 h-4" />
+            Descargar Plantilla Excel
+          </button>
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={handleDownloadTemplate}
-        className="inline-flex items-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300"
-      >
-        <DocumentArrowDownIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Descargar Plantilla Excel
-      </button>
+      {/* ── Divider ── */}
+      <div className="border-t border-gray-100" />
+
+      {/* ── Step 2: Upload ── */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          2. Sube el archivo completado
+        </p>
+
+        {/* Drop zone */}
+        <label className="flex flex-col items-center justify-center gap-3 w-full h-32 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition-colors">
+          <CloudArrowUpIcon className="w-7 h-7 text-gray-300" />
+          <span className="text-sm text-gray-500">
+            {selectedFile ? (
+              <span className="font-semibold text-green-700">{selectedFile.name}</span>
+            ) : (
+              <>Haz clic o arrastra un archivo <span className="font-semibold">.xlsx / .xls / .csv</span></>
+            )}
+          </span>
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+
+        {/* Selected file pill */}
+        {selectedFile && (
+          <div className="flex items-center justify-between mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+            <span className="truncate">{selectedFile.name}</span>
+            <button onClick={() => setSelectedFile(null)} className="ml-2 flex-shrink-0">
+              <XMarkIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={!selectedFile || bulkEnrollmentMutation.isPending}
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-40"
+            style={{ background: '#538f65' }}
+          >
+            <CloudArrowUpIcon className="w-4 h-4" />
+            {bulkEnrollmentMutation.isPending ? 'Procesando...' : 'Subir y Matricular'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,20 +1,57 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import {
+  UserCircleIcon,
+  IdentificationIcon,
+  EnvelopeIcon,
+  LockClosedIcon,
+  CalendarDaysIcon,
+  ArrowLeftIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  CloudArrowUpIcon,
+} from '@heroicons/react/24/outline';
 import { userService } from '../services/userService';
 import BulkUploadUsers from '@/components/BulkUploadUsers';
 
+// ── Reusable field wrapper ──────────────────────────────────────────────────
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+        {label}
+      </label>
+      {children}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+const inputCls =
+  'w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-colors';
+const selectCls =
+  'w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-colors';
+
+function InputWithIcon({
+  icon: Icon,
+  ...props
+}: { icon: React.ElementType } & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div className="relative">
+      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      <input className={inputCls} {...props} />
+    </div>
+  );
+}
+
+const EMPTY_FORM = { firstName: '', lastName: '', dni: '', gender: '', birthdate: '', email: '', password: '' };
 
 const NewUserPage: React.FC = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    dni: '',
-    gender: '',
-    birthdate: '',
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError]     = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,196 +66,163 @@ const NewUserPage: React.FC = () => {
       setError('Por favor, complete todos los campos obligatorios.');
       return;
     }
+
+    setLoading(true);
     try {
       const data = await userService.registerUser(formData);
-      setMessage(data.msg);
-      setFormData({
-        firstName: '',
-        lastName: '',
-        dni: '',
-        gender: '',
-        birthdate: '',
-        email: '',
-        password: ''
-      });
+      setMessage(data.msg || 'Usuario registrado correctamente.');
+      setFormData(EMPTY_FORM);
     } catch (err: any) {
       setError(err.msg || 'Error al registrar el usuario.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-lg font-semibold text-gray-900">Add New User</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Register a new user or bulk upload users via CSV/Excel.
+    <div className="space-y-6 pb-8">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: '#1a202c' }}>
+            Nuevo Usuario
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: '#718096' }}>
+            Registra un usuario individual o carga múltiples usuarios desde un archivo.
           </p>
         </div>
+        <Link
+          to="/users"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm transition-colors"
+        >
+          <ArrowLeftIcon className="w-4 h-4" />
+          Volver
+        </Link>
       </div>
 
+      {/* ── Alerts ── */}
       {message && (
-        <div className="rounded-md bg-green-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.857a.75.75 0 00-1.214-.886l-3.429 4.286-1.714-1.714a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.154-.083l4-5z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">{message}</p>
-            </div>
-          </div>
+        <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+          <CheckCircleIcon className="w-5 h-5 flex-shrink-0" />
+          {message}
         </div>
       )}
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94l-1.72-1.72z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-red-800">{error}</p>
-            </div>
-          </div>
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
+          {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Formulario de Registro de Usuarios de forma Individual*/}
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Register Individual User</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* ── Individual registration ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <UserCircleIcon className="w-5 h-5 text-green-600" />
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Registro Individual</h2>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium leading-6 text-gray-900">
-                First Name
-              </label>
-              <div className="mt-2">
-                <input
-                  type="text"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Nombres *">
+                <InputWithIcon
+                  icon={UserCircleIcon}
                   name="firstName"
-                  id="firstName"
+                  placeholder="Ej. María"
                   value={formData.firstName}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                 />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium leading-6 text-gray-900">
-                Last Name
-              </label>
-              <div className="mt-2">
-                <input
-                  type="text"
+              </Field>
+              <Field label="Apellidos *">
+                <InputWithIcon
+                  icon={UserCircleIcon}
                   name="lastName"
-                  id="lastName"
+                  placeholder="Ej. González"
                   value={formData.lastName}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                 />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="dni" className="block text-sm font-medium leading-6 text-gray-900">
-                DNI
-              </label>
-              <div className="mt-2">
-                <input
-                  type="text"
+              </Field>
+              <Field label="DNI *">
+                <InputWithIcon
+                  icon={IdentificationIcon}
                   name="dni"
-                  id="dni"
+                  placeholder="12345678"
+                  maxLength={8}
                   value={formData.dni}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                 />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="gender" className="block text-sm font-medium leading-6 text-gray-900">
-                Gender
-              </label>
-              <div className="mt-2">
-                <select
-                  id="gender"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                >
-                  <option value="">Select</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
-                  <option value="O">Otro</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label htmlFor="birthdate" className="block text-sm font-medium leading-6 text-gray-900">
-                Birthdate
-              </label>
-              <div className="mt-2">
-                <input
+              </Field>
+              <Field label="Género *">
+                <div className="relative">
+                  <UserCircleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                    className={selectCls}
+                  >
+                    <option value="">Seleccionar</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                    <option value="O">Otro</option>
+                  </select>
+                </div>
+              </Field>
+              <Field label="Fecha de nacimiento *">
+                <InputWithIcon
+                  icon={CalendarDaysIcon}
                   type="date"
                   name="birthdate"
-                  id="birthdate"
                   value={formData.birthdate}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                 />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                Email (Optional)
-              </label>
-              <div className="mt-2">
-                <input
+              </Field>
+              <Field label="Correo electrónico (opcional)">
+                <InputWithIcon
+                  icon={EnvelopeIcon}
                   type="email"
                   name="email"
-                  id="email"
+                  placeholder="correo@ejemplo.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                 />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
-                Password (Optional)
-              </label>
-              <div className="mt-2">
-                <input
+              </Field>
+              <Field label="Contraseña (opcional)">
+                <InputWithIcon
+                  icon={LockClosedIcon}
                   type="password"
                   name="password"
-                  id="password"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                 />
-              </div>
+              </Field>
             </div>
-            <div className="flex justify-end">
+
+            <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50"
+                style={{ background: '#538f65' }}
               >
-                Register User
+                {loading ? 'Registrando...' : 'Registrar Usuario'}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Bulk Upload Section */}
-        <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Bulk Upload Users</h2>
+        {/* ── Bulk upload ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <CloudArrowUpIcon className="w-5 h-5 text-green-600" />
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Carga Masiva</h2>
+          </div>
           <BulkUploadUsers />
         </div>
       </div>

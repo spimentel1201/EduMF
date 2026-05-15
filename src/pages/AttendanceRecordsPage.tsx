@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -7,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarDaysIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { sectionService } from '../services/sectionService';
 import { studentService } from '../services/studentService';
@@ -33,20 +34,20 @@ function formatDate(d: string) {
   });
 }
 
+const EMPTY_DRAFT = { startDate: '', endDate: '', sectionId: '', studentId: '' };
+
 export default function AttendanceRecordsPage() {
   const { t } = useTranslation();
+
+  // draft: lo que el usuario está editando en el panel de filtros
+  const [draft, setDraft] = useState(EMPTY_DRAFT);
+
+  // appliedFilters: lo que realmente se envía al servidor (solo cambia al presionar Buscar)
+  const [appliedFilters, setAppliedFilters] = useState<AttendanceFilterParams | null>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [showFilters, setShowFilters] = useState(false);
-
-  const [filters, setFilters] = useState<AttendanceFilterParams>({
-    startDate: '',
-    endDate: '',
-    sectionId: '',
-    studentId: '',
-    page: currentPage,
-    limit: itemsPerPage,
-  });
+  const [showFilters, setShowFilters] = useState(true);
 
   const { data: sections } = useQuery<Section[]>({
     queryKey: ['sections'],
@@ -58,22 +59,37 @@ export default function AttendanceRecordsPage() {
     queryFn: studentService.getStudents,
   });
 
-  const { data: attendanceData, isLoading, refetch } = useQuery<AttendanceRecordsResponse>({
-    queryKey: ['attendanceRecords', filters],
-    queryFn: () => attendanceService.getAttendanceRecords(filters),
+  const { data: attendanceData, isLoading } = useQuery<AttendanceRecordsResponse>({
+    queryKey: ['attendanceRecords', appliedFilters, currentPage, itemsPerPage],
+    queryFn: () => attendanceService.getAttendanceRecords({
+      ...appliedFilters!,
+      page: currentPage,
+      limit: itemsPerPage,
+    }),
+    enabled: appliedFilters !== null,
   });
 
   const records = attendanceData?.attendanceRecords ?? [];
   const totalRecords = attendanceData?.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
-  useEffect(() => {
-    setFilters((prev) => ({ ...prev, page: currentPage, limit: itemsPerPage }));
-  }, [currentPage, itemsPerPage]);
+  const hasApplied = appliedFilters !== null;
+  const hasDraftValues = !!(draft.startDate || draft.endDate || draft.sectionId || draft.studentId);
 
-  useEffect(() => { refetch(); }, [filters]);
+  function handleSearch() {
+    setCurrentPage(1);
+    setAppliedFilters({ ...draft, page: 1, limit: itemsPerPage });
+  }
 
-  const hasActiveFilters = filters.startDate || filters.endDate || filters.sectionId || filters.studentId;
+  function handleClear() {
+    setDraft(EMPTY_DRAFT);
+    setAppliedFilters(null);
+    setCurrentPage(1);
+  }
+
+  function handlePageChange(page: number) {
+    setCurrentPage(page);
+  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -90,16 +106,14 @@ export default function AttendanceRecordsPage() {
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors border ${
-            hasActiveFilters
+            hasApplied
               ? 'bg-green-50 border-green-200 text-green-700'
               : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
           <FunnelIcon className="w-4 h-4" />
           Filtros
-          {hasActiveFilters && (
-            <span className="w-2 h-2 rounded-full bg-green-500" />
-          )}
+          {hasApplied && <span className="w-2 h-2 rounded-full bg-green-500" />}
         </button>
       </div>
 
@@ -113,8 +127,8 @@ export default function AttendanceRecordsPage() {
               </label>
               <input
                 type="date"
-                value={filters.startDate}
-                onChange={(e) => { setFilters({ ...filters, startDate: e.target.value }); setCurrentPage(1); }}
+                value={draft.startDate}
+                onChange={(e) => setDraft({ ...draft, startDate: e.target.value })}
                 className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
               />
             </div>
@@ -124,8 +138,8 @@ export default function AttendanceRecordsPage() {
               </label>
               <input
                 type="date"
-                value={filters.endDate}
-                onChange={(e) => { setFilters({ ...filters, endDate: e.target.value }); setCurrentPage(1); }}
+                value={draft.endDate}
+                onChange={(e) => setDraft({ ...draft, endDate: e.target.value })}
                 className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
               />
             </div>
@@ -134,8 +148,8 @@ export default function AttendanceRecordsPage() {
                 {t('attendanceRecords.section')}
               </label>
               <select
-                value={filters.sectionId}
-                onChange={(e) => { setFilters({ ...filters, sectionId: e.target.value }); setCurrentPage(1); }}
+                value={draft.sectionId}
+                onChange={(e) => setDraft({ ...draft, sectionId: e.target.value })}
                 className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
               >
                 <option value="">{t('attendanceRecords.allSections')}</option>
@@ -147,8 +161,8 @@ export default function AttendanceRecordsPage() {
                 {t('attendanceRecords.student')}
               </label>
               <select
-                value={filters.studentId}
-                onChange={(e) => { setFilters({ ...filters, studentId: e.target.value }); setCurrentPage(1); }}
+                value={draft.studentId}
+                onChange={(e) => setDraft({ ...draft, studentId: e.target.value })}
                 className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
               >
                 <option value="">{t('attendanceRecords.allStudents')}</option>
@@ -158,19 +172,27 @@ export default function AttendanceRecordsPage() {
               </select>
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="mt-4 flex justify-end">
+
+          {/* ── Actions ── */}
+          <div className="mt-4 flex items-center justify-end gap-3">
+            {(hasDraftValues || hasApplied) && (
               <button
-                onClick={() => {
-                  setFilters({ startDate: '', endDate: '', sectionId: '', studentId: '', page: 1, limit: itemsPerPage });
-                  setCurrentPage(1);
-                }}
-                className="text-xs font-semibold text-green-700 hover:text-green-900 transition-colors"
+                onClick={handleClear}
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors"
               >
-                Limpiar filtros
+                <XMarkIcon className="w-3.5 h-3.5" />
+                Limpiar
               </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={handleSearch}
+              className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors"
+              style={{ background: '#538f65' }}
+            >
+              <MagnifyingGlassIcon className="w-4 h-4" />
+              Buscar
+            </button>
+          </div>
         </div>
       )}
 
@@ -181,8 +203,17 @@ export default function AttendanceRecordsPage() {
         </div>
       )}
 
-      {/* ── Table ── */}
-      {!isLoading && (
+      {/* ── Empty state: no search yet ── */}
+      {!isLoading && !hasApplied && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-16 text-center">
+          <CalendarDaysIcon className="w-12 h-12 text-gray-200 mb-3" />
+          <p className="text-gray-500 font-medium text-sm">Configura los filtros y presiona <strong>Buscar</strong></p>
+          <p className="text-gray-400 text-xs mt-1">Puedes filtrar por fecha, sección o estudiante</p>
+        </div>
+      )}
+
+      {/* ── Results table ── */}
+      {!isLoading && hasApplied && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -241,7 +272,10 @@ export default function AttendanceRecordsPage() {
               </p>
               <select
                 value={itemsPerPage}
-                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
                 className="text-xs bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none"
               >
                 {[5, 10, 20, 50].map((n) => <option key={n} value={n}>{n} por página</option>)}
@@ -251,7 +285,7 @@ export default function AttendanceRecordsPage() {
             {totalPages > 1 && (
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className="p-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors shadow-sm"
                 >
@@ -260,7 +294,7 @@ export default function AttendanceRecordsPage() {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                   <button
                     key={n}
-                    onClick={() => setCurrentPage(n)}
+                    onClick={() => handlePageChange(n)}
                     className="w-7 h-7 rounded-lg text-xs font-semibold transition-colors"
                     style={
                       n === currentPage
@@ -272,7 +306,7 @@ export default function AttendanceRecordsPage() {
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className="p-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors shadow-sm"
                 >

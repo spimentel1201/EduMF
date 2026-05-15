@@ -8,6 +8,8 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { addInstitutionHeaderToPDF, addInstitutionHeaderToSheet } from '@/utils/institutionHeader';
 import {
   LineChart,
   Line,
@@ -160,6 +162,8 @@ export default function MonthlyAttendanceReportPage() {
   const [comparisonData, setComparisonData] = useState<SectionComparison[]>([]);
   const [activeTab, setActiveTab] = useState('heatmap');
 
+  const { data: institutionData } = useInstitutionSettings();
+
   // Fetch sections
   useEffect(() => {
     const fetchSections = async () => {
@@ -267,55 +271,63 @@ export default function MonthlyAttendanceReportPage() {
   const exportToExcel = () => {
     if (!heatmapData) return;
 
-    // Prepare data for Excel
+    const wb = XLSX.utils.book_new();
+
+    // ── Main sheet: attendance data ──
+    const ws = XLSX.utils.aoa_to_sheet([]);
+
+    // Institution header (returns row offset)
+    const headerRows = addInstitutionHeaderToSheet(ws, institutionData);
+
+    // Section + period info
+    XLSX.utils.sheet_add_aoa(ws, [
+      [`Sección: ${selectedSectionName}  |  Período: ${selectedMonth.format('MMMM YYYY')}`],
+      [],
+    ], { origin: { r: headerRows, c: 0 } });
+
+    // Attendance data rows
     const excelData = heatmapData.students.map(student => {
       const row: Record<string, any> = {
         'Estudiante': student.studentName,
         'DNI': student.dni,
       };
-
-      // Add each day
       student.days.forEach(({ day, status }) => {
         row[`Día ${day}`] = status === 'weekend' ? '-' : (status || '');
       });
-
-      // Add summary
-      row['Presentes'] = student.summary.present;
-      row['Tardanzas'] = student.summary.late;
-      row['Ausencias'] = student.summary.absent;
+      row['Presentes']    = student.summary.present;
+      row['Tardanzas']    = student.summary.late;
+      row['Ausencias']    = student.summary.absent;
       row['Justificados'] = student.summary.justified;
       row['% Asistencia'] = `${student.summary.attendanceRate}%`;
-
       return row;
     });
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(excelData);
+    XLSX.utils.sheet_add_json(ws, excelData, { origin: { r: headerRows + 2, c: 0 } });
 
-    // Auto-width columns
     const colWidths = Object.keys(excelData[0] || {}).map(key => ({ wch: Math.max(key.length, 10) }));
     ws['!cols'] = colWidths;
 
     XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
 
-    // Add summary sheet
+    // ── Summary sheet ──
     const summaryData = [{
-      'Sección': selectedSectionName,
-      'Mes': selectedMonth.format('MMMM YYYY'),
-      'Total Estudiantes': heatmapData.summary.studentCount,
-      'Total Registros': heatmapData.summary.total,
-      'Presentes': heatmapData.summary.present,
-      'Tardanzas': heatmapData.summary.late,
-      'Ausencias': heatmapData.summary.absent,
-      'Justificados': heatmapData.summary.justified,
-      '% Asistencia General': `${heatmapData.summary.attendanceRate}%`
+      'Institución':        institutionData?.name || '',
+      'Sección':            selectedSectionName,
+      'Mes':                selectedMonth.format('MMMM YYYY'),
+      'Total Estudiantes':  heatmapData.summary.studentCount,
+      'Total Registros':    heatmapData.summary.total,
+      'Presentes':          heatmapData.summary.present,
+      'Tardanzas':          heatmapData.summary.late,
+      'Ausencias':          heatmapData.summary.absent,
+      'Justificados':       heatmapData.summary.justified,
+      '% Asistencia General': `${heatmapData.summary.attendanceRate}%`,
     }];
     const wsSummary = XLSX.utils.json_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen');
 
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(data, `Asistencia_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.xlsx`);
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, `Asistencia_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.xlsx`);
   };
 
   // Export to PDF
@@ -324,21 +336,25 @@ export default function MonthlyAttendanceReportPage() {
 
     const doc = new jsPDF('landscape');
 
-    // Title
-    doc.setFontSize(18);
-    doc.text(`Reporte de Asistencia - ${selectedSectionName}`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Período: ${selectedMonth.format('MMMM YYYY')}`, 14, 28);
+    // Institution header — returns Y where content should start
+    const startY = addInstitutionHeaderToPDF(
+      doc,
+      institutionData,
+      `Reporte de Asistencia — ${selectedSectionName}`
+    );
 
-    // Summary
-    doc.setFontSize(10);
-    doc.text(`Total Estudiantes: ${heatmapData.summary.studentCount}`, 14, 38);
-    doc.text(`Tasa de Asistencia: ${heatmapData.summary.attendanceRate}%`, 80, 38);
-    doc.text(`Presentes: ${heatmapData.summary.present}`, 150, 38);
-    doc.text(`Tardanzas: ${heatmapData.summary.late}`, 200, 38);
-    doc.text(`Ausencias: ${heatmapData.summary.absent}`, 250, 38);
+    // Period + summary info
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(113, 128, 150);
+    doc.text(`Período: ${selectedMonth.format('MMMM YYYY')}`, 14, startY);
+    doc.text(`Estudiantes: ${heatmapData.summary.studentCount}`, 80, startY);
+    doc.text(`Asistencia: ${heatmapData.summary.attendanceRate}%`, 140, startY);
+    doc.text(`Presentes: ${heatmapData.summary.present}`, 190, startY);
+    doc.text(`Tardanzas: ${heatmapData.summary.late}`, 230, startY);
+    doc.text(`Ausencias: ${heatmapData.summary.absent}`, 265, startY);
 
-    // Table data
+    // Table
     const tableData = heatmapData.students.map(student => [
       student.studentName,
       student.dni,
@@ -346,21 +362,19 @@ export default function MonthlyAttendanceReportPage() {
       student.summary.late,
       student.summary.absent,
       student.summary.justified,
-      `${student.summary.attendanceRate}%`
+      `${student.summary.attendanceRate}%`,
     ]);
 
     autoTable(doc, {
-      startY: 45,
+      startY: startY + 7,
       head: [['Estudiante', 'DNI', 'Presentes', 'Tardanzas', 'Ausencias', 'Justificados', '% Asist.']],
       body: tableData,
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [59, 130, 246] },
+      headStyles: { fillColor: [83, 143, 101] }, // #538f65
     });
 
     doc.save(`Asistencia_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.pdf`);
   };
-
-  const exportMenuItems = undefined; // kept for compatibility — no longer used
 
   return (
     <div className="space-y-6 pb-8">

@@ -6,6 +6,7 @@ import { sectionService } from '../services/sectionService';
 import { CloudArrowUpIcon, DocumentArrowDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 
 // ── Reusable field wrapper ──────────────────────────────────────────────────
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -28,6 +29,8 @@ export default function BulkEnrollment() {
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedLevel, setSelectedLevel]     = useState('');
   const queryClient = useQueryClient();
+
+  const { data: institutionData } = useInstitutionSettings();
 
   const { data: schoolYears, isLoading: isLoadingSchoolYears } = useQuery({
     queryKey: ['schoolYears'],
@@ -91,30 +94,36 @@ export default function BulkEnrollment() {
       return;
     }
 
+    // Institution name for header (row 1)
+    const institutionName = institutionData?.name || 'Institución Educativa';
+
     const ws_data = [
-      ['DATOS GENERALES:'],
-      [],
-      ['Institución educativa:', '', ''],
-      ['Nivel:', '', selectedLevel],
-      ['Nombre:', '', ''],
-      ['Datos referentes al registro de notas:'],
-      ['Año académico:', '', schoolYears?.find((y) => y.id === selectedSchoolYear)?.name || ''],
-      ['Grado y Seccion:', '', sections?.find((s) => s.id === selectedSection)?.name || ''],
-      [],
-      [],
-      ['NOMBRES', 'APELLIDOS', 'DNI', 'GENERO', 'FECHA_NAC'],
+      [institutionName],                                                          // Row 1: institution name
+      [],                                                                         // Row 2: blank
+      ['DATOS GENERALES:'],                                                       // Row 3
+      [],                                                                         // Row 4
+      ['Institución educativa:', '', institutionName],                            // Row 5
+      ['Nivel:', '', selectedLevel],                                              // Row 6
+      ['Nombre:', '', ''],                                                        // Row 7
+      ['Datos referentes al registro de notas:'],                                 // Row 8
+      ['Año académico:', '', schoolYears?.find((y) => y.id === selectedSchoolYear)?.name || ''], // Row 9
+      ['Grado y Seccion:', '', sections?.find((s) => s.id === selectedSection)?.name || ''],    // Row 10
+      [],                                                                         // Row 11
+      [],                                                                         // Row 12
+      ['NOMBRES', 'APELLIDOS', 'DNI', 'GENERO', 'FECHA_NAC'],                   // Row 13
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    ws['!cols'] = [{ wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
     ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } },
-      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },
-      { s: { r: 5, c: 0 }, e: { r: 5, c: 4 } },
-      { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } },
-      { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } },
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },  // Institution name
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } },  // DATOS GENERALES
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },  // Institución educativa label
+      { s: { r: 5, c: 0 }, e: { r: 5, c: 1 } },  // Nivel label
+      { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } },  // Nombre label
+      { s: { r: 7, c: 0 }, e: { r: 7, c: 4 } },  // Datos referentes
+      { s: { r: 8, c: 0 }, e: { r: 8, c: 1 } },  // Año académico label
+      { s: { r: 9, c: 0 }, e: { r: 9, c: 1 } },  // Grado y Sección label
     ];
 
     const wb = XLSX.utils.book_new();

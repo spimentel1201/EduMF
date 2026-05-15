@@ -1,257 +1,186 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
-    ClockIcon,
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    EyeIcon
+  ClockIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { timeSlotService } from '@/services/timeSlotService';
 import type { TimeSlot } from '@/types/academic';
 import { useTranslation } from 'react-i18next';
 
+const TYPE_STYLES: Record<string, { bg: string; text: string }> = {
+  Clase:    { bg: 'bg-blue-100',   text: 'text-blue-700'   },
+  Receso:   { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  Almuerzo: { bg: 'bg-orange-100', text: 'text-orange-700' },
+};
+
 export default function TimeSlotsPage() {
-    const { t } = useTranslation();
-    const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
-    const getTimeSlotTypeTranslationKey = (type: string) => {
-        switch (type) {
-            case 'Clase': return 'Class';
-            case 'Receso': return 'Break';
-            case 'Almuerzo': return 'Lunch';
-            default: return type;
-        }
-    };
+  const { data: timeSlots = [], isLoading, error } = useQuery({
+    queryKey: ['timeSlots'],
+    queryFn: timeSlotService.getAll,
+  });
 
-    const getTimeSlotStatusTranslationKey = (status: string) => {
-        switch (status) {
-            case 'Activo': return 'Active';
-            case 'Inactivo': return 'Inactive';
-            default: return status;
-        }
-    };
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => timeSlotService.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['timeSlots'] }),
+    onError: () => alert(t('timeSlots.deleteError')),
+  });
 
-    const { data: timeSlots, isLoading, error } = useQuery({
-        queryKey: ['timeSlots'],
-        queryFn: timeSlotService.getAll,
-    });
-
-    const deleteTimeSlotMutation = useMutation({
-        mutationFn: (id: string) => timeSlotService.delete(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['timeSlots'] });
-        },
-        onError: (error) => {
-            console.error('Error deleting time slot:', error);
-            alert(t('timeSlots.deleteError'));
-        }
-    });
-
-    const handleDelete = (timeSlot: TimeSlot) => {
-        if (window.confirm(t('timeSlots.confirmDelete', { name: timeSlot.name }))) {
-            deleteTimeSlotMutation.mutate(timeSlot.id);
-        }
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Activo':
-                return 'bg-green-100 text-green-800';
-            case 'Inactivo':
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    const getTypeColor = (type: string) => {
-        switch (type) {
-            case 'Clase':
-                return 'bg-blue-100 text-blue-800';
-            case 'Receso':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'Almuerzo':
-                return 'bg-orange-100 text-orange-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <div className="border-b border-gray-200 pb-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">{t('timeSlots.title')}</h3>
-                </div>
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <div className="animate-pulse">
-                            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-                            <div className="space-y-3">
-                                {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="h-16 bg-gray-200 rounded"></div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+  const handleDelete = (ts: TimeSlot) => {
+    if (window.confirm(t('timeSlots.confirmDelete', { name: ts.name }))) {
+      deleteMutation.mutate(ts.id);
     }
+  };
 
-    if (error) {
-        return (
-            <div className="space-y-6">
-                <div className="border-b border-gray-200 pb-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">{t('timeSlots.title')}</h3>
-                </div>
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <div className="text-center">
-                            <p className="text-red-600">{t('timeSlots.errorLoading')}</p>
-                            <button
-                                onClick={() => queryClient.invalidateQueries({ queryKey: ['timeSlots'] })}
-                                className="mt-2 text-primary-600 hover:text-primary-500"
-                            >
-                                {t('timeSlots.retry')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    const availableTimeSlots = timeSlots || [];
-
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <div className="border-b border-gray-200 pb-5">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">{t('timeSlots.title')}</h3>
-                        <p className="mt-2 max-w-4xl text-sm text-gray-500">
-                            {t('timeSlots.subtitle')}
-                        </p>
-                    </div>
-                    <Link
-                        to="/time-slots/new"
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                    >
-                        <PlusIcon className="h-4 w-4 mr-2" />
-                        {t('timeSlots.newTimeSlot')}
-                    </Link>
-                </div>
-            </div>
-
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                    {availableTimeSlots.length === 0 ? (
-                        <div className="text-center py-12">
-                            <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('timeSlots.noTimeSlots')}</h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                {t('timeSlots.createFirstTimeSlot')}
-                            </p>
-                            <div className="mt-6">
-                                <Link
-                                    to="/time-slots/new"
-                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                                >
-                                    <PlusIcon className="h-4 w-4 mr-2" />
-                                    {t('timeSlots.newTimeSlot')}
-                                </Link>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            {t('timeSlots.name')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            {t('timeSlots.schedule')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            {t('timeSlots.type')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            {t('timeSlots.status')}
-                                        </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            {t('timeSlots.actions')}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {availableTimeSlots.map((timeSlot) => (
-                                        <tr key={timeSlot.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="flex-shrink-0">
-                                                        <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                                            <ClockIcon className="h-5 w-5 text-primary-600" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {timeSlot.name}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {timeSlot.startTime} - {timeSlot.endTime}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(timeSlot.type)}`}>
-                                                    {t(`timeSlots.types.${getTimeSlotTypeTranslationKey(timeSlot.type)}`)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(timeSlot.status)}`}>
-                                                    {t(`timeSlots.statusOptions.${getTimeSlotStatusTranslationKey(timeSlot.status)}`)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex items-center justify-end space-x-2">
-                                                    <Link
-                                                        to={`/time-slots/${timeSlot.id}`}
-                                                        className="text-primary-600 hover:text-primary-900"
-                                                        title={t('timeSlots.viewDetails')}
-                                                    >
-                                                        <EyeIcon className="h-4 w-4" />
-                                                    </Link>
-                                                    <Link
-                                                        to={`/time-slots/${timeSlot.id}/edit`}
-                                                        className="text-indigo-600 hover:text-indigo-900"
-                                                        title={t('timeSlots.edit')}
-                                                    >
-                                                        <PencilIcon className="h-4 w-4" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(timeSlot)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                        title={t('timeSlots.delete')}
-                                                        disabled={deleteTimeSlotMutation.isPending}
-                                                    >
-                                                        <TrashIcon className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-sm text-red-500">{t('timeSlots.errorLoading')}</p>
+        <button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['timeSlots'] })}
+          className="mt-2 text-sm font-semibold text-green-700 hover:text-green-900"
+        >
+          {t('timeSlots.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 pb-8">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: '#1a202c' }}>
+            {t('timeSlots.title')}
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: '#718096' }}>
+            {t('timeSlots.subtitle')}
+          </p>
+        </div>
+        <Link
+          to="/time-slots/new"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors"
+          style={{ background: '#538f65' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#47795a')}
+          onMouseLeave={e => (e.currentTarget.style.background = '#538f65')}
+        >
+          <PlusIcon className="w-4 h-4" />
+          {t('timeSlots.newTimeSlot')}
+        </Link>
+      </div>
+
+      {/* ── Empty state ── */}
+      {timeSlots.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <ClockIcon className="w-12 h-12 mb-3 opacity-30" />
+          <p className="text-sm font-medium">{t('timeSlots.noTimeSlots')}</p>
+          <p className="text-xs mt-1">{t('timeSlots.createFirstTimeSlot')}</p>
+          <Link
+            to="/time-slots/new"
+            className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm"
+            style={{ background: '#538f65' }}
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t('timeSlots.newTimeSlot')}
+          </Link>
+        </div>
+      ) : (
+        /* ── Table ── */
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100" style={{ background: '#f8faf9' }}>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    {t('timeSlots.name')}
+                  </th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    {t('timeSlots.schedule')}
+                  </th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    {t('timeSlots.type')}
+                  </th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    {t('timeSlots.status')}
+                  </th>
+                  <th className="px-5 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    {t('timeSlots.actions')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {timeSlots.map((ts) => {
+                  const typeStyle = TYPE_STYLES[ts.type] ?? { bg: 'bg-gray-100', text: 'text-gray-600' };
+                  const isActive = ts.status === 'Activo';
+                  return (
+                    <tr key={ts.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <ClockIcon className="w-4 h-4 text-green-700" />
+                          </div>
+                          <span className="font-semibold text-gray-900">{ts.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-gray-600 font-medium">
+                        {ts.startTime} – {ts.endTime}
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeStyle.bg} ${typeStyle.text}`}>
+                          {ts.type}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {ts.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center justify-end gap-3">
+                          <Link
+                            to={`/time-slots/${ts.id}/edit`}
+                            className="text-gray-400 hover:text-green-700 transition-colors"
+                            title={t('timeSlots.edit')}
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(ts)}
+                            disabled={deleteMutation.isPending}
+                            className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-40"
+                            title={t('timeSlots.delete')}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+            <p className="text-xs text-gray-400">{timeSlots.length} franja{timeSlots.length !== 1 ? 's' : ''} horaria{timeSlots.length !== 1 ? 's' : ''}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -38,7 +38,7 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     // Validar campos con express-validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return next(new ApiError(errors.array()[0].msg, 400));
+      return next(ApiError.badRequest(String(errors.array()[0].msg)));
     }
 
     const { name, address, phone, email, logoBase64 } = req.body;

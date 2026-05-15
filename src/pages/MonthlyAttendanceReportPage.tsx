@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Select, DatePicker, Tabs, Tooltip, Dropdown, Menu } from 'antd';
 import { attendanceService } from '../services/attendanceService';
 import { getSections } from '../services/sectionService';
 import { Section } from '../types/academic';
@@ -29,7 +28,8 @@ import {
   XCircleIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 
 // Types
@@ -347,61 +347,70 @@ export default function MonthlyAttendanceReportPage() {
     doc.save(`Asistencia_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.pdf`);
   };
 
-  const exportMenuItems = [
-    {
-      key: 'excel',
-      label: '📊 Exportar a Excel',
-      onClick: exportToExcel
-    },
-    {
-      key: 'pdf',
-      label: '📄 Exportar a PDF',
-      onClick: exportToPDF
-    }
-  ];
+  const exportMenuItems = undefined; // kept for compatibility — no longer used
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 pb-8">
+      {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            📊 Reporte de Asistencia Mensual
+          <h1 className="text-2xl font-bold" style={{ color: '#1a202c' }}>
+            Reporte de Asistencia Mensual
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {selectedSectionName} - {selectedMonth.format('MMMM YYYY')}
+          <p className="text-sm mt-0.5" style={{ color: '#718096' }}>
+            {selectedSectionName} — {selectedMonth.format('MMMM YYYY')}
           </p>
         </div>
-        <div className="flex gap-3">
-          <Select
-            placeholder="Seleccionar sección"
-            style={{ width: 200 }}
-            value={selectedSection}
-            onChange={setSelectedSection}
-            options={sections.map(s => ({ value: s.id, label: s.name }))}
-          />
-          <DatePicker
-            picker="month"
-            format="MM/YYYY"
-            value={selectedMonth}
-            onChange={(date) => date && setSelectedMonth(dayjs(date))}
-          />
-          <Dropdown
-            menu={{ items: exportMenuItems }}
-            placement="bottomRight"
-            disabled={!heatmapData}
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* Section selector */}
+          <select
+            value={selectedSection ?? ''}
+            onChange={(e) => setSelectedSection(e.target.value)}
+            className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
           >
-            <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
-              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+            <option value="">Seleccionar sección</option>
+            {sections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+
+          {/* Month/year picker — native month input */}
+          <input
+            type="month"
+            value={selectedMonth.format('YYYY-MM')}
+            onChange={(e) => e.target.value && setSelectedMonth(dayjs(e.target.value))}
+            className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
+          />
+
+          {/* Export dropdown */}
+          <div className="relative group">
+            <button
+              disabled={!heatmapData}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 shadow-sm transition-colors disabled:opacity-40"
+            >
+              <DocumentArrowDownIcon className="w-4 h-4" />
               Exportar
+              <ChevronDownIcon className="w-3.5 h-3.5" />
             </button>
-          </Dropdown>
+            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-10 hidden group-hover:block">
+              <button
+                onClick={exportToExcel}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-t-xl transition-colors"
+              >
+                📊 Exportar a Excel
+              </button>
+              <button
+                onClick={exportToPDF}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-xl transition-colors"
+              >
+                📄 Exportar a PDF
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* ── KPI Cards ── */}
       {heatmapData && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
             title="Tasa de Asistencia"
             value={`${heatmapData.summary.attendanceRate}%`}
@@ -433,10 +442,10 @@ export default function MonthlyAttendanceReportPage() {
         </div>
       )}
 
-      {/* Trend Chart */}
+      {/* ── Trend Chart ── */}
       {trendChartData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tendencia Diaria de Asistencia</h3>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <h3 className="text-base font-bold text-gray-900 mb-4">Tendencia Diaria de Asistencia</h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={trendChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -445,157 +454,171 @@ export default function MonthlyAttendanceReportPage() {
               <RechartsTooltip formatter={(value: number) => `${value}%`} />
               <Legend />
               <Line type="monotone" dataKey="asistencia" stroke="#22c55e" strokeWidth={2} name="Asistencia" dot={false} />
-              <Line type="monotone" dataKey="tardanza" stroke="#eab308" strokeWidth={2} name="Tardanza" dot={false} />
-              <Line type="monotone" dataKey="ausencia" stroke="#ef4444" strokeWidth={2} name="Ausencia" dot={false} />
+              <Line type="monotone" dataKey="tardanza"   stroke="#eab308" strokeWidth={2} name="Tardanza"   dot={false} />
+              <Line type="monotone" dataKey="ausencia"   stroke="#ef4444" strokeWidth={2} name="Ausencia"   dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          className="p-4"
-          items={[
-            {
-              key: 'heatmap',
-              label: '🗓️ Heatmap por Estudiante',
-              children: (
-                <div className="overflow-x-auto">
-                  {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                    </div>
-                  ) : heatmapData ? (
-                    <>
-                      {/* Legend */}
-                      <div className="flex gap-4 mb-4 text-sm">
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-green-500"></span> Presente
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-yellow-500"></span> Tardanza
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-red-500"></span> Ausente
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-blue-500"></span> Justificado
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-gray-200"></span> Fin de semana
-                        </span>
-                      </div>
+      {/* ── Tabs ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Tab bar */}
+        <div className="flex border-b border-gray-100 px-5 pt-4 gap-1">
+          {[
+            { key: 'heatmap',    label: '🗓️ Heatmap por Estudiante'    },
+            { key: 'comparison', label: '📊 Comparativo de Secciones' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-px ${
+                activeTab === tab.key
+                  ? 'border-green-600 text-green-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-                      {/* Heatmap Table */}
-                      <table className="min-w-full text-xs">
-                        <thead>
-                          <tr className="bg-gray-50">
-                            <th className="sticky left-0 bg-gray-50 px-3 py-2 text-left font-semibold text-gray-900 min-w-[180px]">
-                              Estudiante
-                            </th>
-                            {Array.from({ length: heatmapData.daysInMonth }, (_, i) => (
-                              <th key={i + 1} className="px-1 py-2 text-center font-medium text-gray-600 w-7">
-                                {i + 1}
-                              </th>
-                            ))}
-                            <th className="px-3 py-2 text-center font-semibold text-gray-900">
-                              %
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {heatmapData.students.map((student) => (
-                            <tr key={student.studentId} className="hover:bg-gray-50">
-                              <td className="sticky left-0 bg-white px-3 py-2 font-medium text-gray-900 border-r">
-                                <div className="truncate max-w-[170px]" title={student.studentName}>
-                                  {student.studentName}
-                                </div>
-                              </td>
-                              {student.days.map(({ day, status }) => (
-                                <td key={day} className="px-0.5 py-1 text-center">
-                                  <Tooltip title={status || 'Sin registro'}>
-                                    <div className={`w-6 h-6 mx-auto rounded flex items-center justify-center text-white text-[10px] font-bold ${getStatusColor(status)}`}>
-                                      {getStatusLabel(status)}
-                                    </div>
-                                  </Tooltip>
-                                </td>
-                              ))}
-                              <td className="px-3 py-2 text-center font-bold">
-                                <span className={student.summary.attendanceRate >= 80 ? 'text-green-600' : student.summary.attendanceRate >= 60 ? 'text-yellow-600' : 'text-red-600'}>
-                                  {student.summary.attendanceRate}%
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </>
-                  ) : (
-                    <p className="text-center py-12 text-gray-500">Selecciona una sección para ver el reporte</p>
-                  )}
+        <div className="p-5">
+          {/* ── Heatmap tab ── */}
+          {activeTab === 'heatmap' && (
+            <div className="overflow-x-auto">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
                 </div>
-              )
-            },
-            {
-              key: 'comparison',
-              label: '📊 Comparativo de Secciones',
-              children: (
-                <div>
-                  {comparisonData.length > 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Ranking Table */}
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-4">Ranking de Secciones</h4>
-                        <div className="space-y-3">
-                          {comparisonData.map((section, index) => (
-                            <div key={section._id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                              <span className="text-2xl">{getRankingEmoji(index)}</span>
-                              <div className="flex-1">
-                                <p className="font-medium text-gray-900">{section.sectionName}</p>
-                                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                  <div
-                                    className="bg-green-500 h-2 rounded-full"
-                                    style={{ width: `${section.attendanceRate}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                              <span className="text-lg font-bold text-green-600">
-                                {section.attendanceRate}%
-                              </span>
+              ) : heatmapData ? (
+                <>
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-4 mb-4 text-xs">
+                    {[
+                      { color: 'bg-green-500',  label: 'Presente'       },
+                      { color: 'bg-yellow-500', label: 'Tardanza'       },
+                      { color: 'bg-red-500',    label: 'Ausente'        },
+                      { color: 'bg-blue-500',   label: 'Justificado'    },
+                      { color: 'bg-gray-200',   label: 'Fin de semana'  },
+                    ].map((item) => (
+                      <span key={item.label} className="flex items-center gap-1.5 text-gray-600">
+                        <span className={`w-3.5 h-3.5 rounded ${item.color}`} />
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Heatmap table */}
+                  <table className="min-w-full text-xs">
+                    <thead>
+                      <tr style={{ background: '#f8faf9' }}>
+                        <th className="sticky left-0 bg-gray-50 px-3 py-2 text-left font-semibold text-gray-700 min-w-[180px] border-r border-gray-100">
+                          Estudiante
+                        </th>
+                        {Array.from({ length: heatmapData.daysInMonth }, (_, i) => (
+                          <th key={i + 1} className="px-0.5 py-2 text-center font-medium text-gray-500 w-7">
+                            {i + 1}
+                          </th>
+                        ))}
+                        <th className="px-3 py-2 text-center font-semibold text-gray-700">%</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {heatmapData.students.map((student) => (
+                        <tr key={student.studentId} className="hover:bg-gray-50/50">
+                          <td className="sticky left-0 bg-white px-3 py-1.5 font-medium text-gray-900 border-r border-gray-100">
+                            <div className="truncate max-w-[170px]" title={student.studentName}>
+                              {student.studentName}
                             </div>
+                          </td>
+                          {student.days.map(({ day, status }) => (
+                            <td key={day} className="px-0.5 py-1 text-center">
+                              <div
+                                title={status ?? 'Sin registro'}
+                                className={`w-6 h-6 mx-auto rounded flex items-center justify-center text-white text-[10px] font-bold ${getStatusColor(status)}`}
+                              >
+                                {getStatusLabel(status)}
+                              </div>
+                            </td>
                           ))}
-                        </div>
-                      </div>
+                          <td className="px-3 py-1.5 text-center font-bold">
+                            <span className={
+                              student.summary.attendanceRate >= 80 ? 'text-green-600'
+                              : student.summary.attendanceRate >= 60 ? 'text-yellow-600'
+                              : 'text-red-600'
+                            }>
+                              {student.summary.attendanceRate}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              ) : (
+                <p className="text-center py-12 text-gray-400 text-sm">
+                  Selecciona una sección para ver el reporte.
+                </p>
+              )}
+            </div>
+          )}
 
-                      {/* Bar Chart */}
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-4">Gráfico Comparativo</h4>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={comparisonData} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                            <YAxis type="category" dataKey="sectionName" width={100} tick={{ fontSize: 12 }} />
-                            <RechartsTooltip formatter={(value: number) => `${value}%`} />
-                            <Bar dataKey="attendanceRate" name="Asistencia">
-                              {comparisonData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={getRankingColor(index)} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+          {/* ── Comparison tab ── */}
+          {activeTab === 'comparison' && (
+            <div>
+              {comparisonData.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Ranking */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-4">Ranking de Secciones</h4>
+                    <div className="space-y-3">
+                      {comparisonData.map((section, index) => (
+                        <div key={section._id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+                          <span className="text-xl">{getRankingEmoji(index)}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 text-sm truncate">{section.sectionName}</p>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+                              <div
+                                className="h-1.5 rounded-full transition-all"
+                                style={{ width: `${section.attendanceRate}%`, background: '#538f65' }}
+                              />
+                            </div>
+                          </div>
+                          <span className="text-sm font-bold text-green-700 flex-shrink-0">
+                            {section.attendanceRate}%
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <p className="text-center py-12 text-gray-500">No hay datos de comparación disponibles</p>
-                  )}
+                  </div>
+
+                  {/* Bar chart */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-4">Gráfico Comparativo</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={comparisonData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                        <YAxis type="category" dataKey="sectionName" width={100} tick={{ fontSize: 12 }} />
+                        <RechartsTooltip formatter={(value: number) => `${value}%`} />
+                        <Bar dataKey="attendanceRate" name="Asistencia">
+                          {comparisonData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={getRankingColor(index)} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-              )
-            }
-          ]}
-        />
+              ) : (
+                <p className="text-center py-12 text-gray-400 text-sm">
+                  No hay datos de comparación disponibles.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeftIcon,
@@ -7,13 +7,12 @@ import {
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import { eventService } from '../services/eventService';
+import { getSections } from '../services/sectionService';
 
 type EventCategory = 'Académico' | 'Artes' | 'Deportes' | 'Cultura' | 'Otro';
 
 const CATEGORIES: EventCategory[] = ['Académico', 'Artes', 'Deportes', 'Cultura', 'Otro'];
 const LOCATIONS = ['Patio', 'Aulas', 'Auditorio', 'Gimnasio', 'Biblioteca'];
-const GRADES = ['1er Grado', '2do Grado', '3er Grado', '4to Grado', '5to Grado', '6to Grado'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
 
 const FIELD_CLASS =
   'w-full px-4 py-3 text-sm bg-[#F7F6F2] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors placeholder-gray-400 border-none text-gray-700';
@@ -42,6 +41,32 @@ export default function NewEventPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // ── Load available grades and sections from the active school year ──
+  const [availableGrades, setAvailableGrades] = useState<number[]>([]);
+  const [availableSections, setAvailableSections] = useState<string[]>([]);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
+
+  useEffect(() => {
+    setSectionsLoading(true);
+    getSections()
+      .then((sections) => {
+        // Only active sections
+        const active = sections.filter((s: any) => s.status === 'Activo');
+        const grades = Array.from(new Set(active.map((s: any) => Number(s.grade)))).sort(
+          (a, b) => a - b
+        );
+        const secs = Array.from(new Set(active.map((s: any) => String(s.section)))).sort();
+        setAvailableGrades(grades);
+        setAvailableSections(secs);
+      })
+      .catch(() => {
+        // Fallback to numeric grades 1–6 and letters A–D if API fails
+        setAvailableGrades([1, 2, 3, 4, 5, 6]);
+        setAvailableSections(['A', 'B', 'C', 'D']);
+      })
+      .finally(() => setSectionsLoading(false));
+  }, []);
 
   const set = (field: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -228,10 +253,15 @@ export default function NewEventPage() {
                   <select 
                     value={form.grade} 
                     onChange={set('grade')} 
-                    className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 ${errors.grade ? 'border-red-500' : 'border-gray-200'}`}
+                    disabled={sectionsLoading}
+                    className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 disabled:opacity-60 ${errors.grade ? 'border-red-500' : 'border-gray-200'}`}
                   >
-                    <option value="">Seleccionar Grado</option>
-                    {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                    <option value="">
+                      {sectionsLoading ? 'Cargando grados…' : 'Seleccionar Grado'}
+                    </option>
+                    {availableGrades.map((g) => (
+                      <option key={g} value={String(g)}>{g}° Grado</option>
+                    ))}
                   </select>
                   {errors.grade && <p className="mt-1 text-xs text-red-500">{errors.grade}</p>}
                 </div>
@@ -240,10 +270,15 @@ export default function NewEventPage() {
                   <select 
                     value={form.section} 
                     onChange={set('section')} 
-                    className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 ${errors.section ? 'border-red-500' : 'border-gray-200'}`}
+                    disabled={sectionsLoading}
+                    className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 disabled:opacity-60 ${errors.section ? 'border-red-500' : 'border-gray-200'}`}
                   >
-                    <option value="">Seleccionar Sección</option>
-                    {SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                    <option value="">
+                      {sectionsLoading ? 'Cargando secciones…' : 'Seleccionar Sección'}
+                    </option>
+                    {availableSections.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
                   </select>
                   {errors.section && <p className="mt-1 text-xs text-red-500">{errors.section}</p>}
                 </div>

@@ -90,6 +90,8 @@ export interface SaveAttendanceEntry {
   attendance: AttendanceStatus;
   tutorPresence: TutorPresence;
   tutorName?: string;
+  grade?: string;
+  section?: string;
 }
 
 // ─── Event CRUD ───────────────────────────────────────────────────────────────

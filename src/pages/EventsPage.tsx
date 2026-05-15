@@ -27,6 +27,19 @@ const ALL_CATEGORIES: ('all' | EventCategory)[] = [
   'all', 'Académico', 'Artes', 'Deportes', 'Cultura', 'Otro',
 ];
 
+/** Formats an ISO date string to a human-readable Spanish date, e.g. "15 may. 2026" */
+function formatEventDate(raw: string): string {
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('es-PE', {
+    day:   'numeric',
+    month: 'short',
+    year:  'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
 function EventImagePlaceholder({ category }: { category: EventCategory }) {
@@ -81,7 +94,7 @@ function EventCard({ event }: { event: EventDTO }) {
         <div className="space-y-1 text-xs text-gray-500 mb-3">
           <div className="flex items-center gap-1.5">
             <CalendarDaysIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
-            <span>{event.date}</span>
+            <span>{formatEventDate(event.date)}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <ClockIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />

@@ -229,7 +229,7 @@ export default function InstitutionSettingsPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
 
         {/* ── Logo ── */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

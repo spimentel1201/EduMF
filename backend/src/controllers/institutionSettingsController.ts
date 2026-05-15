@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import InstitutionConfig from '../models/InstitutionConfig';
-import { ApiError } from '../middleware/ApiError';
+import { ApiError } from '../middleware/errorHandler';
 
 // @desc    Obtener configuración institucional
 // @route   GET /api/institution-settings

@@ -275,54 +275,71 @@ export default function MonthlyAttendanceReportPage() {
     if (!heatmapData) return;
 
     const wb = XLSX.utils.book_new();
+    const DAY_LETTERS_XL = ['D','L','M','M','J','V','S'];
+    const statusAbbr: Record<string, string> = {
+      'Presente': 'P', 'Tardanza': 'T', 'Ausente': 'A', 'Justificado': 'J',
+    };
 
-    // ── Main sheet: attendance data ──
+    // ── Main sheet ──────────────────────────────────────────────────────
     const ws = XLSX.utils.aoa_to_sheet([]);
-
-    // Institution header (returns row offset)
     const headerRows = addInstitutionHeaderToSheet(ws, institutionData);
 
-    // Section + period info
+    // Section + period info row
     XLSX.utils.sheet_add_aoa(ws, [
-      [`Sección: ${selectedSectionName}  |  Período: ${selectedMonth.format('MMMM YYYY')}`],
+      [`Sección: ${selectedSectionName}  |  Período: ${selectedMonth.format('MMMM YYYY')}  |  Tutor(a): ${sections.find(s => s.id === selectedSection)?.teacher || '—'}`],
       [],
     ], { origin: { r: headerRows, c: 0 } });
 
-    // Attendance data rows
-    const excelData = heatmapData.students.map(student => {
-      const row: Record<string, any> = {
-        'Estudiante': student.studentName,
-        'DNI': student.dni,
-      };
-      student.days.forEach(({ day, status }) => {
-        row[`Día ${day}`] = status === 'weekend' ? '-' : (status || '');
-      });
-      row['Presentes']    = student.summary.present;
-      row['Tardanzas']    = student.summary.late;
-      row['Ausencias']    = student.summary.absent;
-      row['Justificados'] = student.summary.justified;
-      row['% Asistencia'] = `${student.summary.attendanceRate}%`;
-      return row;
-    });
+    // Header row 1: day letters
+    const letterRow = ['', '', ...heatmapData.students[0].days.map(({ day }) => {
+      const dow = new Date(selectedMonth.year(), selectedMonth.month(), day).getDay();
+      return DAY_LETTERS_XL[dow];
+    }), 'P', 'T', 'A', 'J', '%'];
 
-    XLSX.utils.sheet_add_json(ws, excelData, { origin: { r: headerRows + 2, c: 0 } });
+    // Header row 2: day numbers
+    const numberRow = ['N°', 'Apellidos y Nombres / DNI',
+      ...heatmapData.students[0].days.map(({ day }) => day),
+      'Pres.', 'Tard.', 'Aus.', 'Just.', '% Asist.',
+    ];
 
-    const colWidths = Object.keys(excelData[0] || {}).map(key => ({ wch: Math.max(key.length, 10) }));
-    ws['!cols'] = colWidths;
+    XLSX.utils.sheet_add_aoa(ws, [letterRow, numberRow], { origin: { r: headerRows + 2, c: 0 } });
+
+    // Data rows
+    const dataRows = heatmapData.students.map((student, idx) => [
+      idx + 1,
+      `${student.studentName} (${student.dni})`,
+      ...student.days.map(({ status }) =>
+        status === 'weekend' ? '·' : (statusAbbr[status as string] ?? '')
+      ),
+      student.summary.present,
+      student.summary.late,
+      student.summary.absent,
+      student.summary.justified,
+      `${student.summary.attendanceRate}%`,
+    ]);
+
+    XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: { r: headerRows + 4, c: 0 } });
+
+    // Column widths: N°=4, Nombre=35, each day=3, summary=6, %=8
+    ws['!cols'] = [
+      { wch: 4 }, { wch: 35 },
+      ...heatmapData.students[0].days.map(() => ({ wch: 3 })),
+      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 },
+    ];
 
     XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
 
-    // ── Summary sheet ──
+    // ── Summary sheet ────────────────────────────────────────────────────
     const summaryData = [{
-      'Institución':        institutionData?.name || '',
-      'Sección':            selectedSectionName,
-      'Mes':                selectedMonth.format('MMMM YYYY'),
-      'Total Estudiantes':  heatmapData.summary.studentCount,
-      'Total Registros':    heatmapData.summary.total,
-      'Presentes':          heatmapData.summary.present,
-      'Tardanzas':          heatmapData.summary.late,
-      'Ausencias':          heatmapData.summary.absent,
-      'Justificados':       heatmapData.summary.justified,
+      'Institución':          institutionData?.name || '',
+      'Sección':              selectedSectionName,
+      'Mes':                  selectedMonth.format('MMMM YYYY'),
+      'Días hábiles':         heatmapData.workingDaysInMonth,
+      'Total Estudiantes':    heatmapData.summary.studentCount,
+      'Presentes':            heatmapData.summary.present,
+      'Tardanzas':            heatmapData.summary.late,
+      'Ausencias':            heatmapData.summary.absent,
+      'Justificados':         heatmapData.summary.justified,
       '% Asistencia General': `${heatmapData.summary.attendanceRate}%`,
     }];
     const wsSummary = XLSX.utils.json_to_sheet(summaryData);
@@ -379,178 +396,246 @@ export default function MonthlyAttendanceReportPage() {
     doc.save(`Asistencia_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.pdf`);
   };
 
-  // Export to PDF — Formal (with institution header, tutor, signature space)
+  // Export to PDF — Formal (with institution header, all days, tutor, signature space)
   const exportToPDFFormal = () => {
     if (!heatmapData) return;
 
-    const doc = new jsPDF('portrait', 'mm', 'a4');
+    // Landscape A4 to fit all 31 day columns
+    const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageW = doc.internal.pageSize.getWidth();
-    const margin = 14;
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 10;
     const contentW = pageW - margin * 2;
 
+    const selectedSectionObj = sections.find(s => s.id === selectedSection);
+    const tutorName = selectedSectionObj?.teacher || '—';
+
     // ── Logo + institution block ──────────────────────────────────────────
-    let y = 12;
+    let y = 10;
     if (institutionData?.logoBase64) {
       try {
         const fmt = institutionData.logoBase64.startsWith('data:image/png') ? 'PNG'
           : institutionData.logoBase64.startsWith('data:image/webp') ? 'WEBP' : 'JPEG';
-        doc.addImage(institutionData.logoBase64, fmt, margin, y, 18, 18);
-      } catch { /* skip logo on error */ }
+        doc.addImage(institutionData.logoBase64, fmt, margin, y, 16, 16);
+      } catch { /* skip */ }
     }
-    const textX = institutionData?.logoBase64 ? margin + 22 : margin;
+    const textX = institutionData?.logoBase64 ? margin + 20 : margin;
 
-    doc.setFontSize(13);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(26, 32, 44);
-    doc.text(institutionData?.name || 'Institución Educativa', textX, y + 6);
+    doc.text(institutionData?.name || 'Institución Educativa', textX, y + 5);
 
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(113, 128, 150);
     const contactParts: string[] = [];
     if (institutionData?.address) contactParts.push(institutionData.address);
     if (institutionData?.phone)   contactParts.push(institutionData.phone);
     if (institutionData?.email)   contactParts.push(institutionData.email);
-    if (contactParts.length > 0) doc.text(contactParts.join('  |  '), textX, y + 12);
+    if (contactParts.length > 0) doc.text(contactParts.join('  |  '), textX, y + 11);
 
-    y = Math.max(y + 24, 38);
-
-    // ── Separator line ────────────────────────────────────────────────────
-    doc.setDrawColor(83, 143, 101);
-    doc.setLineWidth(0.6);
-    doc.line(margin, y, pageW - margin, y);
-    y += 5;
-
-    // ── Report title ──────────────────────────────────────────────────────
-    doc.setFontSize(12);
+    // Title on the right side
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(26, 32, 44);
-    doc.text('REGISTRO DE ASISTENCIA MENSUAL', pageW / 2, y, { align: 'center' });
-    y += 7;
+    doc.text('REGISTRO DE ASISTENCIA MENSUAL', pageW - margin, y + 5, { align: 'right' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(83, 143, 101);
+    doc.text(
+      `${selectedSectionName}  —  ${selectedMonth.locale('es').format('MMMM YYYY').toUpperCase()}`,
+      pageW - margin, y + 11, { align: 'right' }
+    );
 
-    // ── Info grid (2 columns) ─────────────────────────────────────────────
-    const selectedSectionObj = sections.find(s => s.id === selectedSection);
-    const tutorName = selectedSectionObj?.teacher || '—';
-    const infoRows = [
-      ['Grado y Sección:', selectedSectionName,   'Período:', selectedMonth.locale('es').format('MMMM YYYY').toUpperCase()],
-      ['Nivel:',          selectedSectionObj?.level || '—', 'Tutor(a):', tutorName],
-      ['Exportado por:',  user?.name || '—',       'Fecha de emisión:', dayjs().format('DD/MM/YYYY HH:mm')],
+    y = Math.max(y + 20, 32);
+
+    // ── Separator ─────────────────────────────────────────────────────────
+    doc.setDrawColor(83, 143, 101);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageW - margin, y);
+    y += 4;
+
+    // ── Info row ──────────────────────────────────────────────────────────
+    doc.setFontSize(7.5);
+    const infoItems = [
+      { label: 'Nivel:', value: selectedSectionObj?.level || '—' },
+      { label: 'Tutor(a):', value: tutorName },
+      { label: 'Días hábiles:', value: String(heatmapData.workingDaysInMonth) },
+      { label: 'Exportado por:', value: user?.name || '—' },
+      { label: 'Fecha emisión:', value: dayjs().format('DD/MM/YYYY HH:mm') },
     ];
-
-    doc.setFontSize(8.5);
-    const colW = contentW / 2;
-    infoRows.forEach(([lbl1, val1, lbl2, val2]) => {
+    const infoW = contentW / infoItems.length;
+    infoItems.forEach((item, i) => {
+      const ix = margin + i * infoW;
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(83, 143, 101);
-      doc.text(lbl1, margin, y);
+      doc.text(item.label, ix, y);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(26, 32, 44);
-      doc.text(val1, margin + 30, y);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(83, 143, 101);
-      doc.text(lbl2, margin + colW, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(26, 32, 44);
-      doc.text(val2, margin + colW + 30, y);
-      y += 6;
+      doc.text(item.value, ix + 20, y);
     });
-    y += 3;
+    y += 5;
 
     // ── Summary stats bar ─────────────────────────────────────────────────
     doc.setFillColor(248, 250, 249);
-    doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+    doc.roundedRect(margin, y, contentW, 11, 1.5, 1.5, 'F');
     const stats = [
       { label: 'Estudiantes', value: String(heatmapData.summary.studentCount) },
-      { label: 'Días hábiles', value: String(heatmapData.workingDaysInMonth) },
-      { label: 'Presentes', value: String(heatmapData.summary.present) },
-      { label: 'Tardanzas', value: String(heatmapData.summary.late) },
-      { label: 'Ausencias', value: String(heatmapData.summary.absent) },
-      { label: 'Asistencia', value: `${heatmapData.summary.attendanceRate}%` },
+      { label: 'Presentes',   value: String(heatmapData.summary.present) },
+      { label: 'Tardanzas',   value: String(heatmapData.summary.late) },
+      { label: 'Ausencias',   value: String(heatmapData.summary.absent) },
+      { label: 'Justificados',value: String(heatmapData.summary.justified) },
+      { label: '% Asistencia',value: `${heatmapData.summary.attendanceRate}%` },
     ];
     const statW = contentW / stats.length;
     stats.forEach((s, i) => {
       const sx = margin + i * statW + statW / 2;
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(83, 143, 101);
-      doc.text(s.value, sx, y + 6, { align: 'center' });
-      doc.setFontSize(6.5);
+      doc.text(s.value, sx, y + 5, { align: 'center' });
+      doc.setFontSize(6);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(113, 128, 150);
-      doc.text(s.label, sx, y + 11, { align: 'center' });
+      doc.text(s.label, sx, y + 9.5, { align: 'center' });
     });
-    y += 18;
+    y += 15;
 
-    // ── Attendance table ──────────────────────────────────────────────────
-    const tableData = heatmapData.students.map((student, idx) => [
-      String(idx + 1),
-      student.studentName,
-      student.dni,
-      String(student.summary.present),
-      String(student.summary.late),
-      String(student.summary.absent),
-      String(student.summary.justified),
-      `${student.summary.attendanceRate}%`,
-    ]);
+    // ── Build table: N° | Nombre | DNI | day1..dayN | P | T | A | J | % ──
+    const DAY_LETTERS_PDF = ['D','L','M','M','J','V','S'];
+
+    // Header row 1: day letters
+    const dayLetterRow: string[] = ['', '', ''];
+    heatmapData.students[0]?.days.forEach(({ day }) => {
+      const dow = new Date(selectedMonth.year(), selectedMonth.month(), day).getDay();
+      dayLetterRow.push(DAY_LETTERS_PDF[dow]);
+    });
+    dayLetterRow.push('P', 'T', 'A', 'J', '%');
+
+    // Header row 2: day numbers
+    const dayNumberRow: string[] = ['N°', 'Apellidos y Nombres', 'DNI'];
+    heatmapData.students[0]?.days.forEach(({ day }) => {
+      dayNumberRow.push(String(day));
+    });
+    dayNumberRow.push('P', 'T', 'A', 'J', '%');
+
+    // Status abbreviation map
+    const statusAbbr: Record<string, string> = {
+      'Presente': 'P', 'Tardanza': 'T', 'Ausente': 'A', 'Justificado': 'J',
+      'weekend': '·', null: '',
+    };
+
+    // Data rows
+    const tableBody = heatmapData.students.map((student, idx) => {
+      const row: string[] = [
+        String(idx + 1),
+        student.studentName,
+        student.dni,
+      ];
+      student.days.forEach(({ status }) => {
+        row.push(statusAbbr[status as string] ?? '');
+      });
+      row.push(
+        String(student.summary.present),
+        String(student.summary.late),
+        String(student.summary.absent),
+        String(student.summary.justified),
+        `${student.summary.attendanceRate}%`,
+      );
+      return row;
+    });
+
+    // Column widths: N°=6, Nombre=42, DNI=14, each day=4.2, P/T/A/J=6, %=9
+    const daysCount = heatmapData.daysInMonth;
+    const dayColW = 4.2;
+    const summaryColW = 6;
+    const pctColW = 9;
+
+    const columnStyles: Record<number, any> = {
+      0: { cellWidth: 6,  halign: 'center' },
+      1: { cellWidth: 42 },
+      2: { cellWidth: 14, halign: 'center' },
+    };
+    // Day columns
+    heatmapData.students[0]?.days.forEach(({ day, status }, i) => {
+      const dow = new Date(selectedMonth.year(), selectedMonth.month(), day).getDay();
+      const isWknd = dow === 0 || dow === 6;
+      columnStyles[3 + i] = {
+        cellWidth: dayColW,
+        halign: 'center',
+        fillColor: isWknd ? [230, 230, 230] : undefined,
+        textColor: isWknd ? [160, 160, 160] : undefined,
+      };
+    });
+    // Summary columns
+    const baseIdx = 3 + daysCount;
+    ['P','T','A','J'].forEach((_, i) => {
+      columnStyles[baseIdx + i] = { cellWidth: summaryColW, halign: 'center' };
+    });
+    columnStyles[baseIdx + 4] = { cellWidth: pctColW, halign: 'center' };
 
     autoTable(doc, {
       startY: y,
-      head: [['N°', 'Apellidos y Nombres', 'DNI', 'P', 'T', 'A', 'J', '%']],
-      body: tableData,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [83, 143, 101], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-      columnStyles: {
-        0: { cellWidth: 8,  halign: 'center' },
-        1: { cellWidth: 70 },
-        2: { cellWidth: 22, halign: 'center' },
-        3: { cellWidth: 10, halign: 'center' },
-        4: { cellWidth: 10, halign: 'center' },
-        5: { cellWidth: 10, halign: 'center' },
-        6: { cellWidth: 10, halign: 'center' },
-        7: { cellWidth: 16, halign: 'center' },
-      },
+      head: [dayLetterRow, dayNumberRow],
+      body: tableBody,
+      styles: { fontSize: 5.5, cellPadding: 1 },
+      headStyles: { fillColor: [83, 143, 101], textColor: 255, fontStyle: 'bold', fontSize: 5.5, cellPadding: 1 },
+      columnStyles,
       alternateRowStyles: { fillColor: [248, 250, 249] },
       margin: { left: margin, right: margin },
+      didParseCell: (data) => {
+        // Color-code status cells in body
+        if (data.section === 'body' && data.column.index >= 3 && data.column.index < 3 + daysCount) {
+          const val = data.cell.raw as string;
+          if (val === 'P') { data.cell.styles.textColor = [22, 163, 74]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'T') { data.cell.styles.textColor = [202, 138, 4]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'A') { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = 'bold'; }
+          else if (val === 'J') { data.cell.styles.textColor = [37, 99, 235]; data.cell.styles.fontStyle = 'bold'; }
+        }
+        // Color % column
+        if (data.section === 'body' && data.column.index === baseIdx + 4) {
+          const pct = parseInt(data.cell.raw as string);
+          if (pct >= 80) data.cell.styles.textColor = [22, 163, 74];
+          else if (pct >= 60) data.cell.styles.textColor = [202, 138, 4];
+          else data.cell.styles.textColor = [220, 38, 38];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
     });
 
     // ── Signature block ───────────────────────────────────────────────────
-    const finalY = (doc as any).lastAutoTable.finalY + 16;
-    const sigW = 60;
+    const finalY = (doc as any).lastAutoTable.finalY + 12;
+    const sigW = 55;
     const sigSpacing = (contentW - sigW * 2) / 3;
 
-    // Tutor signature
     const sig1X = margin + sigSpacing;
     doc.setDrawColor(180, 180, 180);
     doc.setLineWidth(0.3);
     doc.line(sig1X, finalY, sig1X + sigW, finalY);
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(26, 32, 44);
-    doc.text('Tutor(a) de Aula', sig1X + sigW / 2, finalY + 5, { align: 'center' });
+    doc.text('Tutor(a) de Aula', sig1X + sigW / 2, finalY + 4.5, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(113, 128, 150);
-    doc.text(tutorName, sig1X + sigW / 2, finalY + 10, { align: 'center' });
+    doc.text(tutorName, sig1X + sigW / 2, finalY + 9, { align: 'center' });
 
-    // Director signature
     const sig2X = margin + sigSpacing * 2 + sigW;
     doc.line(sig2X, finalY, sig2X + sigW, finalY);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(26, 32, 44);
-    doc.text('Director(a)', sig2X + sigW / 2, finalY + 5, { align: 'center' });
+    doc.text('Director(a)', sig2X + sigW / 2, finalY + 4.5, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(113, 128, 150);
-    doc.text(institutionData?.name || '', sig2X + sigW / 2, finalY + 10, { align: 'center' });
+    doc.text(institutionData?.name || '', sig2X + sigW / 2, finalY + 9, { align: 'center' });
 
     // ── Footer ────────────────────────────────────────────────────────────
-    const pageH = doc.internal.pageSize.getHeight();
-    doc.setFontSize(7);
+    doc.setFontSize(6.5);
     doc.setTextColor(180, 180, 180);
     doc.text(
-      `Documento generado el ${dayjs().format('DD/MM/YYYY HH:mm')} por ${user?.name || '—'} — ${institutionData?.name || ''}`,
-      pageW / 2,
-      pageH - 8,
-      { align: 'center' }
+      `Generado el ${dayjs().format('DD/MM/YYYY HH:mm')} por ${user?.name || '—'}  —  ${institutionData?.name || ''}`,
+      pageW / 2, pageH - 6, { align: 'center' }
     );
 
     doc.save(`Reporte_Formal_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.pdf`);

@@ -18,10 +18,10 @@ import type { InstitutionSettings } from '@/types/institution';
 // ── Schema ──────────────────────────────────────────────────────────────────
 const schema = z.object({
   name:       z.string().min(1, 'El nombre es requerido'),
-  address:    z.string().default(''),
-  phone:      z.string().default(''),
-  email:      z.union([z.string().email('Correo inválido'), z.literal('')]).default(''),
-  logoBase64: z.string().default(''),
+  address:    z.string(),
+  phone:      z.string(),
+  email:      z.union([z.string().email('Correo inválido'), z.literal('')]),
+  logoBase64: z.string(),
 });
 
 type FormData = z.infer<typeof schema>;

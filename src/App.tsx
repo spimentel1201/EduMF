@@ -31,6 +31,7 @@ import NewEventPage from './pages/NewEventPage';
 import PaymentsPage from './pages/PaymentsPage';
 import NewChargePage from './pages/NewChargePage';
 import DefaultersReportPage from './pages/DefaultersReportPage';
+import InstitutionSettingsPage from '@/pages/InstitutionSettingsPage';
 import DebtsByGradePage from './pages/DebtsByGradePage';
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ function App() {
               <Route path="payments/new" element={<NewChargePage />} />
               <Route path="payments/defaulters" element={<DefaultersReportPage />} />
               <Route path="payments/by-grade" element={<DebtsByGradePage />} />
+              <Route path="settings" element={<AdminRoute><InstitutionSettingsPage /></AdminRoute>} />
             </Route>
           </Routes>
         </AuthProvider>
@@ -100,6 +102,24 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

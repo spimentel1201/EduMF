@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, forwardRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -153,14 +153,16 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 const inputCls =
   'w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-colors';
 
-function InputWithIcon({ icon: Icon, ...props }: { icon: React.ElementType } & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div className="relative">
-      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-      <input className={inputCls} {...props} />
-    </div>
-  );
-}
+const InputWithIcon = forwardRef<
+  HTMLInputElement,
+  { icon: React.ElementType } & React.InputHTMLAttributes<HTMLInputElement>
+>(({ icon: Icon, ...props }, ref) => (
+  <div className="relative">
+    <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+    <input ref={ref} className={inputCls} {...props} />
+  </div>
+));
+InputWithIcon.displayName = 'InputWithIcon';
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function InstitutionSettingsPage() {

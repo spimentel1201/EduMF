@@ -4,12 +4,14 @@ import { attendanceService } from '../services/attendanceService';
 import { getSections } from '../services/sectionService';
 import { Section } from '../types/academic';
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { addInstitutionHeaderToPDF, addInstitutionHeaderToSheet } from '@/utils/institutionHeader';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   LineChart,
   Line,
@@ -163,6 +165,7 @@ export default function MonthlyAttendanceReportPage() {
   const [activeTab, setActiveTab] = useState('heatmap');
 
   const { data: institutionData } = useInstitutionSettings();
+  const { user } = useAuth();
 
   // Fetch sections
   useEffect(() => {
@@ -376,6 +379,183 @@ export default function MonthlyAttendanceReportPage() {
     doc.save(`Asistencia_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.pdf`);
   };
 
+  // Export to PDF — Formal (with institution header, tutor, signature space)
+  const exportToPDFFormal = () => {
+    if (!heatmapData) return;
+
+    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    const contentW = pageW - margin * 2;
+
+    // ── Logo + institution block ──────────────────────────────────────────
+    let y = 12;
+    if (institutionData?.logoBase64) {
+      try {
+        const fmt = institutionData.logoBase64.startsWith('data:image/png') ? 'PNG'
+          : institutionData.logoBase64.startsWith('data:image/webp') ? 'WEBP' : 'JPEG';
+        doc.addImage(institutionData.logoBase64, fmt, margin, y, 18, 18);
+      } catch { /* skip logo on error */ }
+    }
+    const textX = institutionData?.logoBase64 ? margin + 22 : margin;
+
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 32, 44);
+    doc.text(institutionData?.name || 'Institución Educativa', textX, y + 6);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(113, 128, 150);
+    const contactParts: string[] = [];
+    if (institutionData?.address) contactParts.push(institutionData.address);
+    if (institutionData?.phone)   contactParts.push(institutionData.phone);
+    if (institutionData?.email)   contactParts.push(institutionData.email);
+    if (contactParts.length > 0) doc.text(contactParts.join('  |  '), textX, y + 12);
+
+    y = Math.max(y + 24, 38);
+
+    // ── Separator line ────────────────────────────────────────────────────
+    doc.setDrawColor(83, 143, 101);
+    doc.setLineWidth(0.6);
+    doc.line(margin, y, pageW - margin, y);
+    y += 5;
+
+    // ── Report title ──────────────────────────────────────────────────────
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 32, 44);
+    doc.text('REGISTRO DE ASISTENCIA MENSUAL', pageW / 2, y, { align: 'center' });
+    y += 7;
+
+    // ── Info grid (2 columns) ─────────────────────────────────────────────
+    const selectedSectionObj = sections.find(s => s.id === selectedSection);
+    const tutorName = selectedSectionObj?.teacher || '—';
+    const infoRows = [
+      ['Grado y Sección:', selectedSectionName,   'Período:', selectedMonth.locale('es').format('MMMM YYYY').toUpperCase()],
+      ['Nivel:',          selectedSectionObj?.level || '—', 'Tutor(a):', tutorName],
+      ['Exportado por:',  user?.name || '—',       'Fecha de emisión:', dayjs().format('DD/MM/YYYY HH:mm')],
+    ];
+
+    doc.setFontSize(8.5);
+    const colW = contentW / 2;
+    infoRows.forEach(([lbl1, val1, lbl2, val2]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(83, 143, 101);
+      doc.text(lbl1, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(26, 32, 44);
+      doc.text(val1, margin + 30, y);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(83, 143, 101);
+      doc.text(lbl2, margin + colW, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(26, 32, 44);
+      doc.text(val2, margin + colW + 30, y);
+      y += 6;
+    });
+    y += 3;
+
+    // ── Summary stats bar ─────────────────────────────────────────────────
+    doc.setFillColor(248, 250, 249);
+    doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+    const stats = [
+      { label: 'Estudiantes', value: String(heatmapData.summary.studentCount) },
+      { label: 'Días hábiles', value: String(heatmapData.workingDaysInMonth) },
+      { label: 'Presentes', value: String(heatmapData.summary.present) },
+      { label: 'Tardanzas', value: String(heatmapData.summary.late) },
+      { label: 'Ausencias', value: String(heatmapData.summary.absent) },
+      { label: 'Asistencia', value: `${heatmapData.summary.attendanceRate}%` },
+    ];
+    const statW = contentW / stats.length;
+    stats.forEach((s, i) => {
+      const sx = margin + i * statW + statW / 2;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(83, 143, 101);
+      doc.text(s.value, sx, y + 6, { align: 'center' });
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(113, 128, 150);
+      doc.text(s.label, sx, y + 11, { align: 'center' });
+    });
+    y += 18;
+
+    // ── Attendance table ──────────────────────────────────────────────────
+    const tableData = heatmapData.students.map((student, idx) => [
+      String(idx + 1),
+      student.studentName,
+      student.dni,
+      String(student.summary.present),
+      String(student.summary.late),
+      String(student.summary.absent),
+      String(student.summary.justified),
+      `${student.summary.attendanceRate}%`,
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      head: [['N°', 'Apellidos y Nombres', 'DNI', 'P', 'T', 'A', 'J', '%']],
+      body: tableData,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [83, 143, 101], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 8,  halign: 'center' },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 22, halign: 'center' },
+        3: { cellWidth: 10, halign: 'center' },
+        4: { cellWidth: 10, halign: 'center' },
+        5: { cellWidth: 10, halign: 'center' },
+        6: { cellWidth: 10, halign: 'center' },
+        7: { cellWidth: 16, halign: 'center' },
+      },
+      alternateRowStyles: { fillColor: [248, 250, 249] },
+      margin: { left: margin, right: margin },
+    });
+
+    // ── Signature block ───────────────────────────────────────────────────
+    const finalY = (doc as any).lastAutoTable.finalY + 16;
+    const sigW = 60;
+    const sigSpacing = (contentW - sigW * 2) / 3;
+
+    // Tutor signature
+    const sig1X = margin + sigSpacing;
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(0.3);
+    doc.line(sig1X, finalY, sig1X + sigW, finalY);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 32, 44);
+    doc.text('Tutor(a) de Aula', sig1X + sigW / 2, finalY + 5, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(113, 128, 150);
+    doc.text(tutorName, sig1X + sigW / 2, finalY + 10, { align: 'center' });
+
+    // Director signature
+    const sig2X = margin + sigSpacing * 2 + sigW;
+    doc.line(sig2X, finalY, sig2X + sigW, finalY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 32, 44);
+    doc.text('Director(a)', sig2X + sigW / 2, finalY + 5, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(113, 128, 150);
+    doc.text(institutionData?.name || '', sig2X + sigW / 2, finalY + 10, { align: 'center' });
+
+    // ── Footer ────────────────────────────────────────────────────────────
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setFontSize(7);
+    doc.setTextColor(180, 180, 180);
+    doc.text(
+      `Documento generado el ${dayjs().format('DD/MM/YYYY HH:mm')} por ${user?.name || '—'} — ${institutionData?.name || ''}`,
+      pageW / 2,
+      pageH - 8,
+      { align: 'center' }
+    );
+
+    doc.save(`Reporte_Formal_${selectedSectionName}_${selectedMonth.format('YYYY-MM')}.pdf`);
+  };
+
   return (
     <div className="space-y-6 pb-8">
       {/* ── Header ── */}
@@ -417,7 +597,7 @@ export default function MonthlyAttendanceReportPage() {
               Exportar
               <ChevronDownIcon className="w-3.5 h-3.5" />
             </button>
-            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-10 hidden group-hover:block">
+            <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-lg z-10 hidden group-hover:block">
               <button
                 onClick={exportToExcel}
                 className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-t-xl transition-colors"
@@ -426,9 +606,15 @@ export default function MonthlyAttendanceReportPage() {
               </button>
               <button
                 onClick={exportToPDF}
-                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-xl transition-colors"
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 📄 Exportar a PDF
+              </button>
+              <button
+                onClick={exportToPDFFormal}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-xl transition-colors"
+              >
+                📋 PDF Formal (con firma)
               </button>
             </div>
           </div>

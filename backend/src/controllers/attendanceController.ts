@@ -31,18 +31,22 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     const docMatch: any = {};
 
     if (startDate || endDate) {
-      docMatch.date = {};
-      if (startDate) docMatch.date.$gte = startOfDay(new Date(startDate as string));
-      if (endDate)   docMatch.date.$lte = endOfDay(new Date(endDate   as string));
+      const start = (startDate as string)?.trim();
+      const end   = (endDate   as string)?.trim();
+      if (start || end) {
+        docMatch.date = {};
+        if (start) docMatch.date.$gte = startOfDay(new Date(start));
+        if (end)   docMatch.date.$lte = endOfDay(new Date(end));
+      }
     }
 
-    if (sectionId) {
+    if (sectionId && (sectionId as string).trim() !== '') {
       docMatch.sectionId = new mongoose.Types.ObjectId(sectionId as string);
     }
 
     // ── Build the post-unwind match (on individual detail entries) ──
     const detailMatch: any = {};
-    if (studentId) {
+    if (studentId && (studentId as string).trim() !== '') {
       detailMatch['details.studentId'] = new mongoose.Types.ObjectId(studentId as string);
     }
 
@@ -59,7 +63,7 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
           as: 'sectionInfo',
         },
       },
-      { $unwind: { path: '$sectionInfo', preserveNullAndEmpty: true } },
+      { $unwind: { path: '$sectionInfo', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'users',
@@ -68,7 +72,7 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
           as: 'studentInfo',
         },
       },
-      { $unwind: { path: '$studentInfo', preserveNullAndEmpty: true } },
+      { $unwind: { path: '$studentInfo', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           id:          '$_id',
@@ -500,6 +504,7 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
       let absentCount = 0;
       let lateCount = 0;
       let justifiedCount = 0;
+      let workingDays = 0; // días hábiles (lun–vie) del mes
 
       for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(Number(year), Number(month) - 1, d);
@@ -509,6 +514,7 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
         if (dayOfWeek === 0 || dayOfWeek === 6) {
           days.push({ day: d, status: 'weekend' });
         } else {
+          workingDays++; // cuenta el día hábil independientemente de si hay registro
           const status = attendanceMap[studentId]?.[d] || null;
           days.push({ day: d, status });
 
@@ -519,8 +525,11 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
         }
       }
 
-      const totalDays = presentCount + absentCount + lateCount + justifiedCount;
-      const attendanceRate = totalDays > 0 ? Math.round((presentCount / totalDays) * 100) : 0;
+      // El denominador es siempre los días hábiles del mes,
+      // no los registros existentes. Días sin registro = ausencia implícita.
+      const attendanceRate = workingDays > 0
+        ? Math.round((presentCount / workingDays) * 100)
+        : 0;
 
       return {
         studentId,
@@ -532,22 +541,29 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
           absent: absentCount,
           late: lateCount,
           justified: justifiedCount,
+          workingDays,
           attendanceRate
         }
       };
     });
 
+    // Calcular días hábiles del mes (igual para todos los estudiantes)
+    const workingDaysInMonth = heatmapData[0]?.summary.workingDays ?? 0;
+
     // Calcular totales generales
     const totals = heatmapData.reduce((acc, student) => ({
-      present: acc.present + student.summary.present,
-      absent: acc.absent + student.summary.absent,
-      late: acc.late + student.summary.late,
+      present:   acc.present   + student.summary.present,
+      absent:    acc.absent    + student.summary.absent,
+      late:      acc.late      + student.summary.late,
       justified: acc.justified + student.summary.justified,
     }), { present: 0, absent: 0, late: 0, justified: 0 });
 
     const totalRecords = totals.present + totals.absent + totals.late + totals.justified;
-    const overallAttendanceRate = totalRecords > 0
-      ? Math.round((totals.present / totalRecords) * 100)
+
+    // Tasa general: presentes sobre (días hábiles × número de estudiantes)
+    const totalPossible = workingDaysInMonth * heatmapData.length;
+    const overallAttendanceRate = totalPossible > 0
+      ? Math.round((totals.present / totalPossible) * 100)
       : 0;
 
     res.status(200).json({
@@ -555,6 +571,7 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
       data: {
         students: heatmapData,
         daysInMonth,
+        workingDaysInMonth,
         summary: {
           ...totals,
           total: totalRecords,

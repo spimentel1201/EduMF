@@ -17,11 +17,11 @@ import type { InstitutionSettings } from '@/types/institution';
 
 // ── Schema ──────────────────────────────────────────────────────────────────
 const schema = z.object({
-  name:        z.string().min(1, 'El nombre es requerido').trim(),
-  address:     z.string().optional().default(''),
-  phone:       z.string().optional().default(''),
-  email:       z.union([z.string().email('Correo inválido'), z.literal('')]).optional().default(''),
-  logoBase64:  z.string().optional().default(''),
+  name:       z.string().min(1, 'El nombre es requerido'),
+  address:    z.string().default(''),
+  phone:      z.string().default(''),
+  email:      z.union([z.string().email('Correo inválido'), z.literal('')]).default(''),
+  logoBase64: z.string().default(''),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -177,7 +177,6 @@ export default function InstitutionSettingsPage() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { name: '', address: '', phone: '', email: '', logoBase64: '' },
-    shouldUseNativeValidation: false,
   });
 
   const logoBase64 = watch('logoBase64');
@@ -197,7 +196,7 @@ export default function InstitutionSettingsPage() {
 
   const onSubmit = (data: FormData) => {
     const payload: InstitutionSettings = {
-      name:       data.name,
+      name:       data.name.trim(),
       address:    data.address    ?? '',
       phone:      data.phone      ?? '',
       email:      data.email      ?? '',

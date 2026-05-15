@@ -241,7 +241,7 @@ export default function DashboardPage() {
           subtitle="Matriculados activos"
           icon={UserGroupIcon}
           gradient="bg-gradient-to-br from-blue-500 to-blue-600"
-          link="/enrollments"
+          link="/users"
         />
         <KPICard
           title="Personal Activo"
@@ -257,7 +257,7 @@ export default function DashboardPage() {
           subtitle={`${stats?.presentToday || 0} de ${stats?.totalStudents || 0} estudiantes`}
           icon={CheckCircleIcon}
           gradient="bg-gradient-to-br from-green-500 to-emerald-600"
-          link="/attendance/records"
+          link="/monthly-attendance-report"
         />
         <KPICard
           title="Incidencias Abiertas"
@@ -369,7 +369,7 @@ export default function DashboardPage() {
               title="Tomar Asistencia"
               description="Registrar asistencia del día"
               icon={ClipboardDocumentCheckIcon}
-              link="/attendance/take"
+              link="/attendance"
               color="bg-green-500"
             />
             <QuickAction
@@ -383,7 +383,7 @@ export default function DashboardPage() {
               title="Reportes de Asistencia"
               description="Ver reportes mensuales"
               icon={ChartBarIcon}
-              link="/attendance/monthly-report"
+              link="/monthly-attendance-report"
               color="bg-blue-500"
             />
             <QuickAction

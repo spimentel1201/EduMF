@@ -50,6 +50,7 @@ interface StudentHeatmapData {
 interface HeatmapResponse {
   students: StudentHeatmapData[];
   daysInMonth: number;
+  workingDaysInMonth: number;
   summary: {
     present: number;
     absent: number;
@@ -70,6 +71,18 @@ interface SectionComparison {
   justified: number;
   total: number;
   attendanceRate: number;
+}
+
+// Day-of-week label (0=Sun … 6=Sat)
+const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+
+function getDayLetter(year: number, month: number, day: number): string {
+  return DAY_LETTERS[new Date(year, month - 1, day).getDay()];
+}
+
+function isWeekend(year: number, month: number, day: number): boolean {
+  const dow = new Date(year, month - 1, day).getDay();
+  return dow === 0 || dow === 6;
 }
 
 // Status colors
@@ -414,7 +427,7 @@ export default function MonthlyAttendanceReportPage() {
           <KPICard
             title="Tasa de Asistencia"
             value={`${heatmapData.summary.attendanceRate}%`}
-            subtitle={`${heatmapData.summary.present} de ${heatmapData.summary.total} registros`}
+            subtitle={`${heatmapData.summary.present} presentes de ${heatmapData.workingDaysInMonth} días hábiles`}
             icon={CheckCircleIcon}
             color="text-green-600"
           />
@@ -516,11 +529,26 @@ export default function MonthlyAttendanceReportPage() {
                         <th className="sticky left-0 bg-gray-50 px-3 py-2 text-left font-semibold text-gray-700 min-w-[180px] border-r border-gray-100">
                           Estudiante
                         </th>
-                        {Array.from({ length: heatmapData.daysInMonth }, (_, i) => (
-                          <th key={i + 1} className="px-0.5 py-2 text-center font-medium text-gray-500 w-7">
-                            {i + 1}
-                          </th>
-                        ))}
+                        {Array.from({ length: heatmapData.daysInMonth }, (_, i) => {
+                          const day = i + 1;
+                          const letter = getDayLetter(selectedMonth.year(), selectedMonth.month() + 1, day);
+                          const weekend = isWeekend(selectedMonth.year(), selectedMonth.month() + 1, day);
+                          return (
+                            <th
+                              key={day}
+                              className={`px-0.5 py-1 text-center w-7 ${weekend ? 'opacity-40' : ''}`}
+                            >
+                              <div className={`text-[9px] font-bold leading-none mb-0.5 ${
+                                weekend ? 'text-gray-400' : letter === 'V' ? 'text-blue-500' : 'text-gray-500'
+                              }`}>
+                                {letter}
+                              </div>
+                              <div className={`font-medium ${weekend ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {day}
+                              </div>
+                            </th>
+                          );
+                        })}
                         <th className="px-3 py-2 text-center font-semibold text-gray-700">%</th>
                       </tr>
                     </thead>
@@ -532,16 +560,19 @@ export default function MonthlyAttendanceReportPage() {
                               {student.studentName}
                             </div>
                           </td>
-                          {student.days.map(({ day, status }) => (
-                            <td key={day} className="px-0.5 py-1 text-center">
-                              <div
-                                title={status ?? 'Sin registro'}
-                                className={`w-6 h-6 mx-auto rounded flex items-center justify-center text-white text-[10px] font-bold ${getStatusColor(status)}`}
-                              >
-                                {getStatusLabel(status)}
-                              </div>
-                            </td>
-                          ))}
+                          {student.days.map(({ day, status }) => {
+                            const weekend = status === 'weekend';
+                            return (
+                              <td key={day} className={`px-0.5 py-1 text-center ${weekend ? 'opacity-40' : ''}`}>
+                                <div
+                                  title={weekend ? 'Fin de semana' : (status ?? 'Sin registro')}
+                                  className={`w-6 h-6 mx-auto rounded flex items-center justify-center text-white text-[10px] font-bold ${getStatusColor(status)}`}
+                                >
+                                  {getStatusLabel(status)}
+                                </div>
+                              </td>
+                            );
+                          })}
                           <td className="px-3 py-1.5 text-center font-bold">
                             <span className={
                               student.summary.attendanceRate >= 80 ? 'text-green-600'

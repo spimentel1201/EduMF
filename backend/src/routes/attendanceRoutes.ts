@@ -13,9 +13,13 @@ import {
   getWeeklyTrend,
   getRecentActivity
 } from '../controllers/attendanceController';
+import { registerQRAttendance } from '../controllers/qrAttendanceController';
 import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
+
+// ── Public endpoint — QR attendance (no auth required) ──
+router.post('/qr-scan', registerQRAttendance);
 
 router
   .route('/')

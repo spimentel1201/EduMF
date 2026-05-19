@@ -102,4 +102,14 @@ export const attendanceService = {
     const response = await api.get('/attendances/recent-activity');
     return response.data.data;
   },
+
+  qrScan: async (dni: string): Promise<{
+    studentName: string;
+    dni: string;
+    status: 'Presente' | 'Tardanza';
+    time: string;
+  }> => {
+    const response = await api.post('/attendances/qr-scan', { dni });
+    return response.data.data;
+  },
 };

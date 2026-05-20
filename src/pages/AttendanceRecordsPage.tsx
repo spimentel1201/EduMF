@@ -34,6 +34,13 @@ function formatDate(d: string) {
   });
 }
 
+function formatTime(d: string) {
+  const date = new Date(d);
+  // If time is exactly midnight it means no time was stored — show dash
+  if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) return '—';
+  return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+}
+
 const EMPTY_DRAFT = { startDate: '', endDate: '', sectionId: '', studentId: '' };
 
 export default function AttendanceRecordsPage() {
@@ -229,6 +236,9 @@ export default function AttendanceRecordsPage() {
                     {t('attendanceRecords.table.date')}
                   </th>
                   <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    Hora
+                  </th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                     {t('attendanceRecords.table.status')}
                   </th>
                 </tr>
@@ -236,7 +246,7 @@ export default function AttendanceRecordsPage() {
               <tbody className="divide-y divide-gray-50">
                 {records.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-12 text-gray-400 text-sm">
+                    <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
                       <CalendarDaysIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
                       {t('attendanceRecords.noRecords')}
                     </td>
@@ -249,6 +259,7 @@ export default function AttendanceRecordsPage() {
                         <td className="px-5 py-3 font-semibold text-gray-900">{record.studentName}</td>
                         <td className="px-5 py-3 text-gray-500">{record.sectionName}</td>
                         <td className="px-5 py-3 text-gray-500">{formatDate(record.date)}</td>
+                        <td className="px-5 py-3 text-gray-500 tabular-nums">{formatTime(record.date)}</td>
                         <td className="px-5 py-3">
                           <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}>
                             {record.status}

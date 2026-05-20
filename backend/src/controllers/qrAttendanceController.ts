@@ -55,8 +55,8 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
     const now = new Date();
     const hours   = now.getHours();
     const minutes = now.getMinutes();
-    // Tardanza si llega después de las 08:10
-    const isLate = hours > 8 || (hours === 8 && minutes > 10);
+    // Tardanza si llega después de las 08:00
+    const isLate = hours > 8 || (hours === 8);
     const attendanceStatus: 'Presente' | 'Tardanza' = isLate ? 'Tardanza' : 'Presente';
 
     // 5. Buscar horario de curso para la sección (cualquiera del día)

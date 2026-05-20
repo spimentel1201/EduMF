@@ -4,6 +4,7 @@ export interface AttendanceRecordDisplay {
   sectionName: string;
   date: string;
   status: 'Presente' | 'Tardanza' | 'Ausente' | 'Justificado';
+  notes?: string;
 }
 
 export interface AttendanceFilterParams {

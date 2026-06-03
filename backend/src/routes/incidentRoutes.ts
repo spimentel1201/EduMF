@@ -48,7 +48,7 @@ const incidentValidation = [
 
 // Proteger todas las rutas
 router.use(protect);
-router.use(authorize('admin', 'teacher'));
+router.use(authorize('admin', 'teacher', 'Dirección', 'CIST', 'Psicólogo(a)'));
 
 // Ruta de estadísticas (debe ir antes de /:id para evitar conflictos)
 router.get('/stats', incidentController.getIncidentStats);

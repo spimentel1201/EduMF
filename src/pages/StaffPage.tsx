@@ -129,6 +129,7 @@ export default function StaffPage() {
                 <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">{t('staff.email')}</th>
                 <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">{t('staff.role')}</th>
                 <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">{t('staff.status')}</th>
+                <th className="px-5 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wide">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -161,12 +162,20 @@ export default function StaffPage() {
                         {member.status}
                       </span>
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <Link
+                        to={`/staff/${member.id}/edit`}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Editar
+                      </Link>
+                    </td>
                   </tr>
                 );
               })}
               {filteredStaff.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-gray-400 text-sm">
+                  <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
                     No se encontró personal.
                   </td>
                 </tr>

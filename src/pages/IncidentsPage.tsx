@@ -11,7 +11,9 @@ import {
     UserIcon,
     MapPinIcon,
     CalendarDaysIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    PencilSquareIcon,
+    TrashIcon
 } from '@heroicons/react/24/outline';
 import { incidentService } from '../services/incidentService';
 import {
@@ -59,13 +61,24 @@ export default function IncidentsPage() {
         onSuccess: (updatedIncident) => {
             queryClient.invalidateQueries({ queryKey: ['incidents'] });
             toast.success('Estado actualizado correctamente');
-            // Actualizar el incidente seleccionado si está abierto
             if (selectedIncident?.id === updatedIncident.id) {
                 setSelectedIncident(updatedIncident);
             }
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || 'Error al actualizar estado');
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: incidentService.delete,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['incidents'] });
+            toast.success('Incidencia eliminada correctamente');
+            if (showDetails) closeDetails();
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Error al eliminar incidencia');
         },
     });
 
@@ -112,6 +125,12 @@ export default function IncidentsPage() {
     const closeDetails = () => {
         setShowDetails(false);
         setTimeout(() => setSelectedIncident(null), 300);
+    };
+
+    const handleDelete = (id: string) => {
+        if (window.confirm('¿Está seguro de eliminar esta incidencia? Esta acción no se puede deshacer.')) {
+            deleteMutation.mutate(id);
+        }
     };
 
     if (isLoading) {
@@ -310,14 +329,29 @@ export default function IncidentsPage() {
                                         </select>
                                     </td>
                                     <td className="whitespace-nowrap px-6 py-5 text-right">
-                                        <button
-                                            onClick={() => openDetails(incident)}
-                                            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#538f65] hover:text-[#3f7350] transition-colors"
-                                            title="Ver detalles"
-                                        >
-                                            <EyeIcon className="h-5 w-5" />
-                                            Ver detalle
-                                        </button>
+                                        <div className="flex items-center justify-end gap-3">
+                                            <button
+                                                onClick={() => openDetails(incident)}
+                                                className="text-[#538f65] hover:text-[#3f7350] transition-colors"
+                                                title="Ver detalles"
+                                            >
+                                                <EyeIcon className="h-5 w-5" />
+                                            </button>
+                                            <Link
+                                                to={`/incidents/${incident.id}/edit`}
+                                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                title="Editar incidencia"
+                                            >
+                                                <PencilSquareIcon className="h-5 w-5" />
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(incident.id)}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Eliminar incidencia"
+                                            >
+                                                <TrashIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -535,7 +569,7 @@ export default function IncidentsPage() {
                                         </div>
 
                                         {/* Footer */}
-                                        <div className="border-t border-[#EBE8DD] px-8 py-6 bg-white">
+                                        <div className="border-t border-[#EBE8DD] px-8 py-6 bg-white flex flex-col gap-4">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-bold text-gray-700">Cambiar estado:</span>
                                                 <select
@@ -548,6 +582,20 @@ export default function IncidentsPage() {
                                                         <option key={status} value={status}>{status}</option>
                                                     ))}
                                                 </select>
+                                            </div>
+                                            <div className="flex items-center justify-between border-t border-[#EBE8DD] pt-4">
+                                                <button
+                                                    onClick={() => handleDelete(selectedIncident.id)}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
+                                                >
+                                                    <TrashIcon className="h-5 w-5" /> Eliminar
+                                                </button>
+                                                <Link
+                                                    to={`/incidents/${selectedIncident.id}/edit`}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5" /> Editar
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>

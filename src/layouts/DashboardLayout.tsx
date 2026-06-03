@@ -31,12 +31,14 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { canAccess } from '@/utils/roleAccess';
 
 interface NavigationChild {
   name: string;
   href: string;
   icon: React.ForwardRefExoticComponent<Omit<React.SVGProps<SVGSVGElement>, 'ref'> & { title?: string; titleId?: string } & React.RefAttributes<SVGSVGElement>>;
   current: boolean;
+  module?: string;
 }
 
 interface NavigationItem {
@@ -45,20 +47,22 @@ interface NavigationItem {
   icon: React.ForwardRefExoticComponent<Omit<React.SVGProps<SVGSVGElement>, 'ref'> & { title?: string; titleId?: string } & React.RefAttributes<SVGSVGElement>>;
   current: boolean;
   children?: NavigationChild[];
+  module?: string;
 }
 
 const navigation: NavigationItem[] = [
-  { name: 'dashboard.title', href: '/', icon: HomeIcon, current: false },
+  { name: 'dashboard.title', href: '/', icon: HomeIcon, current: false, module: 'dashboard' },
   {
     name: 'academic.title',
     href: '#',
     icon: AcademicCapIcon,
     current: false,
+    module: 'academic',
     children: [
-      { name: 'academic.sections.title', href: '/sections', icon: AcademicCapIcon, current: false },
-      { name: 'academic.schedules.title', href: '/schedules', icon: CalendarDaysIcon, current: false },
-      { name: 'academic.timeSlots.title', href: '/time-slots', icon: ClockIcon, current: false },
-      { name: 'academic.schoolYears.title', href: '/school-years', icon: BuildingLibraryIcon, current: false },
+      { name: 'academic.sections.title', href: '/sections', icon: AcademicCapIcon, current: false, module: 'academic' },
+      { name: 'academic.schedules.title', href: '/schedules', icon: CalendarDaysIcon, current: false, module: 'academic' },
+      { name: 'academic.timeSlots.title', href: '/time-slots', icon: ClockIcon, current: false, module: 'academic' },
+      { name: 'academic.schoolYears.title', href: '/school-years', icon: BuildingLibraryIcon, current: false, module: 'academic' },
     ],
   },
   {
@@ -66,9 +70,10 @@ const navigation: NavigationItem[] = [
     href: '#',
     icon: UsersIcon,
     current: false,
+    module: 'users',
     children: [
-      { name: 'administration.users.title', href: '/users', icon: UserIcon, current: false },
-      { name: 'administration.staff.title', href: '/staff', icon: BriefcaseIcon, current: false },
+      { name: 'administration.users.title', href: '/users', icon: UserIcon, current: false, module: 'users' },
+      { name: 'administration.staff.title', href: '/staff', icon: BriefcaseIcon, current: false, module: 'staff' },
     ],
   },
   {
@@ -76,9 +81,10 @@ const navigation: NavigationItem[] = [
     href: '#',
     icon: DocumentTextIcon,
     current: false,
+    module: 'enrollments',
     children: [
-      { name: 'enrollments.individualEnrollment', href: '/enrollments/new', icon: DocumentTextIcon, current: false },
-      { name: 'enrollments.bulkEnrollment', href: '/enrollments/bulk', icon: DocumentDuplicateIcon, current: false },
+      { name: 'enrollments.individualEnrollment', href: '/enrollments/new', icon: DocumentTextIcon, current: false, module: 'enrollments' },
+      { name: 'enrollments.bulkEnrollment', href: '/enrollments/bulk', icon: DocumentDuplicateIcon, current: false, module: 'enrollments' },
     ],
   },
   {
@@ -86,24 +92,26 @@ const navigation: NavigationItem[] = [
     href: '#',
     icon: ClipboardDocumentCheckIcon,
     current: false,
+    module: 'attendance',
     children: [
-      { name: 'attendance.title', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false },
-      { name: 'attendanceRecords.title', href: '/attendance-records', icon: ChartPieIcon, current: false },
-      { name: 'attendance.monthlyReport', href: '/monthly-attendance-report', icon: TableCellsIcon, current: false },
+      { name: 'attendance.title', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false, module: 'attendance' },
+      { name: 'attendanceRecords.title', href: '/attendance-records', icon: ChartPieIcon, current: false, module: 'attendance' },
+      { name: 'attendance.monthlyReport', href: '/monthly-attendance-report', icon: TableCellsIcon, current: false, module: 'attendance' },
     ],
   },
-  { name: 'incidents.title', href: '/incidents', icon: ExclamationTriangleIcon, current: false },
+  { name: 'incidents.title', href: '/incidents', icon: ExclamationTriangleIcon, current: false, module: 'incidents' },
   {
     name: 'events.title',
     href: '#',
     icon: CalendarIcon,
     current: false,
+    module: 'events',
     children: [
-      { name: 'events.catalog', href: '/events', icon: TicketIcon, current: false },
-      { name: 'events.attendance', href: '/events', icon: ClipboardDocumentCheckIcon, current: false },
+      { name: 'events.catalog', href: '/events', icon: TicketIcon, current: false, module: 'events' },
+      { name: 'events.attendance', href: '/events', icon: ClipboardDocumentCheckIcon, current: false, module: 'events' },
     ],
   },
-  { name: 'payments.title', href: '/payments', icon: BanknotesIcon, current: false },
+  { name: 'payments.title', href: '/payments', icon: BanknotesIcon, current: false, module: 'payments' },
 ];
 
 interface DashboardLayoutProps {
@@ -117,7 +125,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
 
-  const updatedNavigation = navigation.map((item) => {
+  const role = user?.role ?? '';
+
+  // Filtrar navegación según rol del usuario
+  const filteredNavigation = navigation
+    .map((item) => {
+      if (item.children) {
+        const visibleChildren = item.children.filter((c) =>
+          !c.module || canAccess(role, c.module)
+        );
+        if (visibleChildren.length === 0) return null;
+        return { ...item, children: visibleChildren };
+      }
+      if (item.module && !canAccess(role, item.module)) return null;
+      return item;
+    })
+    .filter(Boolean) as NavigationItem[];
+
+  const updatedNavigation = filteredNavigation.map((item) => {
     if (item.children) {
       const hasActiveChild = item.children.some((child) => location.pathname === child.href);
       return {
@@ -245,7 +270,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Action buttons at bottom */}
       <div className="border-t border-white/10 px-3 py-4 space-y-1">
-        {user?.role === 'admin' && (
+        {canAccess(role, 'settings') && (
           <Link
             to="/settings"
             onClick={() => setSidebarOpen(false)}

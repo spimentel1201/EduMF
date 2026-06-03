@@ -18,7 +18,6 @@ import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// ── Public endpoint — QR attendance (no auth required) ──
 router.post('/qr-scan', registerQRAttendance);
 
 router
@@ -32,7 +31,6 @@ router.get('/report/monthly', protect, getMonthlyAttendanceReport);
 router.get('/report/heatmap', protect, getHeatmapData);
 router.get('/report/comparison', protect, getSectionsComparison);
 
-// Dashboard endpoints
 router.get('/weekly-trend', protect, getWeeklyTrend);
 router.get('/recent-activity', protect, getRecentActivity);
 
@@ -42,6 +40,6 @@ router
   .route('/:id')
   .get(protect, getAttendanceById)
   .put(protect, validateAttendance, updateAttendance)
-  .delete(protect, authorize('admin'), deleteAttendance);
+  .delete(protect, authorize('admin', 'Dirección', 'CIST', 'Auxiliar'), deleteAttendance);
 
 export default router;

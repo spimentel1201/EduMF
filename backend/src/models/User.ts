@@ -10,7 +10,7 @@ export interface IUser extends Document {
   birthdate?: Date;
   email?: string;
   password?: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: 'admin' | 'teacher' | 'student' | 'Dirección' | 'CIST' | 'Psicólogo(a)' | 'Docente' | 'Auxiliar' | 'Mantenimiento';
   status: 'active' | 'inactive';
   createdAt: Date;
   updatedAt: Date;
@@ -61,7 +61,7 @@ const UserSchema: Schema = new Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'teacher', 'student'],
+      enum: ['admin', 'teacher', 'student', 'Dirección', 'CIST', 'Psicólogo(a)', 'Docente', 'Auxiliar', 'Mantenimiento'],
       default: 'student',
     },
     status: {

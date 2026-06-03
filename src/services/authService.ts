@@ -11,7 +11,8 @@ export interface AuthResponse {
     id: string;
     name: string;
     email: string;
-    role: 'admin' | 'teacher' | 'student';
+    role: 'admin' | 'teacher' | 'student' | 'Dirección' | 'CIST' | 'Psicólogo(a)' | 'Docente' | 'Auxiliar' | 'Mantenimiento';
+    dni?: string;
   };
 }
 

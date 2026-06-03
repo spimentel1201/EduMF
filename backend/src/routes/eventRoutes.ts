@@ -19,18 +19,14 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(getEvents)
-  .post(protect, authorize('admin', 'teacher'), createEvent);
+  .get(protect, getEvents)
+  .post(protect, authorize('admin', 'Dirección', 'CIST', 'Psicólogo(a)'), createEvent);
 
 router
   .route('/:id')
-  .get(getEventById)
-  .put(protect, authorize('admin', 'teacher'), updateEvent)
-  .delete(protect, authorize('admin'), deleteEvent);
-
-// --- Attendance sub-routes ---
-// NOTE: /students and /summary must be defined BEFORE /:eventId/attendance
-// to avoid Express matching them as the :eventId parameter.
+  .get(protect, getEventById)
+  .put(protect, authorize('admin', 'Dirección', 'CIST', 'Psicólogo(a)'), updateEvent)
+  .delete(protect, authorize('admin', 'Dirección', 'CIST', 'Psicólogo(a)'), deleteEvent);
 
 router.get(
   '/:eventId/attendance/students',
@@ -47,7 +43,7 @@ router.get(
 router
   .route('/:eventId/attendance')
   .get(protect, getEventAttendance)
-  .post(protect, authorize('admin', 'teacher'), saveEventAttendance)
-  .put(protect, authorize('admin', 'teacher'), updateEventAttendance);
+  .post(protect, authorize('admin', 'teacher', 'Dirección', 'CIST', 'Psicólogo(a)', 'Docente'), saveEventAttendance)
+  .put(protect, authorize('admin', 'teacher', 'Dirección', 'CIST', 'Psicólogo(a)', 'Docente'), updateEventAttendance);
 
 export default router;

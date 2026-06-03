@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 import Staff from '../models/Staff';
 import User from '../models/User';
 import { ApiError } from '../middleware/errorHandler';
@@ -113,7 +114,8 @@ export const createStaff = async (req: Request, res: Response, next: NextFunctio
       level,
       phone,
       address,
-      userId,
+      status,
+      password,
     } = req.body;
 
     // Verificar si ya existe un miembro del personal con el mismo DNI
@@ -122,12 +124,37 @@ export const createStaff = async (req: Request, res: Response, next: NextFunctio
       return next(ApiError.badRequest('Ya existe un miembro del personal con este DNI'));
     }
 
-    // Verificar si el usuario existe si se proporciona userId
-    if (userId) {
-      const user = await User.findById(userId);
-      if (!user) {
-        return next(ApiError.badRequest('El usuario asociado no existe'));
+    // Verificar duplicado de email en Staff
+    const staffEmailExists = await Staff.findOne({ email });
+    if (staffEmailExists) {
+      return next(ApiError.badRequest('Ya existe un miembro del personal con este email'));
+    }
+
+    let createdUserId: mongoose.Types.ObjectId | undefined;
+
+    // Si se proporcionó contraseña, crear un User vinculado para permitir login
+    if (password) {
+      const userDniExists = await User.findOne({ dni });
+      if (userDniExists) {
+        return next(ApiError.badRequest('Ya existe un usuario del sistema con este DNI'));
       }
+
+      const userEmailExists = await User.findOne({ email });
+      if (userEmailExists) {
+        return next(ApiError.badRequest('Ya existe un usuario del sistema con este email'));
+      }
+
+      const newUser = await User.create({
+        firstName,
+        lastName,
+        email,
+        password,   // el hook pre-save de bcrypt lo hashea automáticamente
+        role,       // rol del Staff: 'CIST', 'Dirección', etc.
+        dni,
+        status: 'active',
+      });
+
+      createdUserId = newUser._id as mongoose.Types.ObjectId;
     }
 
     // Crear nuevo miembro del personal
@@ -138,20 +165,22 @@ export const createStaff = async (req: Request, res: Response, next: NextFunctio
       email,
       role,
       level,
-      status: 'Activo',
+      status: status || 'Activo',
       phone,
       address,
-      userId,
+      userId: createdUserId,
     });
 
     res.status(201).json({
       success: true,
       data: staff,
+      userCreated: !!createdUserId,
     });
   } catch (error) {
     next(error);
   }
 };
+
 
 /**
  * @desc    Actualizar un miembro del personal
@@ -176,6 +205,7 @@ export const updateStaff = async (req: Request, res: Response, next: NextFunctio
       phone,
       address,
       userId,
+      password,
     } = req.body;
 
     // Verificar si el miembro del personal existe
@@ -196,12 +226,56 @@ export const updateStaff = async (req: Request, res: Response, next: NextFunctio
       }
     }
 
-    // Verificar si el usuario existe si se proporciona userId
-    if (userId && userId !== staff.userId?.toString()) {
-      const user = await User.findById(userId);
-      if (!user) {
-        return next(ApiError.badRequest('El usuario asociado no existe'));
+    let currentUserId = staff.userId;
+
+    // Si se envía contraseña, necesitamos crear o actualizar el User
+    if (password) {
+      if (currentUserId) {
+        // Actualizar password del User existente
+        const user = await User.findById(currentUserId);
+        if (user) {
+          user.password = password;
+          // Opcional: mantener sincronizado email, nombre, rol
+          user.firstName = firstName;
+          user.lastName = lastName;
+          user.email = email;
+          user.role = role;
+          user.dni = dni;
+          await user.save();
+        }
+      } else {
+        // Crear un nuevo User porque este Staff no tenía uno
+        const userDniExists = await User.findOne({ dni });
+        if (userDniExists) {
+          return next(ApiError.badRequest('Ya existe un usuario del sistema con este DNI'));
+        }
+        const userEmailExists = await User.findOne({ email });
+        if (userEmailExists) {
+          return next(ApiError.badRequest('Ya existe un usuario del sistema con este email'));
+        }
+
+        const newUser = await User.create({
+          firstName,
+          lastName,
+          email,
+          password,
+          role,
+          dni,
+          status: 'active',
+        });
+        currentUserId = newUser._id as mongoose.Types.ObjectId;
       }
+    } else if (currentUserId && (email !== staff.email || role !== staff.role || dni !== staff.dni)) {
+       // Si no cambian password pero sí cambian datos base, sincronizamos el User
+       const user = await User.findById(currentUserId);
+       if (user) {
+         user.firstName = firstName;
+         user.lastName = lastName;
+         user.email = email;
+         user.role = role;
+         user.dni = dni;
+         await user.save();
+       }
     }
 
     // Actualizar miembro del personal
@@ -217,7 +291,7 @@ export const updateStaff = async (req: Request, res: Response, next: NextFunctio
         status,
         phone,
         address,
-        userId,
+        userId: currentUserId,
       },
       { new: true, runValidators: true }
     ).populate('userId', 'name email role');

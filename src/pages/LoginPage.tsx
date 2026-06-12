@@ -20,7 +20,7 @@ import { attendanceService } from '@/services/attendanceService';
 import { t as tGlobal } from 'i18next';
 
 const loginSchema = z.object({
-  dni:      z.string().min(8, tGlobal('login.dniMinLength')),
+  dni: z.string().min(8, tGlobal('login.dniMinLength')),
   password: z.string().min(6, tGlobal('login.passwordMinLength')),
 });
 
@@ -35,14 +35,17 @@ interface AttendanceNotification {
 }
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword]   = useState(false);
-  const [activeTab, setActiveTab]         = useState<'dni' | 'qr'>('dni');
-  const [isScanning, setIsScanning]       = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dni' | 'qr'>('dni');
+  const [isScanning, setIsScanning] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-  const [notification, setNotification]   = useState<AttendanceNotification | null>(null);
-  const [processing, setProcessing]       = useState(false);
+  const [notification, setNotification] = useState<AttendanceNotification | null>(null);
+  const [processing, setProcessing] = useState(false);
   const lastScannedRef = useRef<string | null>(null);
-  const cooldownRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgOpacity, setBgOpacity] = useState<number>(30);
 
   const { login, isLoading } = useAuth();
   const { t } = useTranslation();
@@ -59,6 +62,28 @@ export default function LoginPage() {
     const timer = setTimeout(() => setNotification(null), 6000);
     return () => clearTimeout(timer);
   }, [notification]);
+
+  // Load custom background settings
+  useEffect(() => {
+    const storedBg = localStorage.getItem('edu_mf_login_bg_image');
+    const storedOpacity = localStorage.getItem('edu_mf_login_bg_opacity');
+    if (storedBg) {
+      setBgImage(storedBg);
+    }
+    if (storedOpacity) {
+      setBgOpacity(Number(storedOpacity));
+    }
+  }, []);
+
+  // Background style applied directly to the root container
+  const rootBgStyle: React.CSSProperties = bgImage
+    ? {
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    }
+    : {};
 
   const {
     register,
@@ -89,18 +114,18 @@ export default function LoginPage() {
       const result = await attendanceService.qrScan(data.trim());
       setNotification({
         studentName: result.studentName,
-        status:      result.status,
-        time:        new Date(result.time).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        type:        'success',
+        status: result.status,
+        time: new Date(result.time).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        type: 'success',
       });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'No se pudo registrar la asistencia';
       setNotification({
         studentName: '',
-        status:      'Presente',
-        time:        '',
-        type:        'error',
-        message:     msg,
+        status: 'Presente',
+        time: '',
+        type: 'error',
+        message: msg,
       });
     } finally {
       setProcessing(false);
@@ -110,11 +135,15 @@ export default function LoginPage() {
   // ── QR Scanner full-screen view ──────────────────────────────────────────
   if (isScanning) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4">
-        <div className="flex w-full max-w-4xl gap-6">
+      <div
+        className="min-h-screen flex items-center justify-center py-8 px-4 relative overflow-hidden"
+        style={bgImage ? rootBgStyle : { backgroundColor: '#f9fafb' }}
+      >
+        <div className="flex w-full max-w-4xl gap-6 z-10">
 
           {/* Scanner panel */}
-          <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+          <div className={`flex-1 rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4 transition-all duration-300 ${bgImage ? 'bg-white/95' : 'bg-white'
+            }`}>
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-900">Registro de Asistencia por QR</h2>
               <p className="text-sm text-gray-500 mt-1">Acerca el código QR del estudiante a la cámara</p>
@@ -150,7 +179,8 @@ export default function LoginPage() {
           <div className="hidden md:flex md:flex-col md:w-80 gap-4">
 
             {/* Clock */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div className={`rounded-2xl shadow-sm border border-gray-100 p-5 transition-all duration-300 ${bgImage ? 'bg-white/95' : 'bg-white'
+              }`}>
               <div className="flex items-center gap-2 mb-3">
                 <ClockIcon className="w-5 h-5 text-green-600" />
                 <span className="text-sm font-semibold text-gray-700">Hora actual</span>
@@ -167,9 +197,9 @@ export default function LoginPage() {
 
             {/* Notification */}
             {notification ? (
-              <div className={`bg-white rounded-2xl shadow-sm border p-5 transition-all ${
-                notification.type === 'success' ? 'border-green-200' : 'border-red-200'
-              }`}>
+              <div className={`rounded-2xl shadow-sm border p-5 transition-all duration-300 ${notification.type === 'success' ? 'border-green-200' : 'border-red-200'
+                } ${bgImage ? 'bg-white/95' : 'bg-white'
+                }`}>
                 {notification.type === 'success' ? (
                   <>
                     <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mx-auto mb-3">
@@ -177,11 +207,10 @@ export default function LoginPage() {
                     </div>
                     <h3 className="text-center text-sm font-bold text-gray-900 mb-1">Asistencia registrada</h3>
                     <p className="text-center text-base font-bold text-green-700 mb-2">{notification.studentName}</p>
-                    <div className={`text-center text-xs font-semibold px-3 py-1 rounded-full inline-block w-full ${
-                      notification.status === 'Presente'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+                    <div className={`text-center text-xs font-semibold px-3 py-1 rounded-full inline-block w-full ${notification.status === 'Presente'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                      }`}>
                       {notification.status}
                     </div>
                     <p className="text-center text-xs text-gray-400 mt-2">{notification.time}</p>
@@ -197,7 +226,8 @@ export default function LoginPage() {
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className={`rounded-2xl shadow-sm border border-gray-100 p-5 transition-all duration-300 ${bgImage ? 'bg-white/95' : 'bg-white'
+                }`}>
                 <div className="flex items-center gap-2 mb-3">
                   <UserIcon className="w-5 h-5 text-gray-400" />
                   <span className="text-sm font-semibold text-gray-700">Instrucciones</span>
@@ -217,7 +247,7 @@ export default function LoginPage() {
                   </li>
                 </ul>
                 <p className="text-xs text-gray-400 mt-3">
-                  Antes de las 08:10 → <strong>Presente</strong><br/>
+                  Antes de las 08:10 → <strong>Presente</strong><br />
                   Después de las 08:10 → <strong>Tardanza</strong>
                 </p>
               </div>
@@ -230,31 +260,48 @@ export default function LoginPage() {
 
   // ── Main login page ──────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex w-full">
+    <div
+      className="min-h-screen flex w-full relative overflow-hidden"
+      style={bgImage ? rootBgStyle : { backgroundColor: '#f9fafb' }}
+    >
       {/* Left — illustration */}
-      <div className="hidden lg:flex flex-col lg:w-[55%] relative bg-gradient-to-r from-[#1fa1fd] to-[#f49342] overflow-hidden">
+      <div
+        className={`hidden lg:flex flex-col lg:w-[55%] relative overflow-hidden transition-all duration-300 ${bgImage
+            ? 'bg-transparent'
+            : 'bg-gradient-to-br from-[#538f65] to-[#47795a]'
+          }`}
+      >
         <div className="absolute top-16 left-16 z-20">
-          <h1 className="text-white text-6xl font-black leading-tight drop-shadow-md">
-            Empoderando tu<br/>futuro educativo
+          <h1
+            className="text-white text-6xl font-black leading-tight drop-shadow-md"
+            style={{ textShadow: bgImage ? '0 2px 16px rgba(0,0,0,0.8)' : undefined }}
+          >
+            Empoderando tu<br />futuro educativo
           </h1>
         </div>
-        <div
-          className="absolute top-44 inset-x-0 bottom-0 bg-cover bg-top bg-no-repeat"
-          style={{ backgroundImage: "url('/login-illustration.png')" }}
-        />
+        {/* Only show illustration when no custom background */}
+        {!bgImage && (
+          <div
+            className="absolute top-44 inset-x-0 bottom-0 bg-cover bg-top bg-no-repeat z-10"
+            style={{ backgroundImage: "url('/login-illustration.png')" }}
+          />
+        )}
       </div>
 
       {/* Right — form */}
-      <div className="w-full lg:w-[45%] flex flex-col justify-center items-center bg-white px-8 sm:px-12 py-12 relative">
+      <div
+        className={`w-full lg:w-[45%] flex flex-col justify-center items-center px-8 sm:px-12 py-12 relative z-10 transition-all duration-300 ${bgImage ? 'bg-white/80 shadow-2xl' : 'bg-white'
+          }`}
+      >
         <div className="max-w-md w-full">
 
           <div className="flex flex-col items-center">
             <div className="flex items-center text-blue-900 text-3xl font-bold mb-6">
-              <span className="text-[#1fa1fd] text-5xl mr-2 font-black">E</span>
-              EduMF
+              <span className="text-[#538f65] text-5xl mr-2 font-black">S</span>
+              Sistema de Gestión Escolar
             </div>
             <h2 className="text-center text-[22px] font-bold text-gray-900">
-              {t('login.title') || 'Bienvenido a EduMF'}
+              {t('login.title') || 'Bienvenido a Sistema de Gestión Escolar'}
             </h2>
           </div>
 
@@ -266,11 +313,10 @@ export default function LoginPage() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 font-medium text-sm text-center focus:outline-none transition-colors ${
-                    activeTab === tab
-                      ? 'border-b-2 border-[#1fa1fd] text-[#1fa1fd]'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`flex-1 py-3 font-medium text-sm text-center focus:outline-none transition-colors ${activeTab === tab
+                    ? 'border-b-2 border-[#538f65] text-[#538f65]'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   {tab === 'dni' ? (t('login.loginTab') || 'Iniciar Sesión') : (t('login.qrTab') || 'QR Asistencia')}
                 </button>
@@ -293,7 +339,7 @@ export default function LoginPage() {
                         id="dni"
                         type="text"
                         autoComplete="username"
-                        className="appearance-none block w-full pl-11 pr-3 py-3 border border-blue-200 rounded-full bg-[#f0f8ff] placeholder-gray-400 focus:outline-none focus:ring-[#1fa1fd] focus:border-[#1fa1fd] sm:text-sm"
+                        className="appearance-none block w-full pl-11 pr-3 py-3 border border-green-200 rounded-full bg-green-50 placeholder-gray-400 focus:outline-none focus:ring-[#538f65] focus:border-[#538f65] sm:text-sm"
                         {...register('dni')}
                       />
                     </div>
@@ -312,7 +358,7 @@ export default function LoginPage() {
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         autoComplete="current-password"
-                        className="appearance-none block w-full pl-11 pr-10 py-3 border border-blue-200 rounded-full bg-[#f0f8ff] placeholder-gray-400 focus:outline-none focus:ring-[#1fa1fd] focus:border-[#1fa1fd] sm:text-sm"
+                        className="appearance-none block w-full pl-11 pr-10 py-3 border border-green-200 rounded-full bg-green-50 placeholder-gray-400 focus:outline-none focus:ring-[#538f65] focus:border-[#538f65] sm:text-sm"
                         {...register('password')}
                       />
                       <button
@@ -333,19 +379,10 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md text-sm font-medium text-white bg-[#229bfa] hover:bg-[#1f8ce1] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md text-sm font-medium text-white bg-[#538f65] hover:bg-[#47795a] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {isLoading ? (t('login.signingIn') || 'Iniciando sesión...') : (t('login.signIn') || 'Iniciar Sesión')}
                   </button>
-                </div>
-
-                <div className="flex flex-row items-center justify-between mt-4 text-sm">
-                  <a href="#" className="font-medium text-gray-500 hover:text-gray-900 transition-colors">
-                    ¿Olvidaste tu contraseña?
-                  </a>
-                  <a href="#" className="font-medium text-[#229bfa] hover:text-[#1f8ce1] transition-colors">
-                    Regístrate
-                  </a>
                 </div>
               </form>
             )}
@@ -390,7 +427,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('dni')}
-                  className="w-full flex justify-center py-3 px-4 border border-[#229bfa] rounded-full text-sm font-medium text-[#229bfa] bg-white hover:bg-gray-50 transition-all"
+                  className="w-full flex justify-center py-3 px-4 border border-[#538f65] rounded-full text-sm font-medium text-[#538f65] bg-white hover:bg-green-50 transition-all"
                 >
                   Iniciar sesión con DNI
                 </button>

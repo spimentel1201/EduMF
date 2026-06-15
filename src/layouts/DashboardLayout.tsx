@@ -27,6 +27,7 @@ import {
   Cog8ToothIcon,
   BellIcon,
   QuestionMarkCircleIcon,
+  QrCodeIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -97,6 +98,7 @@ const navigation: NavigationItem[] = [
       { name: 'attendance.title', href: '/attendance', icon: ClipboardDocumentCheckIcon, current: false, module: 'attendance' },
       { name: 'attendanceRecords.title', href: '/attendance-records', icon: ChartPieIcon, current: false, module: 'attendance' },
       { name: 'attendance.monthlyReport', href: '/monthly-attendance-report', icon: TableCellsIcon, current: false, module: 'attendance' },
+      { name: 'attendance.qrGenerator', href: '/attendance-qr', icon: QrCodeIcon, current: false, module: 'attendance' },
     ],
   },
   { name: 'incidents.title', href: '/incidents', icon: ExclamationTriangleIcon, current: false, module: 'incidents' },

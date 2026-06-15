@@ -21,10 +21,12 @@ import SectionsPage from '@/pages/SectionsPage';
 import NewSectionPage from '@/pages/NewSectionPage';
 import TimeSlotsPage from '@/pages/TimeSlotsPage';
 import NewTimeSlotPage from '@/pages/NewTimeSlotPage';
+import EditTimeSlotPage from '@/pages/EditTimeSlotPage';
 import NewEnrollmentPage from '@/pages/NewEnrollmentPage'; // Importar NewEnrollmentPage
 import BulkEnrollmentPage from '@/pages/BulkEnrollmentPage'; // Importar BulkEnrollmentPage
 import NewUserPage from './pages/NewUserPage';
 import MonthlyAttendanceReportPage from './pages/MonthlyAttendanceReportPage';
+import QRGeneratorPage from './pages/QRGeneratorPage';
 import IncidentsPage from '@/pages/IncidentsPage';
 import NewIncidentPage from '@/pages/NewIncidentPage';
 import EditIncidentPage from '@/pages/EditIncidentPage';
@@ -71,10 +73,12 @@ function App() {
               <Route path="sections/new" element={<RoleRoute module="academic"><NewSectionPage /></RoleRoute>} />
               <Route path="time-slots" element={<RoleRoute module="academic"><TimeSlotsPage /></RoleRoute>} />
               <Route path="time-slots/new" element={<RoleRoute module="academic"><NewTimeSlotPage /></RoleRoute>} />
+              <Route path="time-slots/:id/edit" element={<RoleRoute module="academic"><EditTimeSlotPage /></RoleRoute>} />
               <Route path="enrollments/new" element={<RoleRoute module="enrollments"><NewEnrollmentPage /></RoleRoute>} />
               <Route path="enrollments/bulk" element={<RoleRoute module="enrollments"><BulkEnrollmentPage /></RoleRoute>} />
               <Route path="/attendance-records" element={<RoleRoute module="attendance"><AttendanceRecordsPage /></RoleRoute>} />
               <Route path="/monthly-attendance-report" element={<RoleRoute module="attendance"><MonthlyAttendanceReportPage /></RoleRoute>} />
+              <Route path="/attendance-qr" element={<RoleRoute module="attendance"><QRGeneratorPage /></RoleRoute>} />
               <Route path="incidents" element={<RoleRoute module="incidents"><IncidentsPage /></RoleRoute>} />
               <Route path="incidents/new" element={<RoleRoute module="incidents"><NewIncidentPage /></RoleRoute>} />
               <Route path="incidents/:id/edit" element={<RoleRoute module="incidents"><EditIncidentPage /></RoleRoute>} />

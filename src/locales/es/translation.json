@@ -228,6 +228,7 @@
       "Justificado": "Justificado"
     },
     "monthlyReport": "Reporte Mensual de Asistencia",
+    "qrGenerator": "Generar Credenciales QR",
     "selectMonth": "Selecciona un mes",
     "selectYear": "Selecciona un año",
     "selectSection": "Selecciona una sección",

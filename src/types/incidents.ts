@@ -7,12 +7,16 @@ export interface Incident {
     reporterName: string;
     victimId?: string;
     victim?: {
+        id: string;
+        _id?: string;
         firstName: string;
         lastName: string;
         dni: string;
     };
     aggressorId?: string;
     aggressor?: {
+        id: string;
+        _id?: string;
         firstName: string;
         lastName: string;
         dni: string;

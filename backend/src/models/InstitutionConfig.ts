@@ -6,6 +6,8 @@ export interface IInstitutionConfig extends Document {
   phone: string;
   email: string;
   logoBase64: string;
+  bgImageBase64: string;
+  bgOpacity: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +39,16 @@ const InstitutionConfigSchema: Schema = new Schema(
     logoBase64: {
       type: String,
       default: '',
+    },
+    bgImageBase64: {
+      type: String,
+      default: '',
+    },
+    bgOpacity: {
+      type: Number,
+      default: 30,
+      min: 0,
+      max: 100,
     },
   },
   {

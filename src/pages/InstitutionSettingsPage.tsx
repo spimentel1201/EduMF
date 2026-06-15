@@ -350,38 +350,34 @@ export default function InstitutionSettingsPage() {
   useEffect(() => {
     if (settings) {
       reset({
-        name:       settings.name       ?? '',
-        address:    settings.address    ?? '',
-        phone:      settings.phone      ?? '',
-        email:      settings.email      ?? '',
-        logoBase64: settings.logoBase64 ?? '',
-        bgImage:    localStorage.getItem('edu_mf_login_bg_image') ?? '',
-        bgOpacity:  Number(localStorage.getItem('edu_mf_login_bg_opacity') ?? '30'),
+        name:       settings.name          ?? '',
+        address:    settings.address       ?? '',
+        phone:      settings.phone         ?? '',
+        email:      settings.email         ?? '',
+        logoBase64: settings.logoBase64    ?? '',
+        bgImage:    settings.bgImageBase64 ?? '',
+        bgOpacity:  settings.bgOpacity     ?? 30,
       });
     }
   }, [settings, reset]);
 
   const onSubmit = (data: FormData) => {
     const payload: InstitutionSettings = {
-      name:       data.name.trim(),
-      address:    data.address    ?? '',
-      phone:      data.phone      ?? '',
-      email:      data.email      ?? '',
-      logoBase64: data.logoBase64 ?? '',
+      name:          data.name.trim(),
+      address:       data.address       ?? '',
+      phone:         data.phone         ?? '',
+      email:         data.email         ?? '',
+      logoBase64:    data.logoBase64    ?? '',
+      bgImageBase64: data.bgImage       ?? '',
+      bgOpacity:     data.bgOpacity     ?? 30,
     };
 
     updateMutation.mutate(payload, {
       onSuccess: () => {
-        if (data.bgImage) {
-          localStorage.setItem('edu_mf_login_bg_image', data.bgImage);
-        } else {
-          localStorage.removeItem('edu_mf_login_bg_image');
-        }
-        localStorage.setItem('edu_mf_login_bg_opacity', String(data.bgOpacity ?? 30));
         toast.success('Configuración guardada correctamente');
         reset(data);
       },
-      onError:   (err: any) => toast.error(err?.response?.data?.message ?? 'Error al guardar la configuración'),
+      onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Error al guardar la configuración'),
     });
   };
 
@@ -482,13 +478,13 @@ export default function InstitutionSettingsPage() {
           <button
             type="button"
             onClick={() => settings && reset({
-              name:       settings.name       ?? '',
-              address:    settings.address    ?? '',
-              phone:      settings.phone      ?? '',
-              email:      settings.email      ?? '',
-              logoBase64: settings.logoBase64 ?? '',
-              bgImage:    localStorage.getItem('edu_mf_login_bg_image') ?? '',
-              bgOpacity:  Number(localStorage.getItem('edu_mf_login_bg_opacity') ?? '30'),
+              name:       settings.name          ?? '',
+              address:    settings.address       ?? '',
+              phone:      settings.phone         ?? '',
+              email:      settings.email         ?? '',
+              logoBase64: settings.logoBase64    ?? '',
+              bgImage:    settings.bgImageBase64 ?? '',
+              bgOpacity:  settings.bgOpacity     ?? 30,
             })}
             disabled={!isDirty}
             className="px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm transition-colors disabled:opacity-40"

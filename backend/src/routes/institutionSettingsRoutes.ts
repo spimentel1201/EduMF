@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { protect, authorize } from '../middleware/authMiddleware';
-import { getSettings, updateSettings } from '../controllers/institutionSettingsController';
+import { getSettings, getPublicSettings, updateSettings } from '../controllers/institutionSettingsController';
 
 const router = Router();
 
@@ -17,7 +17,10 @@ const updateValidations = [
     .withMessage('El correo electrónico no tiene un formato válido'),
 ];
 
-// GET /api/institution-settings
+// GET /api/institution-settings/public — sin autenticación (solo branding)
+router.get('/public', getPublicSettings);
+
+// GET /api/institution-settings — protegido (admin)
 router.get('/', protect, authorize('admin'), getSettings);
 
 // PUT /api/institution-settings

@@ -18,6 +18,7 @@ import {
 import QrReader from 'react-qr-reader-es6';
 import { attendanceService } from '@/services/attendanceService';
 import { t as tGlobal } from 'i18next';
+import { usePublicInstitutionSettings } from '@/hooks/useInstitutionSettings';
 
 const loginSchema = z.object({
   dni: z.string().min(8, tGlobal('login.dniMinLength')),
@@ -44,8 +45,10 @@ export default function LoginPage() {
   const lastScannedRef = useRef<string | null>(null);
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [bgOpacity, setBgOpacity] = useState<number>(30);
+  // Obtiene fondo institucional desde la API (persiste en BD)
+  const { data: institutionSettings } = usePublicInstitutionSettings();
+  const bgImage   = institutionSettings?.bgImageBase64 || null;
+  const bgOpacity = institutionSettings?.bgOpacity     ?? 30;
 
   const { login, isLoading } = useAuth();
   const { t } = useTranslation();
@@ -62,18 +65,6 @@ export default function LoginPage() {
     const timer = setTimeout(() => setNotification(null), 6000);
     return () => clearTimeout(timer);
   }, [notification]);
-
-  // Load custom background settings
-  useEffect(() => {
-    const storedBg = localStorage.getItem('edu_mf_login_bg_image');
-    const storedOpacity = localStorage.getItem('edu_mf_login_bg_opacity');
-    if (storedBg) {
-      setBgImage(storedBg);
-    }
-    if (storedOpacity) {
-      setBgOpacity(Number(storedOpacity));
-    }
-  }, []);
 
   // Background style applied directly to the root container
   const rootBgStyle: React.CSSProperties = bgImage

@@ -7,8 +7,14 @@ export const institutionSettingsService = {
     return response.data.data;
   },
 
+  getPublicSettings: async (): Promise<Pick<InstitutionSettings, 'name' | 'logoBase64' | 'bgImageBase64' | 'bgOpacity'>> => {
+    const response = await api.get<InstitutionSettingsResponse>('/institution-settings/public');
+    return response.data.data;
+  },
+
   updateSettings: async (data: InstitutionSettings): Promise<InstitutionSettings> => {
     const response = await api.put<InstitutionSettingsResponse>('/institution-settings', data);
     return response.data.data;
   },
 };
+

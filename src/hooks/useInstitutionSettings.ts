@@ -3,6 +3,7 @@ import { institutionSettingsService } from '@/services/institutionSettingsServic
 import type { InstitutionSettings } from '@/types/institution';
 
 const QUERY_KEY = ['institutionSettings'] as const;
+const PUBLIC_QUERY_KEY = ['institutionSettingsPublic'] as const;
 
 export function useInstitutionSettings() {
   return useQuery<InstitutionSettings>({
@@ -13,6 +14,17 @@ export function useInstitutionSettings() {
   });
 }
 
+/** Hook para la pantalla de login (sin autenticación requerida) */
+export function usePublicInstitutionSettings() {
+  return useQuery({
+    queryKey: PUBLIC_QUERY_KEY,
+    queryFn: institutionSettingsService.getPublicSettings,
+    staleTime: 5 * 60 * 1000,
+    gcTime:    10 * 60 * 1000,
+    retry: false, // Si no hay config aún, no reintentar
+  });
+}
+
 export function useUpdateInstitutionSettings() {
   const queryClient = useQueryClient();
 
@@ -20,6 +32,7 @@ export function useUpdateInstitutionSettings() {
     mutationFn: institutionSettingsService.updateSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: PUBLIC_QUERY_KEY });
     },
   });
 }

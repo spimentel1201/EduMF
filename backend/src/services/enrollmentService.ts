@@ -32,6 +32,7 @@ export const createEnrollment = async (enrollmentData: Partial<IEnrollment>): Pr
   section.currentStudents += 1;
   await section.save();
 
+  enrollmentData.level = section.level;
   const enrollment = new Enrollment(enrollmentData);
   await enrollment.save();
   return enrollment;

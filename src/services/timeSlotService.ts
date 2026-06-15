@@ -3,7 +3,7 @@ import type { TimeSlot, TimeSlotFormData } from '@/types/academic';
 
 export const timeSlotService = {
   getAll: async (): Promise<TimeSlot[]> => {
-    const response = await api.get('/time-slots');
+    const response = await api.get('/time-slots?limit=100');
     return response.data.data;
   },
 

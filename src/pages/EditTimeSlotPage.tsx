@@ -1,20 +1,11 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import {
-  ClockIcon,
-  ArrowLeftIcon
-} from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
-import {
-  TimeSlotFormData,
-  TimeSlotType,
-  TimeSlotStatus,
-  TIME_SLOT_TYPES,
-  TIME_SLOT_STATUSES
-} from '@/types/academic';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { ClockIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { TimeSlotFormData, TimeSlotType, TimeSlotStatus, TIME_SLOT_TYPES, TIME_SLOT_STATUSES } from '@/types/academic';
 import { timeSlotService } from '@/services/timeSlotService';
 
 const timeSlotSchema = z.object({
@@ -34,11 +25,16 @@ const timeSlotSchema = z.object({
 
 type TimeSlotFormDataLocal = z.infer<typeof timeSlotSchema>;
 
-
-
-export default function NewTimeSlotPage() {
+export default function EditTimeSlotPage() {
+  const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const { data: timeSlot, isLoading } = useQuery({
+    queryKey: ['timeSlot', id],
+    queryFn: () => timeSlotService.getById(id!),
+    enabled: !!id,
+  });
 
   const {
     register,
@@ -58,40 +54,49 @@ export default function NewTimeSlotPage() {
     mode: 'onChange'
   });
 
+  useEffect(() => {
+    if (timeSlot) {
+      reset({
+        name: timeSlot.name,
+        startTime: timeSlot.startTime,
+        endTime: timeSlot.endTime,
+        type: timeSlot.type,
+        status: timeSlot.status
+      });
+    }
+  }, [timeSlot, reset]);
+
   const startTime = watch('startTime');
   const endTime = watch('endTime');
   const selectedType = watch('type');
 
-
-
-  const createTimeSlotMutation = useMutation({
-    mutationFn: (data: TimeSlotFormData) => timeSlotService.create(data),
+  const updateTimeSlotMutation = useMutation({
+    mutationFn: (data: TimeSlotFormData) => timeSlotService.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeSlots'] });
       navigate('/time-slots');
     },
     onError: (error) => {
-      console.error('Error creating time slot:', error);
-      alert('Error al crear el horario');
+      console.error('Error updating time slot:', error);
+      alert('Error al actualizar el horario');
     }
   });
 
   const onSubmit = (data: TimeSlotFormDataLocal) => {
-    const formData: TimeSlotFormData = {
+    updateTimeSlotMutation.mutate({
       name: data.name,
       startTime: data.startTime,
       endTime: data.endTime,
       type: data.type as TimeSlotType,
       status: data.status as TimeSlotStatus
-    };
-
-    createTimeSlotMutation.mutate(formData);
+    });
   };
 
   const calculateDuration = () => {
     if (startTime && endTime) {
       const start = new Date(`2000-01-01T${startTime}:00`);
       const end = new Date(`2000-01-01T${endTime}:00`);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return '';
       const diffMs = end.getTime() - start.getTime();
       const diffMinutes = diffMs / (1000 * 60);
 
@@ -100,7 +105,7 @@ export default function NewTimeSlotPage() {
         const minutes = diffMinutes % 60;
         return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
       } else {
-        return `${diffMinutes} minutos`;
+        return `${diffMinutes > 0 ? diffMinutes : 0} minutos`;
       }
     }
     return '';
@@ -108,25 +113,25 @@ export default function NewTimeSlotPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'Clase':
-        return 'bg-blue-100 text-blue-800';
-      case 'Receso':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Almuerzo':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'Clase': return 'bg-blue-100 text-blue-800';
+      case 'Receso': return 'bg-yellow-100 text-yellow-800';
+      case 'Almuerzo': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-gray-500">Cargando horario...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-5">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Crear Nuevo Horario</h3>
+            <h3 className="text-lg font-medium leading-6 text-gray-900">Editar Horario</h3>
             <p className="mt-2 max-w-4xl text-sm text-gray-500">
-              Define un nuevo horario para clases, recesos o almuerzo
+              Modifica la información de este horario.
             </p>
           </div>
           <Link
@@ -142,41 +147,28 @@ export default function NewTimeSlotPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-5 sm:p-6">
-
-            {/* Información Básica */}
             <div className="mb-8">
               <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
                 <ClockIcon className="h-5 w-5 mr-2 text-[#538f65]" />
                 Información del Horario
               </h4>
 
-
               <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-
-                {/* Nombre */}
                 <div className="sm:col-span-3">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Nombre del Horario *
-                  </label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre del Horario *</label>
                   <div className="mt-1">
                     <input
                       type="text"
                       id="name"
                       className="block w-full border-gray-300 rounded-xl shadow-sm focus:ring-[#538f65] focus:border-[#538f65] sm:text-sm"
-                      placeholder="Ej: Primera Hora, Receso Matutino, etc."
                       {...register('name')}
                     />
                   </div>
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                  )}
+                  {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
                 </div>
 
-                {/* Tipo */}
                 <div className="sm:col-span-3">
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                    Tipo *
-                  </label>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700">Tipo *</label>
                   <div className="mt-1">
                     <select
                       id="type"
@@ -184,22 +176,15 @@ export default function NewTimeSlotPage() {
                       {...register('type')}
                     >
                       {TIME_SLOT_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
+                        <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </div>
-                  {errors.type && (
-                    <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
-                  )}
+                  {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>}
                 </div>
 
-                {/* Hora de Inicio */}
                 <div className="sm:col-span-2">
-                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-                    Hora de Inicio *
-                  </label>
+                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">Hora de Inicio *</label>
                   <div className="mt-1">
                     <input
                       type="time"
@@ -208,16 +193,11 @@ export default function NewTimeSlotPage() {
                       {...register('startTime')}
                     />
                   </div>
-                  {errors.startTime && (
-                    <p className="mt-1 text-sm text-red-600">{errors.startTime.message}</p>
-                  )}
+                  {errors.startTime && <p className="mt-1 text-sm text-red-600">{errors.startTime.message}</p>}
                 </div>
 
-                {/* Hora de Fin */}
                 <div className="sm:col-span-2">
-                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-                    Hora de Fin *
-                  </label>
+                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">Hora de Fin *</label>
                   <div className="mt-1">
                     <input
                       type="time"
@@ -226,16 +206,11 @@ export default function NewTimeSlotPage() {
                       {...register('endTime')}
                     />
                   </div>
-                  {errors.endTime && (
-                    <p className="mt-1 text-sm text-red-600">{errors.endTime.message}</p>
-                  )}
+                  {errors.endTime && <p className="mt-1 text-sm text-red-600">{errors.endTime.message}</p>}
                 </div>
 
-                {/* Estado */}
                 <div className="sm:col-span-2">
-                  <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                    Estado *
-                  </label>
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700">Estado *</label>
                   <div className="mt-1">
                     <select
                       id="status"
@@ -243,29 +218,20 @@ export default function NewTimeSlotPage() {
                       {...register('status')}
                     >
                       {TIME_SLOT_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
+                        <option key={status} value={status}>{status}</option>
                       ))}
                     </select>
                   </div>
-                  {errors.status && (
-                    <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
-                  )}
+                  {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>}
                 </div>
 
-                {/* Vista previa del horario */}
                 {startTime && endTime && (
                   <div className="sm:col-span-6">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-700">
-                            Horario: {startTime} - {endTime}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Duración: {calculateDuration()}
-                          </p>
+                          <p className="text-sm font-medium text-gray-700">Horario: {startTime} - {endTime}</p>
+                          <p className="text-sm text-gray-500">Duración: {calculateDuration()}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getTypeColor(selectedType)}`}>
@@ -283,17 +249,17 @@ export default function NewTimeSlotPage() {
               <button
                 type="button"
                 className="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
-                onClick={() => reset()}
+                onClick={() => navigate('/time-slots')}
               >
-                Limpiar
+                Cancelar
               </button>
               <button
                 type="submit"
-                disabled={!isValid || createTimeSlotMutation.isPending}
+                disabled={!isValid || updateTimeSlotMutation.isPending}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50"
                 style={{ background: '#538f65' }}
               >
-                {createTimeSlotMutation.isPending ? 'Creando...' : 'Crear Horario'}
+                {updateTimeSlotMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </div>
           </div>

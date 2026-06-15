@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -6,6 +7,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { timeSlotService } from '@/services/timeSlotService';
 import type { TimeSlot } from '@/types/academic';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +26,11 @@ export default function TimeSlotsPage() {
     queryKey: ['timeSlots'],
     queryFn: timeSlotService.getAll,
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(timeSlots.length / itemsPerPage);
+  const paginatedTimeSlots = timeSlots.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => timeSlotService.delete(id),
@@ -123,7 +130,7 @@ export default function TimeSlotsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {timeSlots.map((ts) => {
+                {paginatedTimeSlots.map((ts) => {
                   const typeStyle = TYPE_STYLES[ts.type] ?? { bg: 'bg-gray-100', text: 'text-gray-600' };
                   const isActive = ts.status === 'Activo';
                   return (
@@ -176,8 +183,43 @@ export default function TimeSlotsPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
-            <p className="text-xs text-gray-400">{timeSlots.length} franja{timeSlots.length !== 1 ? 's' : ''} horaria{timeSlots.length !== 1 ? 's' : ''}</p>
+          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-gray-500">
+              Mostrando <span className="font-semibold">{timeSlots.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-semibold">{Math.min(currentPage * itemsPerPage, timeSlots.length)}</span> de <span className="font-semibold">{timeSlots.length}</span> franjas
+            </p>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded-lg text-gray-400 hover:bg-gray-200 hover:text-gray-700 disabled:opacity-40 transition-colors"
+                >
+                  <ChevronLeftIcon className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-7 h-7 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors ${
+                        currentPage === page
+                          ? 'bg-[#538f65] text-white'
+                          : 'text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1 rounded-lg text-gray-400 hover:bg-gray-200 hover:text-gray-700 disabled:opacity-40 transition-colors"
+                >
+                  <ChevronRightIcon className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

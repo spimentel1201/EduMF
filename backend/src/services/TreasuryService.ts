@@ -125,7 +125,21 @@ export const TreasuryService = {
       filter.studentId = new mongoose.Types.ObjectId(query.studentId);
     }
     if (query.search) {
-      filter.concept = { $regex: query.search, $options: 'i' };
+      const User = (await import('../models/User')).default;
+      const matchingUsers = await User.find({
+        $or: [
+          { firstName: { $regex: query.search, $options: 'i' } },
+          { lastName: { $regex: query.search, $options: 'i' } },
+          { dni: { $regex: query.search, $options: 'i' } }
+        ]
+      }).select('_id').lean();
+
+      const userIds = matchingUsers.map((u) => u._id);
+
+      filter.$or = [
+        { concept: { $regex: query.search, $options: 'i' } },
+        { studentId: { $in: userIds } }
+      ];
     }
 
     const [debts, total] = await Promise.all([

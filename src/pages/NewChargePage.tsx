@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   DocumentTextIcon,
@@ -8,7 +8,7 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { treasuryService } from '../services/treasuryService';
+import { treasuryService, GradeStats } from '../services/treasuryService';
 
 const FIELD_CLASS =
   'w-full px-4 py-3 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#538f65]/40 transition-colors text-gray-800 placeholder-gray-400';
@@ -87,6 +87,11 @@ export default function NewChargePage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gradeStats, setGradeStats] = useState<GradeStats[]>([]);
+
+  useEffect(() => {
+    treasuryService.getStatsByGrade().then(setGradeStats).catch(console.error);
+  }, []);
 
   const FRECUENCIAS = [
     { value: 'Un solo pago', label: t('payments.new.frequencies.oneTime') },
@@ -121,9 +126,19 @@ export default function NewChargePage() {
   };
 
   // ── Proyección total ──────────────────────────────────────────────────────
-  const STUDENT_COUNT = 452;
-  const totalProjection = form.monto && debtCountPerStudent > 0
-    ? (parseFloat(form.monto) * STUDENT_COUNT * debtCountPerStudent).toLocaleString('es-PE', {
+  const affectedStudents = useMemo(() => {
+    if (gradeStats.length === 0) return 0;
+    if (form.alcance === 'General') {
+      return gradeStats.reduce((sum, g) => sum + g.studentCount, 0);
+    } else if (form.alcance === 'Especifico' && form.grado && form.seccion) {
+      const target = gradeStats.find(g => g.grade === Number(form.grado) && g.section === form.seccion);
+      return target ? target.studentCount : 0;
+    }
+    return 0;
+  }, [form.alcance, form.grado, form.seccion, gradeStats]);
+
+  const totalProjection = form.monto && debtCountPerStudent > 0 && affectedStudents > 0
+    ? (parseFloat(form.monto) * affectedStudents * debtCountPerStudent).toLocaleString('es-PE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })
@@ -376,7 +391,7 @@ export default function NewChargePage() {
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <span className="text-sm text-gray-400">{t('payments.new.affectedStudents')}</span>
                 <span className="text-lg font-bold">
-                  {form.alcance === 'General' ? STUDENT_COUNT : '—'}
+                  {affectedStudents > 0 ? affectedStudents : '—'}
                 </span>
               </div>
 
@@ -392,7 +407,7 @@ export default function NewChargePage() {
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <span className="text-sm text-gray-400">{t('payments.new.totalProjection')}</span>
                 <span className="text-lg font-bold text-[#6CA07C]">
-                  S/ {form.alcance === 'General' ? totalProjection : '—'}
+                  S/ {affectedStudents > 0 ? totalProjection : '—'}
                 </span>
               </div>
 

@@ -9,6 +9,8 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { XMarkIcon, UserIcon } from '@heroicons/react/24/outline';
 import { treasuryService, GradeStats, SectionStudent } from '../services/treasuryService';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
 
 function fmt(amount: string): string {
   return `S/ ${parseFloat(amount).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -178,6 +180,7 @@ function SectionStudentsModal({ sectionId, sectionName, onClose }: SectionModalP
 // ─── DebtsByGradePage ─────────────────────────────────────────────────────────
 
 export default function DebtsByGradePage() {
+  const { data: institutionSettings } = useInstitutionSettings();
   const [gradeStats, setGradeStats] = useState<GradeStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -196,22 +199,70 @@ export default function DebtsByGradePage() {
   // ── Export PDF ───────────────────────────────────────────────────────────
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('Deuda por Grado/Sección - EduMF', 14, 18);
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 14;
+
+    const startY = addInstitutionHeaderToPDF(doc, institutionSettings, 'Distribución de Deuda por Grado y Sección');
+
+    // Summary row
+    const totalDeuda = gradeStats.reduce((s, g) => s + parseFloat(g.totalDebt), 0);
+    const totalPendientes = gradeStats.reduce((s, g) => s + g.countPending, 0);
+    const totalVencidos = gradeStats.reduce((s, g) => s + g.countOverdue, 0);
+    const today = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Exportado el ${today}  |  Deuda total: S/ ${totalDeuda.toLocaleString('es-PE', { minimumFractionDigits: 2 })}  |  Pendientes: ${totalPendientes}  |  Vencidos: ${totalVencidos}`,
+      margin, startY
+    );
+
     autoTable(doc, {
-      startY: 26,
+      startY: startY + 8,
+      margin: { left: margin, right: margin },
       head: [['Grado', 'Sección', 'Alumnos', 'Deuda Total', 'Pendientes', 'Vencidos']],
       body: gradeStats.map((g) => [
-        `${g.grade}°`,
+        `${g.grade}° Grado`,
         g.section,
         g.studentCount,
         fmt(g.totalDebt),
         g.countPending,
         g.countOverdue,
       ]),
-      headStyles: { fillColor: [83, 143, 101] },
+      headStyles: { fillColor: [193, 168, 102], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+      bodyStyles: { fontSize: 9, textColor: [55, 65, 81] },
+      alternateRowStyles: { fillColor: [253, 250, 243] },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 25, halign: 'center' },
+        3: { cellWidth: 40, fontStyle: 'bold' },
+        4: { cellWidth: 25, halign: 'center' },
+        5: { cellWidth: 25, halign: 'center' },
+      },
+      // Footer row with totals
+      foot: [[
+        'TOTAL',
+        '',
+        gradeStats.reduce((s, g) => s + g.studentCount, 0),
+        fmt(totalDeuda.toFixed(2)),
+        totalPendientes,
+        totalVencidos,
+      ]],
+      footStyles: { fillColor: [240, 237, 225], textColor: [30, 30, 30], fontStyle: 'bold', fontSize: 9 },
     });
-    doc.save('deuda-por-grado.pdf');
+
+    // Page numbers
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(180, 180, 180);
+      doc.text(`Página ${i} de ${pageCount}`, pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+    }
+
+    doc.save(`Reporte_Deuda_Grado_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   // ── Export Excel ─────────────────────────────────────────────────────────

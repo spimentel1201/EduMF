@@ -24,6 +24,8 @@ import {
   DebtStatus,
   TreasuryStats,
 } from '../services/treasuryService';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
 
 function fmt(amount: string): string {
   return 'S/ ' + parseFloat(amount).toLocaleString('es-PE', {
@@ -438,6 +440,7 @@ function RegisterPaymentModal({ debt, onClose, onPaid }: PayProps) {
 
 // ─── Pagina principal ─────────────────────────────────────────────────────────
 export default function PaymentsPage() {
+  const { data: institutionSettings } = useInstitutionSettings();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -496,16 +499,58 @@ export default function PaymentsPage() {
   };
 
   const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('Reporte de Cobros - EduMF', 14, 18);
+    const doc = new jsPDF('landscape');
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 15;
+
+    const startY = addInstitutionHeaderToPDF(doc, institutionSettings, 'Reporte de Caja y Pagos');
+
+    // Filter summary line
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    let filterText = `Exportado el ${new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}  |  Estado: ${statusFilter ? STATUS_LABELS[statusFilter] : 'Todos'}`;
+    if (search) filterText += `  |  Búsqueda: "${search}"`;
+    doc.text(filterText, margin, startY);
+
     autoTable(doc, {
-      startY: 26,
-      head: [['Concepto', 'Monto', 'Vencimiento', 'Estado']],
-      body: debts.map(d => [d.concept, fmt(d.amount), fmtDate(d.dueDate), STATUS_LABELS[d.status]]),
-      headStyles: { fillColor: [83, 143, 101] },
+      startY: startY + 8,
+      margin: { left: margin, right: margin },
+      head: [['Alumno', 'DNI', 'Grado/Sec.', 'Concepto', 'Monto', 'Vencimiento', 'Estado']],
+      body: debts.map(d => [
+        d.studentName ?? d.studentId,
+        d.studentDni ?? '-',
+        d.studentGrade ? `${d.studentGrade}° ${d.studentSection}` : '-',
+        d.concept,
+        fmt(d.amount),
+        fmtDate(d.dueDate),
+        STATUS_LABELS[d.status],
+      ]),
+      headStyles: { fillColor: [83, 143, 101], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      bodyStyles: { fontSize: 8, textColor: [55, 65, 81] },
+      alternateRowStyles: { fillColor: [248, 250, 249] },
+      columnStyles: {
+        0: { cellWidth: 42 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 55 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 28 },
+        6: { cellWidth: 25 },
+      },
     });
-    doc.save('cobros-edumf.pdf');
+
+    // Page numbers
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(180, 180, 180);
+      doc.text(`Página ${i} de ${pageCount}`, pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+    }
+
+    const safeSearch = search.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    doc.save(`Reporte_Cobros_${safeSearch || new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   const exportExcel = () => {

@@ -15,6 +15,8 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { treasuryService, Debt } from '../services/treasuryService';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -170,6 +172,7 @@ function StudentHistoryModal({ studentId, studentName, onClose }: StudentHistory
 // ─── DefaultersReportPage ─────────────────────────────────────────────────────
 
 export default function DefaultersReportPage() {
+  const { data: institutionSettings } = useInstitutionSettings();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -209,21 +212,56 @@ export default function DefaultersReportPage() {
 
   // ── Export PDF ─────────────────────────────────────────────────────────────
   const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('Reporte de Morosos - EduMF', 14, 18);
+    const doc = new jsPDF('landscape');
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 15;
+
+    const startY = addInstitutionHeaderToPDF(doc, institutionSettings, 'Análisis de Cartera Pendiente — Cobros Vencidos');
+
+    // Summary sub-header
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    const today = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+    doc.text(`Exportado el ${today}  |  Total vencidos: ${total}  |  Monto total: ${`S/ ${totalDebtAmount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`}`, margin, startY);
+
     autoTable(doc, {
-      startY: 26,
-      head: [['Concepto', 'Monto', 'Vencimiento', 'Días Vencido']],
+      startY: startY + 8,
+      margin: { left: margin, right: margin },
+      head: [['Alumno', 'DNI', 'Grado/Sec.', 'Concepto', 'Monto', 'Vencimiento', 'Días Vencido']],
       body: debts.map((d) => [
+        d.studentName ?? 'Sin nombre',
+        d.studentDni ?? '-',
+        d.studentGrade ? `${d.studentGrade}° ${d.studentSection}` : '-',
         d.concept,
         fmt(d.amount),
         fmtDate(d.dueDate),
         `${daysOverdue(d.dueDate)} días`,
       ]),
-      headStyles: { fillColor: [83, 143, 101] },
+      headStyles: { fillColor: [185, 28, 28], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      bodyStyles: { fontSize: 8, textColor: [55, 65, 81] },
+      alternateRowStyles: { fillColor: [255, 248, 248] },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 50 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 28 },
+        6: { cellWidth: 25 },
+      },
     });
-    doc.save('morosos-edumf.pdf');
+
+    // Page numbers
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(180, 180, 180);
+      doc.text(`Página ${i} de ${pageCount}`, pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+    }
+
+    doc.save(`Reporte_Morosos_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   // ── Export Excel ───────────────────────────────────────────────────────────

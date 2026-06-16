@@ -31,8 +31,12 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
     const docMatch: any = {};
 
     if (startDate || endDate) {
-      const start = (startDate as string)?.trim();
-      const end   = (endDate   as string)?.trim();
+      let start = (startDate as string)?.trim();
+      let end   = (endDate   as string)?.trim();
+      
+      if (start && start.length === 10) start = `${start}T12:00:00`;
+      if (end && end.length === 10) end = `${end}T12:00:00`;
+
       if (start || end) {
         docMatch.date = {};
         if (start) docMatch.date.$gte = startOfDay(new Date(start));
@@ -161,7 +165,11 @@ export const createAttendance = async (req: Request, res: Response, next: NextFu
       return next(new ApiError('Horario del curso no encontrado', 404));
     }
 
-    const date = new Date(req.body.date);
+    let parsedDate = req.body.date;
+    if (typeof parsedDate === 'string' && parsedDate.length === 10) {
+      parsedDate = `${parsedDate}T12:00:00`;
+    }
+    const date = new Date(parsedDate);
     const existingAttendance = await Attendance.findOne({
       courseScheduleId: req.body.courseScheduleId,
       date: {
@@ -292,10 +300,16 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
     const takenBy = req.user.id;
     const results = [];
 
+    let parsedDate = date;
+    if (typeof date === 'string' && date.length === 10) {
+      // Si viene solo YYYY-MM-DD, le agregamos mediodía local para evitar desfases de zona horaria
+      parsedDate = `${date}T12:00:00`;
+    }
+
     for (const studentAttendance of studentAttendances) {
       const { studentId, status } = studentAttendance;
       const studentObjectId = new mongoose.Types.ObjectId(studentId);
-      const currentAttendanceDate = new Date(date);
+      const currentAttendanceDate = new Date(parsedDate);
 
       const enrollment = await Enrollment.findOne({ studentId: studentObjectId, sectionId });
 

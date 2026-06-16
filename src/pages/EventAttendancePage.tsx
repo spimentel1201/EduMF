@@ -21,6 +21,7 @@ import {
   EventDTO,
   SaveAttendanceEntry,
 } from '../services/eventService';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AttendanceStatus = 'present' | 'absent' | null;
@@ -199,6 +200,7 @@ function StatsCard({
 export default function EventAttendancePage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const { data: institutionSettings } = useInstitutionSettings();
 
   // ── View mode: 'edit' allows toggling attendance, 'view' is read-only ──
   const [mode, setMode] = useState<'edit' | 'view'>('edit');
@@ -418,10 +420,21 @@ export default function EventAttendancePage() {
     // ── Header: system name ──
     doc.setFillColor(83, 143, 101); // #538f65
     doc.rect(0, 0, pageW, 22, 'F');
+    
+    if (institutionSettings?.logoBase64) {
+      try {
+        // Logo can be PNG or JPEG. jspdf handles base64 directly if formatted properly.
+        doc.addImage(institutionSettings.logoBase64, margin, 3, 16, 16);
+      } catch (e) {
+        console.error('Error adding logo to PDF', e);
+      }
+    }
+
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Sistema de Gestión Escolar', pageW / 2, 14, { align: 'center' });
+    const headerTitle = institutionSettings?.name || 'Sistema de Gestión Escolar';
+    doc.text(headerTitle, pageW / 2, 14, { align: 'center' });
     y = 30;
 
     // ── Title ──
@@ -451,7 +464,8 @@ export default function EventAttendancePage() {
     doc.setFont('helvetica', 'bold');
     doc.text('Fecha:', col1x, y + 20);
     doc.setFont('helvetica', 'normal');
-    doc.text(event.date, col1x + 22, y + 20);
+    const formattedDate = event.date ? new Date(event.date).toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+    doc.text(formattedDate, col1x + 22, y + 20);
 
     doc.setFont('helvetica', 'bold');
     doc.text('Horario:', col2x, y + 14);

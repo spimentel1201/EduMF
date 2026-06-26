@@ -5,8 +5,10 @@ import multer from 'multer';
 
 const router = express.Router();
 
-// Configuración de Multer para la subida de archivos
-const upload = multer({ dest: 'uploads/' }); // 'uploads/' es la carpeta donde se guardarán temporalmente los archivos
+import os from 'os';
+
+// Configuración de Multer para la subida de archivos (usando /tmp para compatibilidad con Vercel)
+const upload = multer({ dest: os.tmpdir() });
 
 // @route   POST api/users/register
 // @desc    Register a new user (student by default)

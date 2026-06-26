@@ -1,0 +1,115 @@
+import { api } from './api';
+import { AttendanceRecordDisplay, AttendanceFilterParams } from '../types/attendance';
+
+export interface AttendanceRecord {
+  studentId: string;
+  courseScheduleId: string;
+  date: string;
+  status: 'presente' | 'ausente' | 'justificado' | 'tarde';
+  notes?: string;
+}
+
+export const attendanceService = {
+  getByDate: async (date: string, sectionId?: string) => {
+    const params = new URLSearchParams();
+    params.append('date', date);
+    if (sectionId) params.append('sectionId', sectionId);
+
+    const response = await api.get(`/attendances?${params.toString()}`);
+    return response.data.data;
+  },
+
+  /** Returns a map of studentId → status for a given date + section */
+  getExistingByDateAndSection: async (
+    date: string,
+    sectionId: string
+  ): Promise<Record<string, string>> => {
+    const response = await api.get('/attendances/attendance-records', {
+      params: { startDate: date, endDate: date, sectionId, limit: 200 },
+    });
+    const records: Array<{ studentId: string; status: string }> = response.data.data ?? [];
+    const map: Record<string, string> = {};
+    records.forEach((r) => {
+      if (r.studentId) map[r.studentId.toString()] = r.status;
+    });
+    return map;
+  },
+
+  create: async (attendance: AttendanceRecord[]) => {
+    const response = await api.post('/attendances', attendance);
+    return response.data.data;
+  },
+
+  update: async (id: string, attendance: Partial<AttendanceRecord>) => {
+    const response = await api.put(`/attendances/${id}`, attendance);
+    return response.data.data;
+  },
+
+  getStats: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const response = await api.get(`/attendance/stats?${params.toString()}`);
+    return response.data.data;
+  },
+
+  bulkCreateAttendances: async (data: { date: string; sectionId: string; studentAttendances: Array<{ studentId: string; status: string }> }) => {
+    const response = await api.post('/attendances/bulk', data);
+    return response.data;
+  },
+
+  getMonthlyAttendanceReport: async (params: { sectionId?: string; month: number; year: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params.sectionId) queryParams.append('sectionId', params.sectionId);
+    queryParams.append('month', params.month.toString());
+    queryParams.append('year', params.year.toString());
+    const response = await api.get(`/attendances/report/monthly?${queryParams.toString()}`);
+    return response.data.data;
+  },
+
+  getAttendanceRecords: async (filters: AttendanceFilterParams): Promise<{ attendanceRecords: AttendanceRecordDisplay[], totalRecords: number }> => {
+    const response = await api.get('/attendances/attendance-records', { params: filters });
+    return {
+      attendanceRecords: response.data.data,
+      totalRecords: response.data.total,
+    };
+  },
+
+  getHeatmapData: async (params: { sectionId: string; month: number; year: number }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('sectionId', params.sectionId);
+    queryParams.append('month', params.month.toString());
+    queryParams.append('year', params.year.toString());
+    const response = await api.get(`/attendances/report/heatmap?${queryParams.toString()}`);
+    return response.data.data;
+  },
+
+  getSectionsComparison: async (params: { month: number; year: number }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('month', params.month.toString());
+    queryParams.append('year', params.year.toString());
+    const response = await api.get(`/attendances/report/comparison?${queryParams.toString()}`);
+    return response.data.data;
+  },
+
+  getWeeklyTrend: async () => {
+    const response = await api.get('/attendances/weekly-trend');
+    return response.data.data;
+  },
+
+  getRecentActivity: async () => {
+    const response = await api.get('/attendances/recent-activity');
+    return response.data.data;
+  },
+
+  qrScan: async (dni: string): Promise<{
+    studentName: string;
+    dni: string;
+    status: 'Presente' | 'Tardanza';
+    time: string;
+  }> => {
+    const response = await api.post('/attendances/qr-scan', { dni });
+    return response.data.data;
+  },
+};

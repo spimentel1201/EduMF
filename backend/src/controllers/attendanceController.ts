@@ -17,75 +17,109 @@ export const validateAttendance = [
   body('status').optional().isIn(['Pendiente', 'Completado']).withMessage('Estado inválido')
 ];
 
-// @desc    Obtener todas las asistencias
-// @route   GET /api/attendance
+// @desc    Obtener todas las asistencias (registros individuales por estudiante)
+// @route   GET /api/attendances/attendance-records  (also GET /api/attendances)
 // @access  Private
 export const getAttendances = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
+    const page  = parseInt(req.query.page  as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
+    const skip  = (page - 1) * limit;
     const { startDate, endDate, sectionId, studentId } = req.query;
 
-    const filter: any = {};
-    if (startDate && endDate) {
-      filter.date = { $gte: startOfDay(new Date(startDate as string)), $lte: endOfDay(new Date(endDate as string)) };
+    // ── Build the top-level match (on the Attendance document) ──
+    const docMatch: any = {};
+
+    if (startDate || endDate) {
+      let start = (startDate as string)?.trim();
+      let end   = (endDate   as string)?.trim();
+      
+      if (start && start.length === 10) start = `${start}T12:00:00`;
+      if (end && end.length === 10) end = `${end}T12:00:00`;
+
+      if (start || end) {
+        docMatch.date = {};
+        if (start) docMatch.date.$gte = startOfDay(new Date(start));
+        if (end)   docMatch.date.$lte = endOfDay(new Date(end));
+      }
     }
-    if (sectionId) {
-      filter.sectionId = sectionId;
-    }
-    if (studentId) {
-      filter['details.studentId'] = studentId;
+
+    if (sectionId && (sectionId as string).trim() !== '') {
+      docMatch.sectionId = new mongoose.Types.ObjectId(sectionId as string);
     }
 
+    // ── Build the post-unwind match (on individual detail entries) ──
+    const detailMatch: any = {};
+    if (studentId && (studentId as string).trim() !== '') {
+      detailMatch['details.studentId'] = new mongoose.Types.ObjectId(studentId as string);
+    }
 
-
-    const attendances = await Attendance.find(filter)
-      .populate([
-        { path: 'sectionId', select: 'name' },
-        { path: 'teacherId', select: 'firstName lastName' },
-        { path: 'details.studentId', select: 'firstName lastName' }
-      ])
-      .sort({ date: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalFormattedRecordsPipeline: any[] = [
-      { $match: filter },
+    // Use aggregation so we can paginate over individual student records
+    const pipeline: any[] = [
+      { $match: docMatch },
       { $unwind: '$details' },
-      { $count: 'total' }
+      ...(Object.keys(detailMatch).length > 0 ? [{ $match: detailMatch }] : []),
+      {
+        $lookup: {
+          from: 'sections',
+          localField: 'sectionId',
+          foreignField: '_id',
+          as: 'sectionInfo',
+        },
+      },
+      { $unwind: { path: '$sectionInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'details.studentId',
+          foreignField: '_id',
+          as: 'studentInfo',
+        },
+      },
+      { $unwind: { path: '$studentInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          id:          '$_id',
+          date:        { $dateToString: { format: '%Y-%m-%dT%H:%M:%S.000Z', date: '$date' } },
+          sectionId:   '$sectionId',
+          sectionName: { $ifNull: ['$sectionInfo.name', 'N/A'] },
+          studentId:   '$details.studentId',
+          studentName: {
+            $concat: [
+              { $ifNull: ['$studentInfo.firstName', ''] },
+              ' ',
+              { $ifNull: ['$studentInfo.lastName',  ''] },
+            ],
+          },
+          status: '$details.status',
+          notes:  '$details.notes',
+        },
+      },
+      { $sort: { date: -1 } },
     ];
 
-    const totalFormattedRecordsResult = await Attendance.aggregate(totalFormattedRecordsPipeline);
-    const total = totalFormattedRecordsResult.length > 0 ? totalFormattedRecordsResult[0].total : 0;
+    // Count total matching records
+    const countPipeline = [...pipeline, { $count: 'total' }];
+    const countResult = await Attendance.aggregate(countPipeline);
+    const total = countResult[0]?.total ?? 0;
 
-    const formattedRecords = attendances.flatMap(attendance => {
-      const sectionName = (attendance.sectionId as any)?.name || 'N/A';
-      const teacherName = (attendance.teacherId as any)?.firstName + ' ' + (attendance.teacherId as any)?.lastName || 'N/A';
+    // Fetch paginated records
+    const records = await Attendance.aggregate([
+      ...pipeline,
+      { $skip: skip },
+      { $limit: limit },
+    ]);
 
-      return attendance.details.map(detail => ({
-        id: attendance._id,
-        date: attendance.date.toISOString(),
-        sectionId: attendance.sectionId,
-        sectionName: sectionName,
-        studentId: detail.studentId,
-        studentName: (detail.studentId as any)?.firstName + ' ' + (detail.studentId as any)?.lastName || 'N/A',
-        status: detail.status,
-        notes: detail.notes,
-        teacherId: attendance.teacherId,
-        teacherName: teacherName,
-      }));
-    });
     res.status(200).json({
       success: true,
-      count: formattedRecords.length,
-      total: total,
+      count: records.length,
+      total,
       pagination: {
-        page: page,
-        limit: limit,
+        page,
+        limit,
         totalPages: Math.ceil(total / limit),
       },
-      data: formattedRecords,
+      data: records,
     });
   } catch (error) {
     next(error);
@@ -131,7 +165,11 @@ export const createAttendance = async (req: Request, res: Response, next: NextFu
       return next(new ApiError('Horario del curso no encontrado', 404));
     }
 
-    const date = new Date(req.body.date);
+    let parsedDate = req.body.date;
+    if (typeof parsedDate === 'string' && parsedDate.length === 10) {
+      parsedDate = `${parsedDate}T12:00:00`;
+    }
+    const date = new Date(parsedDate);
     const existingAttendance = await Attendance.findOne({
       courseScheduleId: req.body.courseScheduleId,
       date: {
@@ -262,10 +300,16 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
     const takenBy = req.user.id;
     const results = [];
 
+    let parsedDate = date;
+    if (typeof date === 'string' && date.length === 10) {
+      // Si viene solo YYYY-MM-DD, le agregamos mediodía local para evitar desfases de zona horaria
+      parsedDate = `${date}T12:00:00`;
+    }
+
     for (const studentAttendance of studentAttendances) {
       const { studentId, status } = studentAttendance;
       const studentObjectId = new mongoose.Types.ObjectId(studentId);
-      const currentAttendanceDate = new Date(date);
+      const currentAttendanceDate = new Date(parsedDate);
 
       const enrollment = await Enrollment.findOne({ studentId: studentObjectId, sectionId });
 
@@ -474,6 +518,7 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
       let absentCount = 0;
       let lateCount = 0;
       let justifiedCount = 0;
+      let workingDays = 0; // días hábiles (lun–vie) del mes
 
       for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(Number(year), Number(month) - 1, d);
@@ -483,6 +528,7 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
         if (dayOfWeek === 0 || dayOfWeek === 6) {
           days.push({ day: d, status: 'weekend' });
         } else {
+          workingDays++; // cuenta el día hábil independientemente de si hay registro
           const status = attendanceMap[studentId]?.[d] || null;
           days.push({ day: d, status });
 
@@ -493,8 +539,11 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
         }
       }
 
-      const totalDays = presentCount + absentCount + lateCount + justifiedCount;
-      const attendanceRate = totalDays > 0 ? Math.round((presentCount / totalDays) * 100) : 0;
+      // El denominador es siempre los días hábiles del mes,
+      // no los registros existentes. Días sin registro = ausencia implícita.
+      const attendanceRate = workingDays > 0
+        ? Math.round((presentCount / workingDays) * 100)
+        : 0;
 
       return {
         studentId,
@@ -506,22 +555,29 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
           absent: absentCount,
           late: lateCount,
           justified: justifiedCount,
+          workingDays,
           attendanceRate
         }
       };
     });
 
+    // Calcular días hábiles del mes (igual para todos los estudiantes)
+    const workingDaysInMonth = heatmapData[0]?.summary.workingDays ?? 0;
+
     // Calcular totales generales
     const totals = heatmapData.reduce((acc, student) => ({
-      present: acc.present + student.summary.present,
-      absent: acc.absent + student.summary.absent,
-      late: acc.late + student.summary.late,
+      present:   acc.present   + student.summary.present,
+      absent:    acc.absent    + student.summary.absent,
+      late:      acc.late      + student.summary.late,
       justified: acc.justified + student.summary.justified,
     }), { present: 0, absent: 0, late: 0, justified: 0 });
 
     const totalRecords = totals.present + totals.absent + totals.late + totals.justified;
-    const overallAttendanceRate = totalRecords > 0
-      ? Math.round((totals.present / totalRecords) * 100)
+
+    // Tasa general: presentes sobre (días hábiles × número de estudiantes)
+    const totalPossible = workingDaysInMonth * heatmapData.length;
+    const overallAttendanceRate = totalPossible > 0
+      ? Math.round((totals.present / totalPossible) * 100)
       : 0;
 
     res.status(200).json({
@@ -529,6 +585,7 @@ export const getHeatmapData = async (req: Request, res: Response, next: NextFunc
       data: {
         students: heatmapData,
         daysInMonth,
+        workingDaysInMonth,
         summary: {
           ...totals,
           total: totalRecords,

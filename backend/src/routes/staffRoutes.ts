@@ -30,7 +30,7 @@ const staffValidation = [
   body('level')
     .notEmpty()
     .withMessage('El nivel es requerido')
-    .isIn(['Inicial', 'Primaria', 'Secundaria', 'Todos'])
+    .isIn(['Inicial', 'Primaria', 'Secundaria', 'General'])
     .withMessage('Nivel inválido'),
   body('status')
     .optional()
@@ -46,6 +46,10 @@ const staffValidation = [
     .optional()
     .isMongoId()
     .withMessage('ID de usuario inválido'),
+  body('password')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 6 })
+    .withMessage('La contraseña debe tener al menos 6 caracteres'),
 ];
 router.use(protect);
 router.use(authorize('admin'));

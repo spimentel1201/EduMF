@@ -10,7 +10,7 @@ export interface IUser extends Document {
   birthdate?: Date;
   email?: string;
   password?: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: 'admin' | 'teacher' | 'student' | 'Dirección' | 'CIST' | 'Psicólogo(a)' | 'Docente' | 'Auxiliar' | 'Mantenimiento';
   status: 'active' | 'inactive';
   createdAt: Date;
   updatedAt: Date;
@@ -48,10 +48,11 @@ const UserSchema: Schema = new Schema(
     email: {
       type: String,
       unique: true,
+      sparse: true,
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Por favor ingrese un email válido'],
-      required: [true, 'El email es requerido'],
+      required: false,
     },
     password: {
       type: String,
@@ -61,7 +62,7 @@ const UserSchema: Schema = new Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'teacher', 'student'],
+      enum: ['admin', 'teacher', 'student', 'Dirección', 'CIST', 'Psicólogo(a)', 'Docente', 'Auxiliar', 'Mantenimiento'],
       default: 'student',
     },
     status: {

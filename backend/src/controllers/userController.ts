@@ -150,13 +150,14 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
       query = { role };
     }
 
-    const users = await User.find(query).select('_id firstName lastName email role');
+    const users = await User.find(query).select('_id firstName lastName email role dni');
     const formattedUsers = users.map(user => ({
       id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       role: user.role,
+      dni: user.dni,
     }));
 
     res.status(200).json({

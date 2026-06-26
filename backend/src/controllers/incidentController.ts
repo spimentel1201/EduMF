@@ -20,25 +20,20 @@ export const getAllIncidents = async (req: Request, res: Response, next: NextFun
         const startDate = req.query.startDate as string;
         const endDate = req.query.endDate as string;
 
-        // Construir query
         let query: any = {};
 
-        // Filtrar por tipo de incidencia
         if (incidentType) {
             query.incidentType = incidentType;
         }
 
-        // Filtrar por estado
         if (status) {
             query.status = status;
         }
 
-        // Filtrar por violencia
         if (isViolent !== undefined && isViolent !== '') {
             query.isViolent = isViolent === 'true';
         }
 
-        // Filtrar por rango de fechas
         if (startDate || endDate) {
             query.incidentDate = {};
             if (startDate) {
@@ -49,7 +44,6 @@ export const getAllIncidents = async (req: Request, res: Response, next: NextFun
             }
         }
 
-        // Buscar por descripción, ubicación o nombre del informante
         if (searchTerm) {
             query.$or = [
                 { description: { $regex: searchTerm, $options: 'i' } },
@@ -63,6 +57,7 @@ export const getAllIncidents = async (req: Request, res: Response, next: NextFun
             .populate('victimId', 'firstName lastName dni')
             .populate('aggressorId', 'firstName lastName dni')
             .populate('registeredBy', 'firstName lastName email')
+            .populate('closedBy', 'firstName lastName email')
             .sort({ incidentDate: -1 })
             .skip(startIndex)
             .limit(limit);
@@ -93,7 +88,8 @@ export const getIncidentById = async (req: Request, res: Response, next: NextFun
         const incident = await Incident.findById(req.params.id)
             .populate('victimId', 'firstName lastName dni email')
             .populate('aggressorId', 'firstName lastName dni email')
-            .populate('registeredBy', 'firstName lastName email');
+            .populate('registeredBy', 'firstName lastName email')
+            .populate('closedBy', 'firstName lastName email');
 
         if (!incident) {
             return next(ApiError.notFound('Incidencia no encontrada'));
@@ -133,14 +129,12 @@ export const createIncident = async (req: Request, res: Response, next: NextFunc
             status,
         } = req.body;
 
-        // Obtener el usuario que registra desde el token
         const registeredBy = (req as any).user?.id;
 
         if (!registeredBy) {
             return next(ApiError.unauthorized('Usuario no autenticado'));
         }
 
-        // Crear nueva incidencia
         const incident = await Incident.create({
             incidentType,
             incidentDate,

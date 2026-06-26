@@ -12,8 +12,9 @@ import { treasuryService, GradeStats, SectionStudent } from '../services/treasur
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
 
-function fmt(amount: string): string {
-  return `S/ ${parseFloat(amount).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function fmt(amount: any): string {
+  const val = amount?.$numberDecimal ?? amount;
+  return `S/ ${parseFloat(val || '0').toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });

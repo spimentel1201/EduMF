@@ -5,7 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { sectionService } from '@/services/sectionService';
 import { enrollmentService } from '@/services/enrollmentService';
 import { userService } from '@/services/userService';
-import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { usePublicInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import {
   PrinterIcon,
   UserGroupIcon,
@@ -107,7 +107,7 @@ export default function QRGeneratorPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
 
-  const { data: settings } = useInstitutionSettings();
+  const { data: settings } = usePublicInstitutionSettings();
   const currentYear = new Date().getFullYear();
   const locationText = settings?.address || 'Ciudad - País';
 
@@ -340,6 +340,10 @@ export default function QRGeneratorPage() {
           }
 
           @media print {
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             /* Ocultar TODO el contenido de la app */
             body > *:not(#qr-print-portal) {
               display: none !important;

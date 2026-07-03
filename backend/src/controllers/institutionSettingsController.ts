@@ -37,11 +37,12 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
 // @access  Public
 export const getPublicSettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const config = await InstitutionConfig.findOne({}, 'name logoBase64 bgImageBase64 bgOpacity');
+    const config = await InstitutionConfig.findOne({}, 'name address logoBase64 bgImageBase64 bgOpacity');
     res.status(200).json({
       success: true,
       data: {
         name:          config?.name          ?? '',
+        address:       config?.address       ?? '',
         logoBase64:    config?.logoBase64    ?? '',
         bgImageBase64: config?.bgImageBase64 ?? '',
         bgOpacity:     config?.bgOpacity     ?? 30,

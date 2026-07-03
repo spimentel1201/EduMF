@@ -378,7 +378,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-3 pl-4 border-l border-gray-300">
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-bold text-gray-800">{user?.name || 'Administrador'}</p>
-                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">{user?.role || 'Admin Terra'}</p>
+                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">{user?.role || 'Admin'}</p>
               </div>
               <div
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0"
@@ -397,12 +397,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Global Footer */}
             <div className="absolute bottom-0 left-0 right-0 px-8 py-6 text-center text-xs font-medium text-gray-400 mt-auto">
-              <p className="mb-2">© 2024 Terra Academia. Sistema de Gestión Escolar Integral.</p>
-              <div className="flex justify-center items-center gap-6">
-                <a href="#" className="hover:text-gray-600 transition-colors">Privacidad</a>
-                <a href="#" className="hover:text-gray-600 transition-colors">Soporte Técnico</a>
-                <a href="#" className="hover:text-gray-600 transition-colors">Auditoría</a>
-              </div>
+              <p className="mb-2">© 2026 Sistema de Gestión Escolar Integral.</p>
             </div>
           </div>
         </main>

@@ -344,6 +344,12 @@
       "tipDesc": "You can schedule automatic reminders 3 days before the due date from the settings tab."
     }
   },
+  "inventory": {
+    "title": "Inventory",
+    "catalog": "Asset catalog",
+    "import": "Import Excel",
+    "labels": "Labels"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

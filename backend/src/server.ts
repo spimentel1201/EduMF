@@ -22,6 +22,7 @@ import incidentRoutes from './routes/incidentRoutes';
 import eventRoutes from './routes/eventRoutes';
 import treasuryRoutes from './routes/treasuryRoutes';
 import institutionSettingsRoutes from './routes/institutionSettingsRoutes';
+import inventoryRoutes from './routes/inventoryRoutes';
 
 // Cargar variables de entorno
 config();
@@ -79,6 +80,7 @@ const startServer = async () => {
     app.use('/api/events', eventRoutes);
     app.use('/api/treasury', treasuryRoutes);
     app.use('/api/institution-settings', institutionSettingsRoutes);
+    app.use('/api/inventory', inventoryRoutes);
 
     // Middleware de manejo de errores
     app.use(errorHandler);

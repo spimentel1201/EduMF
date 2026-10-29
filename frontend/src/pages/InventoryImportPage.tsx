@@ -291,6 +291,7 @@ export default function InventoryImportPage() {
               <thead>
                 <tr className="border-y border-gray-100" style={{ background: '#f8faf9' }}>
                   <th className="px-3 py-2 text-left font-semibold text-gray-500">Fila</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500">Nro.</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-500">SBN</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-500">Descripción</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-500">Ambiente</th>
@@ -303,6 +304,7 @@ export default function InventoryImportPage() {
                 {preview.filas.map((fila) => (
                   <tr key={`${fila.filaExcel}-${fila.codigoSBNGeneral}`} className="hover:bg-gray-50/60">
                     <td className="px-3 py-2 tabular-nums text-gray-400">{fila.filaExcel}</td>
+                    <td className="px-3 py-2 tabular-nums text-gray-500">{fila.numeroInventario || '—'}</td>
                     <td className="px-3 py-2 font-mono text-gray-500">{fila.codigoSBNGeneral || '—'}</td>
                     <td className="px-3 py-2 text-gray-800 max-w-[280px] truncate">{fila.nombre}</td>
                     <td className="px-3 py-2 text-gray-500">{fila.ubicacion || '—'}</td>

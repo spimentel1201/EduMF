@@ -95,6 +95,7 @@ export interface InventoryLabelData {
 
 export interface InventoryImportRow {
   filaExcel: number;
+  numeroInventario: string;
   codigoSBNGeneral: string;
   codigoSBNCorrelativo: string;
   nombre: string;

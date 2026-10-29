@@ -16,6 +16,7 @@ import {
  * ────────────────────────────────────────────────────────────────────────── */
 
 interface ParsedRow {
+  numeroInventario: string;
   codigoSBNGeneral: string;
   codigoSBNCorrelativo: string;
   nombre: string;
@@ -160,6 +161,7 @@ export function parseInventorySheet(buffer: Buffer): ParsedSheet {
   const block = matrix.slice(headerRow, headerRow + 3);
 
   const col = {
+    numero: findCol(block, /^NRO\.?$|^NUMERO$/, maxCols, 1),
     sbn: findCol(block, /CODIGOSBN/, maxCols, 2),
     cantidad: findCol(block, /CANTI-?DAD/, maxCols, 4),
     unidad: findCol(block, /UNIDAD|UND\./, maxCols, 5),
@@ -188,6 +190,7 @@ export function parseInventorySheet(buffer: Buffer): ParsedSheet {
 
   for (let index = headerRow + 1; index < matrix.length; index++) {
     const row = matrix[index] || [];
+    const numeroInventario = cellToString(row[col.numero]);
     const detalle = cellToString(row[col.detalle]);
     const sbn = cellToString(row[col.sbn]);
     const detalleNorm = normalize(detalle);
@@ -200,10 +203,11 @@ export function parseInventorySheet(buffer: Buffer): ParsedSheet {
       detalleNorm.startsWith('DESCRIPCION');
 
     if (isSubHeader) continue;
-    if (!detalle && !sbn) continue;
     if (detalleNorm === 'TOTAL' || detalleNorm.startsWith('TOTAL')) continue;
-    // Fila de datos insuficiente: la reportamos y continuamos.
-    if (!detalle && !sbn) continue;
+    // Los pies administrativos repiten ':' en la columna SBN, pero no son bienes.
+    // Se conserva un bien sin descripción si tiene un código SBN numérico.
+    const tieneCodigoSBN = /^\d{8}$/.test(sbn);
+    if (!detalle && !tieneCodigoSBN) continue;
 
     const cantidad = toNumber(row[col.cantidad]) || 1;
     const valorUnitario = toNumber(row[col.valorUnitario]);
@@ -221,6 +225,7 @@ export function parseInventorySheet(buffer: Buffer): ParsedSheet {
     }
 
     filas.push({
+      numeroInventario,
       codigoSBNGeneral: sbn,
       codigoSBNCorrelativo: cellToString(row[col.sbn + 1]),
       nombre: detalle || `Bien SBN ${sbn}`,
@@ -245,6 +250,41 @@ export function parseInventorySheet(buffer: Buffer): ParsedSheet {
       datosOriginales: row,
       filaExcel: index + 1,
     });
+  }
+
+  const conteoNumeros = new Map<string, number>();
+  for (const fila of filas) {
+    if (/^\d+$/.test(fila.numeroInventario)) {
+      conteoNumeros.set(
+        fila.numeroInventario,
+        (conteoNumeros.get(fila.numeroInventario) || 0) + 1
+      );
+    }
+  }
+  const numerosRepetidos = [...conteoNumeros.values()].filter((count) => count > 1);
+  const filasRepetidas = numerosRepetidos.reduce((sum, count) => sum + count - 1, 0);
+  if (filasRepetidas > 0) {
+    advertencias.push(
+      `La hoja repite ${numerosRepetidos.length} números de inventario (${filasRepetidas} filas adicionales). Se conservan todas las filas.`
+    );
+  }
+  const numerosOrdenados = [...conteoNumeros.keys()]
+    .map(Number)
+    .sort((a, b) => a - b);
+  const maxNumero = numerosOrdenados[numerosOrdenados.length - 1] || 0;
+  const numerosPresentes = new Set(numerosOrdenados);
+  const numerosFaltantes = Array.from(
+    { length: maxNumero },
+    (_, index) => index + 1
+  ).filter((numero) => !numerosPresentes.has(numero));
+  if (numerosFaltantes.length > 0) {
+    advertencias.push(
+      `Faltan ${numerosFaltantes.length} números entre 1 y ${maxNumero}: ${numerosFaltantes.join(', ')}.`
+    );
+  }
+  const sinNumero = filas.filter((fila) => !/^\d+$/.test(fila.numeroInventario)).length;
+  if (sinNumero > 0) {
+    advertencias.push(`${sinNumero} bienes no tienen número de inventario en la hoja.`);
   }
 
   return {

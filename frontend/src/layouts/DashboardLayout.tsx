@@ -28,6 +28,8 @@ import {
   BellIcon,
   QuestionMarkCircleIcon,
   QrCodeIcon,
+  ArchiveBoxIcon,
+  ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -114,6 +116,18 @@ const navigation: NavigationItem[] = [
     ],
   },
   { name: 'payments.title', href: '/payments', icon: BanknotesIcon, current: false, module: 'payments' },
+  {
+    name: 'inventory.title',
+    href: '#',
+    icon: ArchiveBoxIcon,
+    current: false,
+    module: 'inventory',
+    children: [
+      { name: 'inventory.catalog', href: '/inventory', icon: ArchiveBoxIcon, current: false, module: 'inventory' },
+      { name: 'inventory.import', href: '/inventory/import', icon: ArrowUpTrayIcon, current: false, module: 'inventoryWrite' },
+      { name: 'inventory.labels', href: '/inventory/labels', icon: QrCodeIcon, current: false, module: 'inventory' },
+    ],
+  },
 ];
 
 interface DashboardLayoutProps {

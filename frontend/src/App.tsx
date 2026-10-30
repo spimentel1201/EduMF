@@ -38,6 +38,11 @@ import NewChargePage from '@/pages/NewChargePage';
 import DefaultersReportPage from './pages/DefaultersReportPage';
 import InstitutionSettingsPage from '@/pages/InstitutionSettingsPage';
 import DebtsByGradePage from './pages/DebtsByGradePage';
+import InventoryPage from './pages/InventoryPage';
+import InventoryItemFormPage from './pages/InventoryItemFormPage';
+import InventoryImportPage from './pages/InventoryImportPage';
+import InventoryLabelsPage from './pages/InventoryLabelsPage';
+import PublicInventoryItemPage from './pages/PublicInventoryItemPage';
 
 const queryClient = new QueryClient();
 
@@ -49,6 +54,7 @@ function App() {
           <Toaster position="top-right" />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/inventario/publico/:codigoInterno" element={<PublicInventoryItemPage />} />
             <Route
               path="/"
               element={
@@ -90,6 +96,11 @@ function App() {
               <Route path="payments/defaulters" element={<RoleRoute module="payments"><DefaultersReportPage /></RoleRoute>} />
               <Route path="payments/by-grade" element={<RoleRoute module="payments"><DebtsByGradePage /></RoleRoute>} />
               <Route path="settings" element={<RoleRoute module="settings"><InstitutionSettingsPage /></RoleRoute>} />
+              <Route path="inventory" element={<RoleRoute module="inventory"><InventoryPage /></RoleRoute>} />
+              <Route path="inventory/new" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />
+              <Route path="inventory/:id/edit" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />
+              <Route path="inventory/import" element={<RoleRoute module="inventoryWrite"><InventoryImportPage /></RoleRoute>} />
+              <Route path="inventory/labels" element={<RoleRoute module="inventory"><InventoryLabelsPage /></RoleRoute>} />
             </Route>
           </Routes>
         </AuthProvider>

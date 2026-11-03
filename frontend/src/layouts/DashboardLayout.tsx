@@ -160,13 +160,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const updatedNavigation = filteredNavigation.map((item) => {
     if (item.children) {
-      const hasActiveChild = item.children.some((child) => location.pathname === child.href);
+      const childIsCurrent = (child: NavigationChild) => {
+        if (item.name === 'events.title') {
+          return child.name === 'events.attendance'
+            ? /^\/events\/[^/]+\/attendance$/.test(location.pathname)
+            : location.pathname === '/events' || location.pathname === '/events/new';
+        }
+        return location.pathname === child.href;
+      };
+      const hasActiveChild = item.children.some(childIsCurrent);
       return {
         ...item,
         current: hasActiveChild,
         children: item.children.map((child) => ({
           ...child,
-          current: location.pathname === child.href,
+          current: childIsCurrent(child),
         })),
       };
     }

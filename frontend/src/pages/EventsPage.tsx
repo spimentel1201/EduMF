@@ -11,6 +11,8 @@ import {
   PhotoIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  EyeIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { eventService, EventDTO, EventCategory } from '../services/eventService';
 
@@ -61,7 +63,7 @@ function CategoryBadge({ category }: { category: EventCategory }) {
   );
 }
 
-function EventCard({ event }: { event: EventDTO }) {
+function EventCard({ event, onView }: { event: EventDTO; onView: (event: EventDTO) => void }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
       {/* Image / Placeholder */}
@@ -107,16 +109,20 @@ function EventCard({ event }: { event: EventDTO }) {
         </div>
 
         {/* CTA */}
-        <Link
-          to={`/events/${event.id}/attendance`}
-          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold text-white transition-colors"
-          style={{ background: '#538f65' }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#47795a')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#538f65')}
-        >
-          <UserGroupIcon className="w-4 h-4" />
-          Registrar Asistencia
-        </Link>
+        <div className="grid grid-cols-2 gap-2 mt-auto">
+          <button onClick={() => onView(event)} className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200">
+            <EyeIcon className="w-4 h-4" /> Ver detalle
+          </button>
+          <Link
+            to={`/events/${event.id}/attendance`}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold text-white transition-colors"
+            style={{ background: '#538f65' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#47795a')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#538f65')}
+          >
+            <UserGroupIcon className="w-4 h-4" /> Asistencia
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -146,6 +152,7 @@ function FeaturedEventCard({ event }: { event: EventDTO }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function EventsPage() {
+  const [viewingEvent, setViewingEvent] = useState<EventDTO | null>(null);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<'all' | EventCategory>('all');
   const [page, setPage] = useState(1);
@@ -279,12 +286,12 @@ export default function EventsPage() {
       {!loading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {nonFeaturedEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
+                <EventCard key={event.id} event={event} onView={setViewingEvent} />
           ))}
 
           {/* Featured card occupies one cell when it fits */}
           {featuredEvent && page === 1 && (
-            <FeaturedEventCard event={featuredEvent} />
+          <FeaturedEventCard event={featuredEvent} />
           )}
 
           {nonFeaturedEvents.length === 0 && !featuredEvent && (
@@ -329,6 +336,31 @@ export default function EventsPage() {
           >
             <ChevronRightIcon className="w-4 h-4 text-gray-600" />
           </button>
+        </div>
+      )}
+
+      {viewingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setViewingEvent(null)}>
+          <section role="dialog" aria-modal="true" aria-labelledby="event-detail-title" className="w-full max-w-lg rounded-2xl bg-white shadow-xl" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between border-b border-gray-100 p-5">
+              <div>
+                <CategoryBadge category={viewingEvent.category} />
+                <h2 id="event-detail-title" className="mt-2 text-xl font-bold text-gray-900">{viewingEvent.title}</h2>
+              </div>
+              <button onClick={() => setViewingEvent(null)} aria-label="Cerrar detalle" className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            {viewingEvent.imageUrl && <img src={viewingEvent.imageUrl} alt={viewingEvent.title} className="max-h-56 w-full object-cover" />}
+            <div className="space-y-3 p-5 text-sm text-gray-600">
+              <p className="whitespace-pre-wrap">{viewingEvent.description || 'Sin descripción.'}</p>
+              <p><strong>Fecha:</strong> {formatEventDate(viewingEvent.date)}</p>
+              <p><strong>Horario:</strong> {viewingEvent.timeStart} – {viewingEvent.timeEnd}</p>
+              <p><strong>Lugar:</strong> {viewingEvent.location}</p>
+              {viewingEvent.capacity != null && <p><strong>Capacidad:</strong> {viewingEvent.capacity}</p>}
+              {viewingEvent.scope === 'specific' && <p><strong>Dirigido a:</strong> {viewingEvent.targetGrade || ''} {viewingEvent.targetSection || ''}</p>}
+            </div>
+          </section>
         </div>
       )}
     </div>

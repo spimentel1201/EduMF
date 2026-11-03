@@ -14,7 +14,7 @@ import InventoryLabelPreview from '@/components/InventoryLabelPreview';
 import { inventoryService } from '@/services/inventoryService';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { generateInventoryLabelsPDF } from '@/utils/inventoryLabels';
-import type { InventoryItem } from '@/types/inventory';
+import type { InventoryAmbiente, InventoryItem } from '@/types/inventory';
 
 const MAX_LABELS = 200;
 
@@ -33,6 +33,7 @@ export default function InventoryLabelsPage() {
   );
 
   const [search, setSearch] = useState('');
+  const [ambiente, setAmbiente] = useState('');
   const [selected, setSelected] = useState<string[]>(initialIds);
 
   useEffect(() => {
@@ -40,8 +41,17 @@ export default function InventoryLabelsPage() {
   }, [initialIds]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory-labels-source', search],
-    queryFn: () => inventoryService.getAll({ limit: 500, search: search || undefined }),
+    queryKey: ['inventory-labels-source', search, ambiente],
+    queryFn: () => inventoryService.getAll({
+      limit: 500,
+      search: search || undefined,
+      ambiente: ambiente || undefined,
+    }),
+  });
+
+  const { data: ambientes = [] } = useQuery<InventoryAmbiente[]>({
+    queryKey: ['inventory-ambientes'],
+    queryFn: inventoryService.getAmbientes,
   });
 
   const items = data?.data ?? [];
@@ -80,6 +90,23 @@ export default function InventoryLabelsPage() {
   const selectVisible = () => {
     const visibleIds = items.map((item) => item.id);
     setSelected((prev) => Array.from(new Set([...prev, ...visibleIds])).slice(0, MAX_LABELS));
+  };
+
+  const selectAmbiente = async () => {
+    if (!ambiente) {
+      toast.error('Selecciona un ambiente primero');
+      return;
+    }
+    try {
+      const firstPage = await inventoryService.getAll({ ambiente, page: 1, limit: MAX_LABELS });
+      const ids = firstPage.data.map((item) => item.id);
+      if (firstPage.total > MAX_LABELS) {
+        toast.error(`El ambiente tiene ${firstPage.total} bienes; el máximo por lote es ${MAX_LABELS}.`);
+      }
+      setSelected(ids);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudieron cargar los bienes del ambiente');
+    }
   };
 
   return (
@@ -133,6 +160,26 @@ export default function InventoryLabelsPage() {
               />
             </div>
 
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={ambiente}
+                onChange={(event) => setAmbiente(event.target.value)}
+                className="min-w-0 flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl"
+              >
+                <option value="">Seleccionar por ambiente…</option>
+                {ambientes.map((item) => (
+                  <option key={item.id} value={item.id}>{item.nombre}</option>
+                ))}
+              </select>
+              <button
+                onClick={selectAmbiente}
+                disabled={!ambiente}
+                className="px-3 py-2 rounded-xl text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-40"
+              >
+                Agregar bienes del ambiente
+              </button>
+            </div>
+
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-gray-400">
                 {selected.length} seleccionados
@@ -145,6 +192,17 @@ export default function InventoryLabelsPage() {
                   className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-50 hover:bg-gray-100 text-gray-600 disabled:opacity-40"
                 >
                   Seleccionar visibles
+                </button>
+                <button
+                  onClick={async () => {
+                    const firstPage = await inventoryService.getAll({ limit: MAX_LABELS, search: search || undefined, ambiente: ambiente || undefined });
+                    setSelected(firstPage.data.map((item) => item.id));
+                    if (firstPage.total > MAX_LABELS) toast.error(`Mostrando selección máxima de ${MAX_LABELS} bienes.`);
+                  }}
+                  disabled={total === 0}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-50 hover:bg-gray-100 text-gray-600 disabled:opacity-40"
+                >
+                  Seleccionar resultados
                 </button>
                 <button
                   onClick={() => setSelected([])}

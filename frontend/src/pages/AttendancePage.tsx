@@ -11,6 +11,7 @@ import { attendanceService } from '../services/attendanceService';
 import { sectionService } from '../services/sectionService';
 import { enrollmentService } from '../services/enrollmentService';
 import { useTranslation } from 'react-i18next';
+import DataLoader from '@/components/DataLoader';
 import { toast } from 'react-hot-toast';
 
 interface Student {
@@ -234,12 +235,7 @@ export default function AttendancePage() {
 
       {/* ── Loading ── */}
       {isLoading && selectedSection && (
-        <div className="flex items-center justify-center py-12 gap-3 text-gray-400">
-          <ArrowPathIcon className="w-5 h-5 animate-spin" />
-          <span className="text-sm">
-            {loadingExisting ? 'Cargando registros existentes…' : 'Cargando estudiantes…'}
-          </span>
-        </div>
+        <DataLoader label={loadingExisting ? 'Cargando registros existentes' : 'Cargando estudiantes'} icon={UserGroupIcon} className="rounded-2xl border border-gray-100" />
       )}
 
       {/* ── No section selected ── */}

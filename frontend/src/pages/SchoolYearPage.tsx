@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { SchoolYearStatus } from '../types/academic';
 import { schoolYearService } from '../services/schoolYearService';
+import DataLoader from '@/components/DataLoader';
 
 const STATUS_STYLES: Record<SchoolYearStatus, { bg: string; text: string }> = {
   Activo:     { bg: 'bg-green-100', text: 'text-green-700'  },
@@ -36,14 +37,6 @@ export default function SchoolYearPage() {
     const matchesStatus = !statusFilter || year.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -122,7 +115,7 @@ export default function SchoolYearPage() {
 
       {/* ── Table ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="relative min-h-[240px] overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100" style={{ background: '#f8faf9' }}>
@@ -157,6 +150,7 @@ export default function SchoolYearPage() {
               )}
             </tbody>
           </table>
+          {isLoading && <DataLoader label="Cargando años escolares" icon={CalendarIcon} className="absolute inset-0 z-10 min-h-full" />}
         </div>
         <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
           <p className="text-xs text-gray-400">{filtered.length} año{filtered.length !== 1 ? 's' : ''}</p>

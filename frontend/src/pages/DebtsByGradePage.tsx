@@ -7,10 +7,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { XMarkIcon, UserIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, UserIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { treasuryService, GradeStats, SectionStudent } from '../services/treasuryService';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
+import DataLoader from '@/components/DataLoader';
 
 function fmt(amount: any): string {
   const val = amount?.$numberDecimal ?? amount;
@@ -87,7 +88,7 @@ function SectionStudentsModal({ sectionId, sectionName, onClose }: SectionModalP
         {/* Lista de alumnos */}
         <div className="flex-1 overflow-y-auto px-8 py-5">
           {loading ? (
-            <p className="text-center text-sm text-gray-400 py-8">Cargando alumnos...</p>
+            <DataLoader label="Cargando alumnos" icon={UserIcon} className="min-h-[220px] rounded-xl" />
           ) : error ? (
             <p className="text-center text-sm text-red-500 py-8">{error}</p>
           ) : students.length === 0 ? (
@@ -327,9 +328,7 @@ export default function DebtsByGradePage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-24 text-gray-400 text-sm font-medium">
-          Cargando estadísticas...
-        </div>
+        <DataLoader label="Cargando estadísticas" icon={ChartBarIcon} className="min-h-[300px] rounded-2xl border border-gray-100" />
       ) : error ? (
         <div className="flex items-center justify-center py-24 text-red-500 text-sm font-medium">
           {error}

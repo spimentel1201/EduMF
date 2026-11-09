@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { STAFF_ROLES, STAFF_STATUSES } from '@/types/staff';
 import Pagination from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
+import DataLoader from '@/components/DataLoader';
+import { BriefcaseIcon } from '@heroicons/react/24/outline';
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   Docente:        { bg: 'bg-blue-100',   text: 'text-blue-700'   },
@@ -48,14 +50,6 @@ export default function StaffPage() {
   const handleSearch = (value: string) => { setSearchTerm(value); setCurrentPage(1); };
   const handleRole   = (value: string) => { setSelectedRole(value); setCurrentPage(1); };
   const handleStatus = (value: string) => { setSelectedStatus(value); setCurrentPage(1); };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -121,7 +115,7 @@ export default function StaffPage() {
 
       {/* ── Table ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="relative min-h-[280px] overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100" style={{ background: '#f8faf9' }}>
@@ -182,6 +176,7 @@ export default function StaffPage() {
               )}
             </tbody>
           </table>
+          {isLoading && <DataLoader label="Cargando personal" icon={BriefcaseIcon} className="absolute inset-0 z-10 min-h-full" />}
         </div>
 
         <Pagination

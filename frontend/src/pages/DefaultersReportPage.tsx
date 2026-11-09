@@ -17,6 +17,7 @@ import { saveAs } from 'file-saver';
 import { treasuryService, Debt } from '../services/treasuryService';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
+import DataLoader from '@/components/DataLoader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ function StudentHistoryModal({ studentId, studentName, onClose }: StudentHistory
         {/* Table */}
         <div className="flex-1 overflow-y-auto px-8 py-5">
           {loading ? (
-            <p className="text-center text-sm text-gray-400 py-8">Cargando historial...</p>
+            <DataLoader label="Cargando historial" icon={TableCellsIcon} className="min-h-[220px] rounded-xl" />
           ) : error ? (
             <p className="text-center text-sm text-red-500 py-8">{error}</p>
           ) : debts.length === 0 ? (
@@ -388,9 +389,7 @@ export default function DefaultersReportPage() {
 
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-gray-400 text-sm font-medium">
-              Cargando morosos...
-            </div>
+            <DataLoader label="Cargando morosos" icon={UsersIcon} className="min-h-[300px]" />
           ) : error ? (
             <div className="flex items-center justify-center py-16 text-red-500 text-sm font-medium">
               {error}

@@ -22,6 +22,7 @@ import {
   SaveAttendanceEntry,
 } from '../services/eventService';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import DataLoader from '@/components/DataLoader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AttendanceStatus = 'present' | 'absent' | null;
@@ -610,14 +611,7 @@ export default function EventAttendancePage() {
   const isLoading = eventLoading || studentsLoading;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="flex flex-col items-center gap-3 text-gray-400">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-          <p className="text-sm">Cargando datos del evento…</p>
-        </div>
-      </div>
-    );
+    return <DataLoader label="Cargando datos del evento" icon={CalendarDaysIcon} className="min-h-[320px] rounded-2xl border border-gray-100" />;
   }
 
   const isViewOnly = mode === 'view';

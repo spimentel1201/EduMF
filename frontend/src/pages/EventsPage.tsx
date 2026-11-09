@@ -15,6 +15,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { eventService, EventDTO, EventCategory } from '../services/eventService';
+import DataLoader from '@/components/DataLoader';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORY_STYLES: Record<EventCategory, { bg: string; text: string }> = {
@@ -270,9 +271,7 @@ export default function EventsPage() {
 
       {/* ── Loading Spinner ── */}
       {loading && (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin" />
-        </div>
+        <DataLoader label="Cargando eventos" icon={CalendarDaysIcon} className="min-h-[340px] rounded-2xl border border-gray-100" />
       )}
 
       {/* ── Error Message ── */}

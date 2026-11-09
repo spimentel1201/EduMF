@@ -12,6 +12,7 @@ import autoTable from 'jspdf-autotable';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { addInstitutionHeaderToPDF, addInstitutionHeaderToSheet } from '@/utils/institutionHeader';
 import { useAuth } from '@/contexts/AuthContext';
+import DataLoader from '@/components/DataLoader';
 import {
   LineChart,
   Line,
@@ -786,9 +787,7 @@ export default function MonthlyAttendanceReportPage() {
           {activeTab === 'heatmap' && (
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-                </div>
+                <DataLoader label="Cargando reporte de asistencia" icon={UserGroupIcon} className="min-h-[300px] rounded-xl" />
               ) : heatmapData ? (
                 <>
                   {/* Legend */}

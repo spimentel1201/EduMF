@@ -33,6 +33,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import DataLoader from '@/components/DataLoader';
 
 // Animated Counter Component
 const AnimatedNumber = ({ value, suffix = '' }: { value: number; suffix?: string }) => {
@@ -195,14 +196,7 @@ export default function DashboardPage() {
   const currentTime = format(new Date(), 'HH:mm');
 
   if (statsLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Cargando dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DataLoader label="Cargando resumen del tablero" icon={ChartBarIcon} className="min-h-[360px] rounded-2xl border border-gray-100" />;
   }
 
   return (

@@ -26,6 +26,7 @@ import {
 } from '../services/treasuryService';
 import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
+import DataLoader from '@/components/DataLoader';
 
 function fmt(amount: string): string {
   return 'S/ ' + parseFloat(amount).toLocaleString('es-PE', {
@@ -633,7 +634,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-[2rem] border border-[#EBE8DD] shadow-sm overflow-hidden mb-8">
+      <div className="relative min-h-[280px] bg-white rounded-[2rem] border border-[#EBE8DD] shadow-sm overflow-hidden mb-8">
         <div className="px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EBE8DD]">
           <h2 className="text-[1.1rem] font-bold text-gray-800">Lista de Cobros</h2>
           <div className="flex flex-wrap items-center gap-3">
@@ -657,9 +658,7 @@ export default function PaymentsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          {loadingTable ? (
-            <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Cargando cobros...</div>
-          ) : tableError ? (
+          {tableError && debts.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-red-500 text-sm">{tableError}</div>
           ) : debts.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-gray-400 text-sm">
@@ -667,7 +666,9 @@ export default function PaymentsPage() {
               <Link to="/payments/new" className="ml-1 text-[#538f65] font-semibold hover:underline">Crear el primero</Link>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[900px]">
+            <>
+            {tableError && <p role="alert" className="mx-6 mt-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{tableError}</p>}
+            <table aria-busy={loadingTable} className="w-full text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="border-b border-[#EBE8DD]">
                   <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Alumno</th>
@@ -770,6 +771,7 @@ export default function PaymentsPage() {
                 })}
               </tbody>
             </table>
+            </>
           )}
         </div>
 
@@ -803,6 +805,10 @@ export default function PaymentsPage() {
               </button>
             </div>
           </div>
+        )}
+
+        {loadingTable && (
+          <DataLoader label="Cargando cobros" className="absolute inset-0 z-20 min-h-full backdrop-blur-[2px]" />
         )}
       </div>
 

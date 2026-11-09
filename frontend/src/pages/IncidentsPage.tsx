@@ -26,6 +26,7 @@ import {
     type Incident
 } from '@/types/incidents';
 import toast from 'react-hot-toast';
+import DataLoader from '@/components/DataLoader';
 
 export default function IncidentsPage() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -132,14 +133,6 @@ export default function IncidentsPage() {
             deleteMutation.mutate(id);
         }
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            </div>
-        );
-    }
 
     if (error) {
         return (
@@ -269,6 +262,7 @@ export default function IncidentsPage() {
 
             {/* Incidents Table */}
             <div className="bg-white rounded-[2rem] border border-[#EBE8DD] overflow-hidden shadow-sm">
+                <div className="relative min-h-[280px]">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -359,6 +353,8 @@ export default function IncidentsPage() {
                     </tbody>
                 </table>
             </div>
+                {isLoading && <DataLoader label="Cargando incidencias" icon={ExclamationTriangleIcon} className="absolute inset-0 z-10 min-h-full" />}
+                </div>
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (

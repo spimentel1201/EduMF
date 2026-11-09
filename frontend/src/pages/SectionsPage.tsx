@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sectionService } from '../services/sectionService';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import DataLoader from '@/components/DataLoader';
 
 const LEVEL_COLORS: Record<string, { bg: string; text: string }> = {
   Inicial:     { bg: 'bg-amber-100',  text: 'text-amber-700'  },
@@ -49,14 +50,6 @@ export default function SectionsPage() {
   const levels = ['Inicial', 'Primaria', 'Secundaria'];
 
 
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -144,7 +137,7 @@ export default function SectionsPage() {
 
       {/* ── Table ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="relative min-h-[260px] overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100" style={{ background: '#f8faf9' }}>
@@ -205,6 +198,7 @@ export default function SectionsPage() {
               )}
             </tbody>
           </table>
+          {isLoading && <DataLoader label={t('sections.title')} icon={AcademicCapIcon} className="absolute inset-0 z-10 min-h-full" />}
         </div>
         <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
           <p className="text-xs text-gray-400">Mostrando {sections.length} de {totalSections} sección{totalSections !== 1 ? 'es' : ''}</p>

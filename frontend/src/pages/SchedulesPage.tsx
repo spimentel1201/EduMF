@@ -6,6 +6,7 @@ import { courseScheduleService } from '../services/courseScheduleService';
 import { sectionService } from '../services/sectionService';
 import { CourseSchedule, Section } from '../types/academic';
 import { useTranslation } from 'react-i18next';
+import DataLoader from '@/components/DataLoader';
 
 const DAY_MAP: Record<string, string> = {
   Lunes: 'Lunes', Martes: 'Martes', Miércoles: 'Miércoles',
@@ -61,14 +62,6 @@ export default function SchedulesPage() {
       grouped[s.timeSlotId.startTime][s.dayOfWeek].push(s);
     }
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -141,7 +134,7 @@ export default function SchedulesPage() {
 
       {/* ── Grid View ── */}
       {viewMode === 'grid' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="relative min-h-[260px] bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -181,12 +174,13 @@ export default function SchedulesPage() {
               </tbody>
             </table>
           </div>
+          {isLoading && <DataLoader label="Cargando horarios" icon={TableCellsIcon} className="absolute inset-0 z-10 min-h-full" />}
         </div>
       )}
 
       {/* ── List View ── */}
       {viewMode === 'list' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="relative min-h-[260px] bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -222,6 +216,7 @@ export default function SchedulesPage() {
               </tbody>
             </table>
           </div>
+          {isLoading && <DataLoader label="Cargando horarios" icon={ListBulletIcon} className="absolute inset-0 z-10 min-h-full" />}
           <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
             <p className="text-xs text-gray-400">{filtered.length} horario{filtered.length !== 1 ? 's' : ''}</p>
           </div>

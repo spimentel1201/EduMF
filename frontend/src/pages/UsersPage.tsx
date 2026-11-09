@@ -5,12 +5,14 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
   ClipboardDocumentListIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { userService } from '../services/userService';
 import { useTranslation } from 'react-i18next';
 import IncidentTimeline from '@/components/IncidentTimeline';
 import Pagination from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
+import DataLoader from '@/components/DataLoader';
 
 const ROLE_LABELS: Record<string, { label: string; bg: string; text: string }> = {
   admin:   { label: 'Admin',    bg: 'bg-purple-100', text: 'text-purple-700' },
@@ -53,14 +55,6 @@ export default function UsersPage() {
     setSelectedUser({ id: userId, name: userName });
     setTimelineOpen(true);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -128,7 +122,7 @@ export default function UsersPage() {
 
       {/* ── Table ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="relative min-h-[280px] overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100" style={{ background: '#f8faf9' }}>
@@ -203,6 +197,7 @@ export default function UsersPage() {
               )}
             </tbody>
           </table>
+          {isLoading && <DataLoader label="Cargando usuarios" icon={UserGroupIcon} className="absolute inset-0 z-10 min-h-full" />}
         </div>
 
         <Pagination

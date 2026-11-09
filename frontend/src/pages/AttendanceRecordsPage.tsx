@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import DataLoader from '@/components/DataLoader';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -205,9 +206,7 @@ export default function AttendanceRecordsPage() {
 
       {/* ── Loading ── */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-        </div>
+        <DataLoader label="Cargando registros de asistencia" icon={CalendarDaysIcon} className="rounded-2xl border border-gray-100" />
       )}
 
       {/* ── Empty state: no search yet ── */}

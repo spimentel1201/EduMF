@@ -11,6 +11,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { timeSlotService } from '@/services/timeSlotService';
 import type { TimeSlot } from '@/types/academic';
 import { useTranslation } from 'react-i18next';
+import DataLoader from '@/components/DataLoader';
 
 const TYPE_STYLES: Record<string, { bg: string; text: string }> = {
   Clase:    { bg: 'bg-blue-100',   text: 'text-blue-700'   },
@@ -43,14 +44,6 @@ export default function TimeSlotsPage() {
       deleteMutation.mutate(ts.id);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -91,7 +84,7 @@ export default function TimeSlotsPage() {
       </div>
 
       {/* ── Empty state ── */}
-      {timeSlots.length === 0 ? (
+      {timeSlots.length === 0 && !isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <ClockIcon className="w-12 h-12 mb-3 opacity-30" />
           <p className="text-sm font-medium">{t('timeSlots.noTimeSlots')}</p>
@@ -108,7 +101,7 @@ export default function TimeSlotsPage() {
       ) : (
         /* ── Table ── */
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="relative min-h-[250px] overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100" style={{ background: '#f8faf9' }}>
@@ -182,6 +175,7 @@ export default function TimeSlotsPage() {
                 })}
               </tbody>
             </table>
+            {isLoading && <DataLoader label={t('timeSlots.title')} icon={ClockIcon} className="absolute inset-0 z-10 min-h-full" />}
           </div>
           <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-gray-500">

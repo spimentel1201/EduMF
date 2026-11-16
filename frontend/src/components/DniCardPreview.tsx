@@ -75,11 +75,11 @@ export function DniCardFrente({
 
       {/* Banda DIE */}
       <div
-        className="absolute inset-x-[2%] top-[17%] h-[8%] flex items-center px-[1.5%]"
+        className="absolute inset-x-[2%] top-[17%] h-[8%] flex items-center justify-center px-[1.5%]"
         style={{ background: '#facd2d' }}
       >
         <p
-          className="font-bold"
+          className="font-bold text-center"
           style={{ color: INK, fontSize: 'clamp(4px, 6.4cqw, 7.5px)' }}
         >
           DOCUMENTO DE IDENTIDAD ESCOLAR — DIE
@@ -88,7 +88,7 @@ export function DniCardFrente({
 
       {/* Columna izquierda: CUI vertical + foto + apellido */}
       <div
-        className="absolute left-[2.6%] top-[29%] w-[24%] h-[54%] flex"
+        className="absolute left-[4.4%] top-[29%] w-[24%] h-[54%] flex"
         style={{ containerType: 'inline-size' }}
       >
         <div className="flex items-center justify-center w-[18%] h-full">
@@ -293,8 +293,8 @@ export function DniCardReverso({ dni }: { dni: DniEscolar }) {
           Dirección:
         </p>
         <p
-          className="font-bold truncate"
-          style={{ fontSize: 'clamp(3px, 15cqw, 7px)', marginTop: '3%' }}
+          className="font-bold leading-[1.25]"
+          style={{ fontSize: 'clamp(3px, 14cqw, 6.6px)', marginTop: '3%' }}
         >
           {dni.direccion || '—'}
         </p>

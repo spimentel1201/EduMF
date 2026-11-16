@@ -163,10 +163,10 @@ function drawFrente(
   doc.rect(x + 1.8, y + 9.6, CARD_W - 3.6, 4.2, 'F');
   setText(doc, BLACK);
   fitFont(doc, 'helvetica', 'bold', 'DOCUMENTO DE IDENTIDAD ESCOLAR — DIE', 6.4, 4.4, 78);
-  doc.text('DOCUMENTO DE IDENTIDAD ESCOLAR — DIE', x + 3.2, y + 12.6);
+  doc.text('DOCUMENTO DE IDENTIDAD ESCOLAR — DIE', x + CARD_W / 2, y + 12.6, { align: 'center' });
 
   // ── Foto + número vertical ──
-  const PHOTO_X = x + 3.2;
+  const PHOTO_X = x + 5.2;
   const PHOTO_Y = y + 16.2;
   const PHOTO_W = 19;
   const PHOTO_H = 25;
@@ -186,11 +186,11 @@ function drawFrente(
   setText(doc, BLACK);
   doc.setFont('helvetica', 'bold');
   fitFont(doc, 'helvetica', 'bold', dni.cui, 5.6, 3, PHOTO_H - 2);
-  doc.text(dni.cui, x + 2.2, y + 39.8, { angle: 90 });
+  doc.text(dni.cui, x + 4.2, y + 39.8, { angle: 90 });
 
   // Apellido bajo la foto
   fitFont(doc, 'helvetica', 'bold', dni.primerApellido, 5.8, 3.5, 20);
-  doc.text(truncate(dni.primerApellido, 20), x + 12.7, y + 44.2, { align: 'center' });
+  doc.text(truncate(dni.primerApellido, 20), PHOTO_X + PHOTO_W / 2, y + 44.2, { align: 'center' });
 
   // ── Campos ──
   const COL_X = x + 28.5;
@@ -318,7 +318,7 @@ function drawReverso(doc: jsPDF, x: number, y: number, dni: DniEscolar) {
   ubicacion('Provincia', dni.provincia || '', x + 33, 24);
   ubicacion('Distrito', dni.distrito || '', x + 52, 28);
 
-  // ── Dirección ──
+  // ── Dirección (texto completo con auto-ajuste, sin recortar) ──
   setText(doc, BLACK);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(5);
@@ -329,10 +329,10 @@ function drawReverso(doc: jsPDF, x: number, y: number, dni: DniEscolar) {
     'bold',
     dni.direccion || '',
     6.2,
-    3.4,
-    CARD_W - 10
+    3.2,
+    CARD_W - 6
   );
-  doc.text(truncate(dni.direccion || '', 52), x + 3, y + 37.8);
+  doc.text(dni.direccion || '', x + 3, y + 37.8);
 
   // ── Observaciones ──
   doc.setFontSize(5);

@@ -43,6 +43,11 @@ import InventoryItemFormPage from './pages/InventoryItemFormPage';
 import InventoryImportPage from './pages/InventoryImportPage';
 import InventoryLabelsPage from './pages/InventoryLabelsPage';
 import PublicInventoryItemPage from './pages/PublicInventoryItemPage';
+import DniEscolarPage from '@/pages/DniEscolarPage';
+import DniEscolarFormPage from '@/pages/DniEscolarFormPage';
+import DniEscolarGeneratePage from '@/pages/DniEscolarGeneratePage';
+import DniEscolarPhotosPage from '@/pages/DniEscolarPhotosPage';
+import DniEscolarPrintPage from '@/pages/DniEscolarPrintPage';
 
 const queryClient = new QueryClient();
 
@@ -101,6 +106,12 @@ function App() {
               <Route path="inventory/:id/edit" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />
               <Route path="inventory/import" element={<RoleRoute module="inventoryWrite"><InventoryImportPage /></RoleRoute>} />
               <Route path="inventory/labels" element={<RoleRoute module="inventory"><InventoryLabelsPage /></RoleRoute>} />
+              <Route path="dni-escolar" element={<RoleRoute module="dni"><DniEscolarPage /></RoleRoute>} />
+              <Route path="dni-escolar/new" element={<RoleRoute module="dniWrite"><DniEscolarFormPage /></RoleRoute>} />
+              <Route path="dni-escolar/:id/edit" element={<RoleRoute module="dniWrite"><DniEscolarFormPage /></RoleRoute>} />
+              <Route path="dni-escolar/generar" element={<RoleRoute module="dniWrite"><DniEscolarGeneratePage /></RoleRoute>} />
+              <Route path="dni-escolar/fotos" element={<RoleRoute module="dniWrite"><DniEscolarPhotosPage /></RoleRoute>} />
+              <Route path="dni-escolar/print" element={<RoleRoute module="dni"><DniEscolarPrintPage /></RoleRoute>} />
             </Route>
           </Routes>
         </AuthProvider>

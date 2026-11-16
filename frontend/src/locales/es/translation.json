@@ -351,6 +351,13 @@
     "import": "Importar Excel",
     "labels": "Etiquetas"
   },
+  "dniEscolar": {
+    "title": "DNI Escolar",
+    "catalog": "Catálogo",
+    "generate": "Generar desde matrícula",
+    "photos": "Cargar fotos ZIP",
+    "print": "Imprimir"
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Error",

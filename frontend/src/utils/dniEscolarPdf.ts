@@ -130,7 +130,7 @@ function drawFrente(
   dni: DniEscolar,
   settings?: InstitutionSettings
 ) {
-  drawCardBase(doc, x, y, true);
+  drawCardBase(doc, x, y, false);
 
   const segApellido = (dni.segundoApellido || '').trim();
   const nombres = `${dni.primerApellido} ${segApellido}`.trim();

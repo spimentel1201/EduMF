@@ -15,8 +15,6 @@ import {
 import { dniEscolarService } from '@/services/dniEscolarService';
 import type { SubirFotosResult } from '@/types/dniEscolar';
 
-const MAX_DIM = 300;
-const MAX_DIM_H = 400;
 const JPEG_QUALITY = 0.72;
 const CHUNK_SIZE = 150;
 
@@ -33,21 +31,38 @@ function cuiDesdeNombre(nombre: string): string {
   return match ? match[1].toUpperCase() : '';
 }
 
-/** Lee una imagen y la redimensiona a máx 300×400 (JPEG). */
+/** Recorta al centro en proporción 3:4 y redimensiona a 300×400 (JPEG). */
 function redimensionar(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      const scale = Math.min(MAX_DIM / img.width, MAX_DIM_H / img.height, 1);
+      const TARGET_W = 300;
+      const TARGET_H = 400;
+      const targetAspect = TARGET_W / TARGET_H;
+      const srcAspect = img.width / img.height;
+
+      // Recorte centrado al 3:4 para que la foto llene el marco sin deformarse.
+      let sx = 0;
+      let sy = 0;
+      let sw = img.width;
+      let sh = img.height;
+      if (srcAspect > targetAspect) {
+        sw = img.height * targetAspect;
+        sx = (img.width - sw) / 2;
+      } else if (srcAspect < targetAspect) {
+        sh = img.width / targetAspect;
+        sy = (img.height - sh) / 2;
+      }
+
       const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
+      canvas.width = TARGET_W;
+      canvas.height = TARGET_H;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         resolve(dataUrl);
         return;
       }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H);
       resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
     };
     img.onerror = () => resolve(dataUrl);

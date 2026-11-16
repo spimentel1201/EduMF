@@ -4,7 +4,6 @@ import { formatDniFecha, formatDniFechaNacimiento, mrzFor } from '@/utils/dniEsc
 
 const DEFAULT_INSTITUTION = 'I.E. FRANCISCO LÓPEZ DE ROMAÑA';
 
-const MAROON = '#8b1a12';
 const GREEN = '#15773c';
 const INK = '#0a0a0a';
 
@@ -41,9 +40,6 @@ export function DniCardFrente({
       className="relative w-full rounded-md overflow-hidden shadow-sm border"
       style={{ aspectRatio: '85.6 / 54', background: '#ffdf3e', borderColor: INK }}
     >
-      {/* Franja superior */}
-      <div className="absolute top-0 inset-x-0 h-[2.2%]" style={{ background: MAROON }} />
-
       {/* Encabezado */}
       <div className="absolute inset-x-[3%] top-[3.5%] flex items-start justify-between">
         <div className="min-w-0">

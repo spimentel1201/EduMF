@@ -108,7 +108,7 @@ function toDateInput(value?: string): string {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-/** Redimensiona una imagen a máx 300×400 (JPEG ~0.75) antes de guardarla. */
+/** Recorta al centro en proporción 3:4 y redimensiona a 300×400 (JPEG ~0.78). */
 async function resizePhoto(file: File): Promise<string> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -120,18 +120,33 @@ async function resizePhoto(file: File): Promise<string> {
   return new Promise<string>((resolve) => {
     const img = new Image();
     img.onload = () => {
-      const MAX_W = 300;
-      const MAX_H = 400;
-      const scale = Math.min(MAX_W / img.width, MAX_H / img.height, 1);
+      const TARGET_W = 300;
+      const TARGET_H = 400;
+      const targetAspect = TARGET_W / TARGET_H;
+      const srcAspect = img.width / img.height;
+
+      // Recorte centrado al 3:4 para que la foto llene el marco sin deformarse.
+      let sx = 0;
+      let sy = 0;
+      let sw = img.width;
+      let sh = img.height;
+      if (srcAspect > targetAspect) {
+        sw = img.height * targetAspect;
+        sx = (img.width - sw) / 2;
+      } else if (srcAspect < targetAspect) {
+        sh = img.width / targetAspect;
+        sy = (img.height - sh) / 2;
+      }
+
       const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
+      canvas.width = TARGET_W;
+      canvas.height = TARGET_H;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         resolve(dataUrl);
         return;
       }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H);
       resolve(canvas.toDataURL('image/jpeg', 0.78));
     };
     img.onerror = () => resolve(dataUrl);

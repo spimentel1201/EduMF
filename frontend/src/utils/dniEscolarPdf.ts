@@ -132,8 +132,11 @@ function drawFrente(
 ) {
   drawCardBase(doc, x, y, false);
 
-  const segApellido = (dni.segundoApellido || '').trim();
-  const nombres = `${dni.primerApellido} ${segApellido}`.trim();
+  // Apellidos y nombres siempre en mayúsculas, vengan como vengan de la BD.
+  const primerApellido = (dni.primerApellido || '').toUpperCase();
+  const segApellido = ((dni.segundoApellido || '').trim()).toUpperCase();
+  const preNombres = (dni.preNombres || '').toUpperCase();
+  const nombres = `${primerApellido} ${segApellido}`.trim();
 
   // ── Encabezado ──
   setText(doc, BLACK);
@@ -189,8 +192,8 @@ function drawFrente(
   doc.text(dni.cui, x + 4.2, y + 39.8, { angle: 90 });
 
   // Apellido bajo la foto
-  fitFont(doc, 'helvetica', 'bold', dni.primerApellido, 5.8, 3.5, 20);
-  doc.text(truncate(dni.primerApellido, 20), PHOTO_X + PHOTO_W / 2, y + 44.2, { align: 'center' });
+  fitFont(doc, 'helvetica', 'bold', primerApellido, 5.8, 3.5, 20);
+  doc.text(truncate(primerApellido, 20), PHOTO_X + PHOTO_W / 2, y + 44.2, { align: 'center' });
 
   // ── Campos ──
   const COL_X = x + 28.5;
@@ -218,9 +221,9 @@ function drawFrente(
     doc.text(truncate(value, 34), COL_X, valueY);
   };
 
-  campo('Primer Apellido', dni.primerApellido, y + 18.2, y + 21.4);
+  campo('Primer Apellido', primerApellido, y + 18.2, y + 21.4);
   campo('Segundo Apellido', segApellido, y + 24.6, y + 27.8);
-  campo('Pre Nombres', dni.preNombres, y + 31, y + 34.2);
+  campo('Pre Nombres', preNombres, y + 31, y + 34.2);
   campo('Nacimiento', formatDniFechaNacimiento(dni.fechaNacimiento), y + 37.4, y + 40.8, 'Fecha y Ubigeo');
   campo('Sexo', dni.sexo, y + 44.2, y + 47.4);
 

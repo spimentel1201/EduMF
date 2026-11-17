@@ -51,12 +51,14 @@ const DniEscolarSchema: Schema = new Schema(
       type: String,
       required: [true, 'El primer apellido es requerido'],
       trim: true,
+      uppercase: true,
     },
-    segundoApellido: { type: String, trim: true, default: '' },
+    segundoApellido: { type: String, trim: true, default: '', uppercase: true },
     preNombres: {
       type: String,
       required: [true, 'Los pre-nombres son requeridos'],
       trim: true,
+      uppercase: true,
     },
     sexo: {
       type: String,

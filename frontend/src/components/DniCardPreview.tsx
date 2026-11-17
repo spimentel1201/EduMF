@@ -109,7 +109,7 @@ export function DniCardFrente({
             className="font-bold text-center leading-[1.5] truncate"
             style={{ color: INK, fontSize: 'clamp(3px, 15cqw, 7px)' }}
           >
-            {dni.primerApellido}
+            {(dni.primerApellido || '').toUpperCase()}
           </p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export function DniCardFrente({
               className="font-bold truncate"
               style={{ fontSize: 'clamp(3px, 16cqw, 7px)', marginTop: '2%' }}
             >
-              {dni.primerApellido || '—'}
+              {(dni.primerApellido || '').toUpperCase() || '—'}
             </p>
           </div>
           <div>
@@ -139,7 +139,7 @@ export function DniCardFrente({
               className="font-bold truncate"
               style={{ fontSize: 'clamp(3px, 16cqw, 7px)', marginTop: '2%' }}
             >
-              {dni.segundoApellido || '—'}
+              {(dni.segundoApellido || '').toUpperCase() || '—'}
             </p>
           </div>
           <div>
@@ -150,7 +150,7 @@ export function DniCardFrente({
               className="font-bold truncate"
               style={{ fontSize: 'clamp(3px, 16cqw, 7px)', marginTop: '2%' }}
             >
-              {dni.preNombres || '—'}
+              {(dni.preNombres || '').toUpperCase() || '—'}
             </p>
           </div>
           <div>

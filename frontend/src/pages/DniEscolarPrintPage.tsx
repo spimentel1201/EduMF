@@ -7,6 +7,7 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   MagnifyingGlassIcon,
+  PlusIcon,
   PrinterIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -45,6 +46,8 @@ export default function DniEscolarPrintPage() {
   const [selected, setSelected] = useState<string[]>(initialIds);
   const [modo, setModo] = useState<'duplex' | 'frente' | 'reverso'>('duplex');
   const [calibracion, setCalibracion] = useState(loadCalibracion);
+  const [manualInput, setManualInput] = useState('');
+  const [agregandoManual, setAgregandoManual] = useState(false);
 
   useEffect(() => {
     setSelected(initialIds);
@@ -103,6 +106,68 @@ export default function DniEscolarPrintPage() {
       ...prev,
       [axis]: Math.min(5, Math.max(-5, Number((prev[axis] + delta).toFixed(1)))),
     }));
+  };
+
+  /**
+   * Agrega DNIs a la selección escribiendo los números de DNI/CUI,
+   * separados por comas, espacios o líneas (como la lista de QR).
+   */
+  const agregarPorDni = async () => {
+    const numeros = Array.from(
+      new Set(
+        manualInput
+          .split(/[\s,;]+/)
+          .map((value) => value.trim().toUpperCase())
+          .filter(Boolean)
+      )
+    );
+    if (numeros.length === 0) return;
+
+    setAgregandoManual(true);
+    const agregados: string[] = [];
+    const noEncontrados: string[] = [];
+
+    try {
+      for (const numero of numeros) {
+        // Primero en la lista ya cargada en pantalla
+        const local = dnis.find((d) => d.cui === numero);
+        if (local) {
+          if (!selected.includes(local.id) && !agregados.includes(local.id)) {
+            agregados.push(local.id);
+          }
+          continue;
+        }
+        // Si no está cargada, se busca en el servidor por CUI exacto
+        const respuesta = await dniEscolarService.getAll({ search: numero, limit: 10 });
+        const match = respuesta.data.find((d) => d.cui === numero);
+        if (match) {
+          if (!selected.includes(match.id) && !agregados.includes(match.id)) {
+            agregados.push(match.id);
+          }
+        } else {
+          noEncontrados.push(numero);
+        }
+      }
+
+      if (agregados.length > 0) {
+        setSelected((prev) =>
+          Array.from(new Set([...prev, ...agregados])).slice(0, MAX_PRINT)
+        );
+      }
+
+      if (noEncontrados.length > 0) {
+        toast.error(`No se encontraron: ${noEncontrados.join(', ')}`);
+      } else if (agregados.length > 0) {
+        toast.success(`${agregados.length} DNI(s) agregados`);
+      } else {
+        toast('Ya estaban seleccionados');
+      }
+      setManualInput('');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudo agregar los DNIs');
+    } finally {
+      setAgregandoManual(false);
+    }
   };
 
   return (
@@ -290,6 +355,36 @@ export default function DniEscolarPrintPage() {
                 className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500"
               />
             </div>
+
+            {/* Agregar por DNI (sin seleccionar todo el salón) */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Agregar por DNI: 63420256, ES202600012345…"
+                value={manualInput}
+                onChange={(event) => setManualInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    agregarPorDni();
+                  }
+                }}
+                className="flex-1 min-w-0 px-3 py-2 text-sm font-mono bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 uppercase"
+              />
+              <button
+                onClick={agregarPorDni}
+                disabled={!manualInput.trim() || agregandoManual}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white shadow-sm disabled:opacity-40 flex-shrink-0"
+                style={{ background: '#538f65' }}
+              >
+                <PlusIcon className="w-4 h-4" />
+                {agregandoManual ? 'Agregando…' : 'Agregar'}
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 -mt-1">
+              Escribe uno o varios números de DNI/CUI separados por comas, espacios o líneas.
+              Se agregan a la selección sin necesidad de buscarlos en la lista.
+            </p>
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-gray-400">

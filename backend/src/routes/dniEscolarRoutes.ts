@@ -5,6 +5,9 @@ import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+// Todas las rutas requieren sesión iniciada (igual que el resto de módulos).
+router.use(protect);
+
 /** Roles que pueden crear / editar / generar / cargar fotos. */
 const WRITE_ROLES = ['admin', 'Dirección', 'CIST', 'Auxiliar'];
 

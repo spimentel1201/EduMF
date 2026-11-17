@@ -53,7 +53,15 @@ export default function DniEscolarGeneratePage() {
   });
 
   const sectionsOfYear = useMemo(
-    () => sections.filter((section) => section.schoolYearId === schoolYearId),
+    () =>
+      sections.filter((section) => {
+        // schoolYearId puede venir poblado (objeto) o como string plano.
+        const yearId =
+          typeof section.schoolYearId === 'object' && section.schoolYearId !== null
+            ? (section.schoolYearId as any).id
+            : section.schoolYearId;
+        return yearId === schoolYearId;
+      }),
     [sections, schoolYearId]
   );
 

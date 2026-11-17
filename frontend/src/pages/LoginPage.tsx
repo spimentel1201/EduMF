@@ -29,7 +29,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 interface AttendanceNotification {
   studentName: string;
-  status: 'Presente' | 'Tardanza';
+  status: 'Presente' | 'Tardanza' | 'Salida';
   time: string;
   type: 'success' | 'error';
   message?: string;

@@ -12,18 +12,20 @@ import ApiError from '../middleware/ApiError';
  * @route   POST /api/attendances/qr-scan
  * @access  Public (no requiere autenticación — se usa desde la pantalla de login)
  *
- * Body: { dni: string }
+ * Body: { dni: string, tipo?: 'entrada' | 'salida' }
  *
  * Lógica:
  * 1. Buscar usuario por DNI
  * 2. Buscar matrícula activa en el año escolar activo
- * 3. Determinar estado según hora: antes de 08:10 → Presente, después → Tardanza
+ * 3. Entrada: estado según hora (antes de 08:10 → Presente, después → Tardanza)
+ *    Salida: guarda la hora en el detalle del día (crea el detalle si falta)
  * 4. Buscar o crear el registro de asistencia del día para esa sección
  * 5. Agregar/actualizar el detalle del estudiante
  */
 export const registerQRAttendance = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { dni } = req.body;
+    const { dni, tipo } = req.body;
+    const modo = tipo === 'salida' ? 'salida' : 'entrada';
 
     if (!dni || typeof dni !== 'string' || dni.trim() === '') {
       return next(new ApiError('El DNI es requerido', 400));
@@ -99,12 +101,18 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
         (d) => d.studentId.toString() === (student._id as mongoose.Types.ObjectId).toString()
       );
       if (detailIndex > -1) {
-        // Ya registrado hoy — actualizar estado
-        attendanceRecord.details[detailIndex].status = attendanceStatus;
+        if (modo === 'salida') {
+          // Registro de salida: guarda la hora sin tocar el estado de entrada
+          attendanceRecord.details[detailIndex].horaSalida = now;
+        } else {
+          // Entrada (re-escaneo): actualiza el estado
+          attendanceRecord.details[detailIndex].status = attendanceStatus;
+        }
       } else {
         attendanceRecord.details.push({
           studentId: student._id as mongoose.Types.ObjectId,
           status: attendanceStatus,
+          ...(modo === 'salida' ? { horaSalida: now } : {}),
         });
       }
       await attendanceRecord.save();
@@ -119,6 +127,7 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
         details: [{
           studentId: student._id,
           status: attendanceStatus,
+          ...(modo === 'salida' ? { horaSalida: now } : {}),
         }],
       });
     }
@@ -128,7 +137,8 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
       data: {
         studentName: `${student.firstName} ${student.lastName}`,
         dni: student.dni,
-        status: attendanceStatus,
+        status: modo === 'salida' ? 'Salida' : attendanceStatus,
+        tipo: modo,
         time: now.toISOString(),
         sectionId: enrollment.sectionId,
       },

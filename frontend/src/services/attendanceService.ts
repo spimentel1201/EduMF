@@ -103,13 +103,13 @@ export const attendanceService = {
     return response.data.data;
   },
 
-  qrScan: async (dni: string): Promise<{
+  qrScan: async (dni: string, tipo: 'entrada' | 'salida' = 'entrada'): Promise<{
     studentName: string;
     dni: string;
-    status: 'Presente' | 'Tardanza';
+    status: 'Presente' | 'Tardanza' | 'Salida';
     time: string;
   }> => {
-    const response = await api.post('/attendances/qr-scan', { dni });
+    const response = await api.post('/attendances/qr-scan', { dni, tipo });
     return response.data.data;
   },
 };

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import DataLoader from '@/components/DataLoader';
 import {
   MagnifyingGlassIcon,
@@ -9,10 +11,13 @@ import {
   ChevronRightIcon,
   CalendarDaysIcon,
   XMarkIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import { sectionService } from '../services/sectionService';
 import { studentService } from '../services/studentService';
 import { attendanceService } from '../services/attendanceService';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { addInstitutionHeaderToPDF } from '@/utils/institutionHeader';
 import { Section } from '../types/academic';
 import { Student } from '../types/users';
 import { AttendanceRecordDisplay, AttendanceFilterParams } from '../types/attendance';
@@ -56,6 +61,9 @@ export default function AttendanceRecordsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  const { data: institutionData } = useInstitutionSettings();
 
   const { data: sections } = useQuery<Section[]>({
     queryKey: ['sections'],
@@ -93,6 +101,67 @@ export default function AttendanceRecordsPage() {
     setDraft(EMPTY_DRAFT);
     setAppliedFilters(null);
     setCurrentPage(1);
+  }
+
+  /** Exporta a PDF todos los registros del filtro actual (no solo la página visible). */
+  async function handleExportPDF() {
+    if (!appliedFilters || exporting) return;
+    setExporting(true);
+    try {
+      const respuesta = await attendanceService.getAttendanceRecords({
+        ...appliedFilters,
+        page: 1,
+        limit: 1000,
+      });
+      const registros = respuesta.attendanceRecords;
+      if (registros.length === 0) return;
+
+      const doc = new jsPDF('landscape');
+      const startY = addInstitutionHeaderToPDF(
+        doc,
+        institutionData,
+        'Registros de Asistencia'
+      );
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(113, 128, 150);
+      const periodo = [
+        appliedFilters.startDate && formatDate(appliedFilters.startDate),
+        appliedFilters.endDate && formatDate(appliedFilters.endDate),
+      ].filter(Boolean).join(' al ');
+      const seccionNombre = appliedFilters.sectionId
+        ? sections?.find((s) => s.id === appliedFilters.sectionId)?.name
+        : 'Todas las secciones';
+      doc.text(`Período: ${periodo || 'Todos'}`, 14, startY);
+      doc.text(`Sección: ${seccionNombre || 'Todas'}`, 100, startY);
+      doc.text(`Registros: ${respuesta.totalRecords}`, 180, startY);
+
+      autoTable(doc, {
+        startY: startY + 7,
+        head: [['Fecha', 'Sección', 'Estudiante', 'Estado', 'Entrada', 'Salida', 'Observación']],
+        body: registros.map((r) => [
+          formatDate(r.date),
+          r.sectionName,
+          r.studentName,
+          r.status,
+          formatTime(r.horaEntrada || r.date),
+          r.horaSalida ? formatTime(r.horaSalida) : '—',
+          r.notes || '',
+        ]),
+        styles: { fontSize: 8, cellPadding: 1.6 },
+        headStyles: { fillColor: [83, 143, 101] }, // #538f65
+        columnStyles: {
+          0: { cellWidth: 22 },
+          4: { cellWidth: 18, halign: 'center' },
+          5: { cellWidth: 18, halign: 'center' },
+        },
+      });
+
+      doc.save(`Registros_Asistencia_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      setExporting(false);
+    }
   }
 
   function handlePageChange(page: number) {
@@ -192,6 +261,16 @@ export default function AttendanceRecordsPage() {
                 Limpiar
               </button>
             )}
+            {hasApplied && records.length > 0 && (
+              <button
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                {exporting ? 'Exportando…' : 'Exportar PDF'}
+              </button>
+            )}
             <button
               onClick={handleSearch}
               className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-colors"
@@ -235,7 +314,10 @@ export default function AttendanceRecordsPage() {
                     {t('attendanceRecords.table.date')}
                   </th>
                   <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
-                    Hora
+                    Entrada
+                  </th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
+                    Salida
                   </th>
                   <th className="px-5 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                     {t('attendanceRecords.table.status')}
@@ -245,7 +327,7 @@ export default function AttendanceRecordsPage() {
               <tbody className="divide-y divide-gray-50">
                 {records.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
+                    <td colSpan={6} className="text-center py-12 text-gray-400 text-sm">
                       <CalendarDaysIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
                       {t('attendanceRecords.noRecords')}
                     </td>
@@ -254,11 +336,16 @@ export default function AttendanceRecordsPage() {
                   records.map((record) => {
                     const style = STATUS_STYLES[record.status] ?? { bg: 'bg-gray-100', text: 'text-gray-600' };
                     return (
-                      <tr key={record.id} className="hover:bg-gray-50/50 transition-colors">
+                      <tr key={`${record.id}-${record.studentId}`} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-5 py-3 font-semibold text-gray-900">{record.studentName}</td>
                         <td className="px-5 py-3 text-gray-500">{record.sectionName}</td>
                         <td className="px-5 py-3 text-gray-500">{formatDate(record.date)}</td>
-                        <td className="px-5 py-3 text-gray-500 tabular-nums">{formatTime(record.date)}</td>
+                        <td className="px-5 py-3 text-gray-500 tabular-nums">
+                          {formatTime(record.horaEntrada || record.date)}
+                        </td>
+                        <td className="px-5 py-3 text-gray-500 tabular-nums">
+                          {record.horaSalida ? formatTime(record.horaSalida) : '—'}
+                        </td>
                         <td className="px-5 py-3">
                           <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}>
                             {record.status}

@@ -4,6 +4,8 @@ interface IAttendanceDetail {
   studentId: mongoose.Types.ObjectId;
   status: 'Presente' | 'Tardanza' | 'Ausente' | 'Justificado';
   notes?: string;
+  /** Hora de entrada del estudiante (registro QR en modo entrada). */
+  horaEntrada?: Date;
   /** Hora de salida del estudiante (registro QR en modo salida). */
   horaSalida?: Date;
 }
@@ -66,6 +68,9 @@ const AttendanceSchema: Schema = new Schema(
       notes: {
         type: String,
         trim: true,
+      },
+      horaEntrada: {
+        type: Date,
       },
       horaSalida: {
         type: Date,

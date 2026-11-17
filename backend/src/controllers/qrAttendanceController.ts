@@ -104,15 +104,19 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
         if (modo === 'salida') {
           // Registro de salida: guarda la hora sin tocar el estado de entrada
           attendanceRecord.details[detailIndex].horaSalida = now;
+        } else if (!attendanceRecord.details[detailIndex].horaEntrada) {
+          // Entrada (re-escaneo): actualiza el estado pero conserva la
+          // PRIMERA hora de entrada registrada en el día
+          attendanceRecord.details[detailIndex].horaEntrada = now;
+          attendanceRecord.details[detailIndex].status = attendanceStatus;
         } else {
-          // Entrada (re-escaneo): actualiza el estado
           attendanceRecord.details[detailIndex].status = attendanceStatus;
         }
       } else {
         attendanceRecord.details.push({
           studentId: student._id as mongoose.Types.ObjectId,
           status: attendanceStatus,
-          ...(modo === 'salida' ? { horaSalida: now } : {}),
+          ...(modo === 'entrada' ? { horaEntrada: now } : { horaSalida: now }),
         });
       }
       await attendanceRecord.save();
@@ -127,7 +131,7 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
         details: [{
           studentId: student._id,
           status: attendanceStatus,
-          ...(modo === 'salida' ? { horaSalida: now } : {}),
+          ...(modo === 'entrada' ? { horaEntrada: now } : { horaSalida: now }),
         }],
       });
     }

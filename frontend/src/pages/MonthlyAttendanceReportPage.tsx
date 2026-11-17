@@ -76,6 +76,7 @@ interface SectionComparison {
   justified: number;
   total: number;
   attendanceRate: number;
+  sinRegistros?: boolean;
 }
 
 // Day-of-week label (0=Sun … 6=Sat)
@@ -892,7 +893,14 @@ export default function MonthlyAttendanceReportPage() {
                         <div key={section._id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
                           <span className="text-xl">{getRankingEmoji(index)}</span>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm truncate">{section.sectionName}</p>
+                            <p className="font-semibold text-gray-900 text-sm truncate flex items-center gap-2">
+                              {section.sectionName}
+                              {section.sinRegistros && (
+                                <span className="text-[10px] font-medium text-gray-400 border border-gray-200 rounded-full px-2 py-0.5 flex-shrink-0">
+                                  Sin registros
+                                </span>
+                              )}
+                            </p>
                             <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                               <div
                                 className="h-1.5 rounded-full transition-all"

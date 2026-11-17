@@ -370,8 +370,9 @@ function fillPage(doc: jsPDF, items: DniEscolar[], settings: InstitutionSettings
 
 /**
  * Construye el documento PDF sin guardarlo (testeable / previsualizable).
- * `items` debe traer máximo 9 tarjetas: página 1 anversos, página 2 reversos
- * en las mismas coordenadas para dúplex.
+ * Parte `items` en bloques de 9 (grilla 3×3). Por cada bloque genera el par
+ * de páginas dúplex: página impar con anversos, siguiente con sus reversos en
+ * las mismas coordenadas — así cada hoja física lleva su propio reverso.
  * `calibracion` (mm) desplaza los reversos para compensar el desface dúplex
  * de la impresora.
  */
@@ -381,16 +382,20 @@ export function buildDniCardsPDF(
   calibracion?: { x: number; y: number }
 ): jsPDF {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  fillPage(doc, items, settings, drawFrente);
-  doc.addPage();
-
+  const porPagina = COLS * ROWS;
   const calX = Number(calibracion?.x) || 0;
   const calY = Number(calibracion?.y) || 0;
 
-  items.slice(0, COLS * ROWS).forEach((dni, index) => {
-    const { x, y } = cardPosition(index);
-    drawReverso(doc, x + calX, y + calY, dni);
-  });
+  for (let inicio = 0; inicio < items.length; inicio += porPagina) {
+    const bloque = items.slice(inicio, inicio + porPagina);
+    if (inicio > 0) doc.addPage();
+    fillPage(doc, bloque, settings, drawFrente);
+    doc.addPage();
+    bloque.forEach((dni, index) => {
+      const { x, y } = cardPosition(index);
+      drawReverso(doc, x + calX, y + calY, dni);
+    });
+  }
   return doc;
 }
 
@@ -444,15 +449,20 @@ export function generateDniCardsPDF(
     doc = buildDniCardsPDF(items, settings, calibracion);
   } else {
     doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    if (modo === 'frente') {
-      fillPage(doc, items, settings, drawFrente);
-    } else {
-      const calX = Number(calibracion?.x) || 0;
-      const calY = Number(calibracion?.y) || 0;
-      items.slice(0, COLS * ROWS).forEach((dni, index) => {
-        const { x, y } = cardPosition(index);
-        drawReverso(doc, x + calX, y + calY, dni);
-      });
+    const porPagina = COLS * ROWS;
+    const calX = Number(calibracion?.x) || 0;
+    const calY = Number(calibracion?.y) || 0;
+    for (let inicio = 0; inicio < items.length; inicio += porPagina) {
+      const bloque = items.slice(inicio, inicio + porPagina);
+      if (inicio > 0) doc.addPage();
+      if (modo === 'frente') {
+        fillPage(doc, bloque, settings, drawFrente);
+      } else {
+        bloque.forEach((dni, index) => {
+          const { x, y } = cardPosition(index);
+          drawReverso(doc, x + calX, y + calY, dni);
+        });
+      }
     }
   }
 

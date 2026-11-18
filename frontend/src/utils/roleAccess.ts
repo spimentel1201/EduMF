@@ -30,6 +30,8 @@ export const ROLE_ACCESS: Record<string, StaffRole[]> = {
   enrollments: ['Dirección', 'CIST', 'admin'],
   inventory:   ['Dirección', 'CIST', 'admin', 'Auxiliar', 'Docente', 'teacher'],
   inventoryWrite: ['Dirección', 'CIST', 'admin', 'Auxiliar'],
+  dni:         ['Dirección', 'CIST', 'admin', 'Auxiliar', 'Docente', 'teacher'],
+  dniWrite:    ['Dirección', 'CIST', 'admin', 'Auxiliar'],
 };
 
 /**

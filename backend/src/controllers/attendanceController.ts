@@ -7,6 +7,7 @@ import ApiError from '../middleware/ApiError';
 import mongoose from 'mongoose';
 import { startOfDay, endOfDay } from 'date-fns';
 import Staff from '../models/Staff';
+import Section from '../models/Section';
 import Schedule from '../models/CourseSchedule';
 
 export const validateAttendance = [
@@ -93,6 +94,14 @@ export const getAttendances = async (req: Request, res: Response, next: NextFunc
           },
           status: '$details.status',
           notes:  '$details.notes',
+          horaEntrada: { $dateToString: {
+            format: '%Y-%m-%dT%H:%M:%S.000Z',
+            date: '$details.horaEntrada',
+          } },
+          horaSalida: { $dateToString: {
+            format: '%Y-%m-%dT%H:%M:%S.000Z',
+            date: '$details.horaSalida',
+          } },
         },
       },
       { $sort: { date: -1 } },
@@ -658,6 +667,38 @@ export const getSectionsComparison = async (req: Request, res: Response, next: N
       },
       { $sort: { attendanceRate: -1 } }
     ]);
+
+    // Completar con las secciones que tienen alumnos matriculados pero sin
+    // registros en el mes (así el comparativo no deja secciones fuera).
+    const sectionsConAlumnos = await Section.find({
+      status: 'Activo',
+      currentStudents: { $gt: 0 },
+    })
+      .select('name')
+      .lean();
+
+    const conDatos = new Set(comparison.map((c) => String(c._id)));
+    for (const section of sectionsConAlumnos) {
+      if (conDatos.has(String(section._id))) continue;
+      comparison.push({
+        _id: section._id,
+        sectionName: section.name,
+        present: 0,
+        absent: 0,
+        late: 0,
+        justified: 0,
+        total: 0,
+        attendanceRate: 0,
+        sinRegistros: true,
+      } as any);
+    }
+    // Las sin datos van al final (empatan en 0% pero con registros parciales arriba)
+    comparison.sort((a: any, b: any) => {
+      const sinA = a.sinRegistros ? 1 : 0;
+      const sinB = b.sinRegistros ? 1 : 0;
+      if (sinA !== sinB) return sinA - sinB;
+      return b.attendanceRate - a.attendanceRate;
+    });
 
     res.status(200).json({
       success: true,

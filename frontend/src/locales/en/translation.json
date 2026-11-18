@@ -350,6 +350,13 @@
     "import": "Import Excel",
     "labels": "Labels"
   },
+  "dniEscolar": {
+    "title": "School ID (DNI)",
+    "catalog": "Catalog",
+    "generate": "Generate from enrollment",
+    "photos": "Upload photos (ZIP)",
+    "print": "Print"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

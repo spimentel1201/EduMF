@@ -23,6 +23,7 @@ import eventRoutes from './routes/eventRoutes';
 import treasuryRoutes from './routes/treasuryRoutes';
 import institutionSettingsRoutes from './routes/institutionSettingsRoutes';
 import inventoryRoutes from './routes/inventoryRoutes';
+import dniEscolarRoutes from './routes/dniEscolarRoutes';
 
 // Cargar variables de entorno
 config();
@@ -81,6 +82,7 @@ const startServer = async () => {
     app.use('/api/treasury', treasuryRoutes);
     app.use('/api/institution-settings', institutionSettingsRoutes);
     app.use('/api/inventory', inventoryRoutes);
+    app.use('/api/dni-escolar', dniEscolarRoutes);
 
     // Middleware de manejo de errores
     app.use(errorHandler);

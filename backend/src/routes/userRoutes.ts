@@ -1,7 +1,13 @@
 import express from 'express';
-import { registerUser, bulkRegisterUsers, getAllUsers } from '../controllers/userController';
+import {
+  registerUser,
+  bulkRegisterUsers,
+  getAllUsers,
+  updateUserStatus,
+} from '../controllers/userController';
 import { body } from 'express-validator';
 import multer from 'multer';
+import { protect, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -30,11 +36,17 @@ router.post(
 
 // @route   POST api/users/bulk-register
 // @desc    Bulk register users from CSV/Excel
-// @access  Private (Admin only) - Se añadirá middleware de autenticación y autorización
-router.post('/bulk-register', upload.single('file') as any, bulkRegisterUsers); // 'file' es el nombre del campo en el formulario que contendrá el archivo
+// @access  Private (Admin only)
+router.post('/bulk-register', upload.single('file') as any, bulkRegisterUsers);
 
 // @route   GET api/users
 // @desc    Get all users
-router.get('/', getAllUsers);
+// @access  Private
+router.get('/', protect, getAllUsers);
+
+// @route   PATCH api/users/:id/status
+// @desc    Activar o dar de baja (desactivar) un usuario
+// @access  Private (Admin, Dirección, CIST)
+router.patch('/:id/status', protect, authorize('admin', 'Dirección', 'CIST'), updateUserStatus);
 
 export default router;

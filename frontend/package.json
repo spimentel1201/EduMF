@@ -22,6 +22,7 @@
     "i18next": "^25.5.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.31",
+    "jszip": "^3.10.2",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

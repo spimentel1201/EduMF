@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
+import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import fs from 'fs';
 import csv from 'csv-parser';
@@ -143,14 +144,21 @@ export const bulkRegisterUsers = async (req: Request, res: Response) => {
  */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { role } = req.query;
-    let query = {};
+    const { role, status } = req.query;
+    const query: Record<string, any> = {};
 
     if (role) {
-      query = { role };
+      query.role = role;
     }
 
-    const users = await User.find(query).select('_id firstName lastName email role dni');
+    if (status) {
+      query.status = status;
+    }
+
+    const users = await User.find(query)
+      .select('_id firstName lastName email role dni codigoEstudiante tipoDocumento status')
+      .sort({ lastName: 1, firstName: 1 });
+
     const formattedUsers = users.map(user => ({
       id: user._id,
       firstName: user.firstName,
@@ -158,11 +166,84 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
       email: user.email,
       role: user.role,
       dni: user.dni,
+      codigoEstudiante: user.codigoEstudiante,
+      tipoDocumento: user.tipoDocumento,
+      status: user.status,
     }));
 
     res.status(200).json({
       success: true,
       data: formattedUsers,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Activar o dar de baja (desactivar) un usuario
+ * @route   PATCH /api/users/:id/status
+ * @access  Private (Admin, Dirección, CIST)
+ */
+export const updateUserStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const nuevoEstado = String(req.body?.status ?? '').trim().toLowerCase();
+
+    if (!['active', 'inactive'].includes(nuevoEstado)) {
+      return res.status(400).json({
+        success: false,
+        msg: 'El estado debe ser "active" o "inactive".',
+      });
+    }
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, msg: 'Identificador de usuario inválido.' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, msg: 'Usuario no encontrado.' });
+    }
+
+    if (nuevoEstado === 'inactive') {
+      if (String(user._id) === String(req.user?._id)) {
+        return res.status(400).json({
+          success: false,
+          msg: 'No puedes dar de baja tu propia cuenta.',
+        });
+      }
+
+      if (user.role === 'admin') {
+        const otrosAdmins = await User.countDocuments({
+          role: 'admin',
+          status: 'active',
+          _id: { $ne: user._id },
+        });
+
+        if (otrosAdmins === 0) {
+          return res.status(400).json({
+            success: false,
+            msg: 'Debe quedar al menos un administrador activo en el sistema.',
+          });
+        }
+      }
+    }
+
+    user.status = nuevoEstado as 'active' | 'inactive';
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      msg: nuevoEstado === 'active'
+        ? 'Usuario activado correctamente.'
+        : 'Usuario dado de baja correctamente.',
+      data: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        status: user.status,
+      },
     });
   } catch (error) {
     next(error);

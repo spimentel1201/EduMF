@@ -30,6 +30,10 @@ import {
   QrCodeIcon,
   ArchiveBoxIcon,
   ArrowUpTrayIcon,
+  IdentificationIcon,
+  UserPlusIcon,
+  PhotoIcon,
+  PrinterIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -126,6 +130,19 @@ const navigation: NavigationItem[] = [
       { name: 'inventory.catalog', href: '/inventory', icon: ArchiveBoxIcon, current: false, module: 'inventory' },
       { name: 'inventory.import', href: '/inventory/import', icon: ArrowUpTrayIcon, current: false, module: 'inventoryWrite' },
       { name: 'inventory.labels', href: '/inventory/labels', icon: QrCodeIcon, current: false, module: 'inventory' },
+    ],
+  },
+  {
+    name: 'dniEscolar.title',
+    href: '#',
+    icon: IdentificationIcon,
+    current: false,
+    module: 'dni',
+    children: [
+      { name: 'dniEscolar.catalog', href: '/dni-escolar', icon: IdentificationIcon, current: false, module: 'dni' },
+      { name: 'dniEscolar.generate', href: '/dni-escolar/generar', icon: UserPlusIcon, current: false, module: 'dniWrite' },
+      { name: 'dniEscolar.photos', href: '/dni-escolar/fotos', icon: PhotoIcon, current: false, module: 'dniWrite' },
+      { name: 'dniEscolar.print', href: '/dni-escolar/print', icon: PrinterIcon, current: false, module: 'dni' },
     ],
   },
 ];

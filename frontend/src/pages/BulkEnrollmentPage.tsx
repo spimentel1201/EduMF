@@ -16,7 +16,8 @@ const BulkEnrollmentPage: React.FC = () => {
             {t('enrollments.bulkEnrollment')}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: '#718096' }}>
-            Carga un archivo Excel con los datos de los estudiantes para matricularlos en bloque.
+            Sube una plantilla propia o el reporte de SIAGIE ("Relación de estudiantes y
+            apoderados") para matricular a todos los estudiantes en bloque.
           </p>
         </div>
         <Link

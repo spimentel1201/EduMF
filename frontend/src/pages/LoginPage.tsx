@@ -157,7 +157,7 @@ export default function LoginPage() {
                 onError={(err: any) => console.error('QR error:', err)}
                 style={{ width: '100%' }}
                 showViewFinder
-                delay={500}
+                delay={100}
                 facingMode="environment"
               />
               {processing && (

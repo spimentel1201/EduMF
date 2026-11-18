@@ -164,7 +164,7 @@ export default function TakeAttendancePage() {
               onError={(err: any) => console.error('QR error:', err)}
               style={{ width: '100%' }}
               showViewFinder
-              delay={150}
+              delay={100}
               facingMode="environment"
             />
             {processing && (

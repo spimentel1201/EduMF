@@ -50,6 +50,7 @@ import DniEscolarGeneratePage from '@/pages/DniEscolarGeneratePage';
 import DniEscolarPhotosPage from '@/pages/DniEscolarPhotosPage';
 import DniEscolarPrintPage from '@/pages/DniEscolarPrintPage';
 import GuardianPortalPage from '@/pages/GuardianPortalPage';
+import GuardiansPage from '@/pages/GuardiansPage';
 
 const queryClient = new QueryClient();
 
@@ -105,6 +106,7 @@ function App() {
               <Route path="payments/defaulters" element={<RoleRoute module="payments"><DefaultersReportPage /></RoleRoute>} />
               <Route path="payments/by-grade" element={<RoleRoute module="payments"><DebtsByGradePage /></RoleRoute>} />
               <Route path="settings" element={<RoleRoute module="settings"><InstitutionSettingsPage /></RoleRoute>} />
+              <Route path="guardians" element={<RoleRoute module="guardians"><GuardiansPage /></RoleRoute>} />
               <Route path="inventory" element={<RoleRoute module="inventory"><InventoryPage /></RoleRoute>} />
               <Route path="inventory/new" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />
               <Route path="inventory/:id/edit" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />

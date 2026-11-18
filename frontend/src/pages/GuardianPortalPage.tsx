@@ -68,11 +68,12 @@ export default function GuardianPortalPage() {
     setError(null);
     try {
       const res = await guardianApi.post('/guardians/login', { loginId, password });
-      const t = res.data.data.token;
+      const t = res.data?.data?.token;
+      if (!t) throw new Error('Token no recibido');
       setGuardianToken(t);
       setToken(t);
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Credenciales inválidas.');
+      setError(e?.response?.data?.message || e?.message || 'Credenciales inválidas.');
     } finally {
       setLoading(false);
     }

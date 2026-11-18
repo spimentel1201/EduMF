@@ -24,6 +24,8 @@ router.get('/children/attendance', protectGuardian, guardianController.getGuardi
 router.put('/update-password', protectGuardian, updatePasswordValidation, guardianController.updateGuardianPassword);
 
 // Admin
+router.get('/', protect, authorize('admin'), guardianController.listGuardians);
 router.post('/import', protect, authorize('admin'), guardianController.importGuardiansEndpoint);
+router.put('/:id/reset-password', protect, authorize('admin'), guardianController.resetGuardianPassword);
 
 export default router;

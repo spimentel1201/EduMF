@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import webpush from 'web-push';
+const webpush = require('web-push');
 import PushSubscription from '../models/PushSubscription';
 import NotificationLog from '../models/NotificationLog';
 

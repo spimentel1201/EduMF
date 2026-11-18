@@ -165,6 +165,46 @@ export const updateGuardianPassword = async (req: Request, res: Response, next: 
   }
 };
 
+export const listGuardians = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const guardians = await Guardian.find({}).select('-password').sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: guardians });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetGuardianPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const guardian = await Guardian.findById(id);
+    if (!guardian) return next(ApiError.notFound('Tutor no encontrado.'));
+
+    const newPassword = String(req.body?.newPassword || '').trim();
+    if (newPassword) {
+      guardian.password = newPassword;
+      guardian.hasCustomPassword = true;
+    } else {
+      guardian.password = undefined as any;
+      guardian.hasCustomPassword = false;
+    }
+    guardian.loginAttempts = 0;
+    guardian.lockUntil = undefined;
+    guardian.passwordResetAt = new Date();
+    await guardian.save();
+
+    res.status(200).json({
+      success: true,
+      message: newPassword
+        ? 'Contraseña actualizada correctamente.'
+        : 'Contraseña restablecida a la clave inicial.',
+      data: { loginId: guardian.loginId, hasCustomPassword: guardian.hasCustomPassword },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const importGuardiansEndpoint = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const dryRun = req.body?.dryRun === true || req.body?.dryRun === 'true';

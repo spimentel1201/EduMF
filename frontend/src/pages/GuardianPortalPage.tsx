@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { guardianApi, setGuardianToken } from '@/services/guardianApi';
 import BottomNav from '@/components/portal/BottomNav';
+import { UserCircleIcon } from '@heroicons/react/24/outline';
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -44,41 +45,59 @@ export default function GuardianPortalPage() {
   const handleLogout = () => {
     setGuardianToken(null);
     setToken(null);
+    navigate('/portal');
   };
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h1 className="text-xl font-semibold mb-4">Portal de Padres - SIGES</h1>
-          {error && <div className="mb-3 text-red-600 text-sm">{error}</div>}
-          <form onSubmit={handleLogin} className="space-y-3">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Identificador de acceso</label>
-              <input
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                placeholder="DNI / código / teléfono"
-              />
+      <div className="min-h-screen bg-gradient-to-b from-[#538f65]/15 via-gray-50 to-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-[#538f65] to-[#2f5d3f] flex items-center justify-center shadow-lg mb-3">
+              <UserCircleIcon className="w-9 h-9 text-white" />
             </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#538f65] text-white rounded-lg py-2 font-medium"
-            >
-              {loading ? 'Ingresando...' : 'Ingresar'}
-            </button>
-          </form>
+            <h1 className="text-2xl font-bold text-gray-800">Portal de Padres</h1>
+            <p className="text-sm text-gray-500 mt-1">SIGES - Acceso para tutores</p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 space-y-4">
+            {error && (
+              <div className="bg-rose-50 border border-rose-100 text-rose-700 text-sm rounded-xl px-3 py-2">
+                {error}
+              </div>
+            )}
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Identificador de acceso</label>
+                <input
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#538f65] transition"
+                  placeholder="DNI / código / teléfono"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Contraseña</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#538f65] transition"
+                  placeholder="Tu clave de acceso"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-[#538f65] to-[#2f5d3f] text-white rounded-xl py-3 font-semibold shadow-md active:scale-[0.98] transition disabled:opacity-60"
+              >
+                {loading ? 'Ingresando...' : 'Ingresar'}
+              </button>
+            </form>
+            <p className="text-xs text-gray-400 text-center">
+              Usa tu identificador como contraseña inicial.
+            </p>
+          </div>
         </div>
       </div>
     );

@@ -183,6 +183,13 @@ export default function PortalHomePage() {
                       <p className="text-[10px] text-gray-500 uppercase tracking-wide">Asistencia</p>
                       <p className="text-sm font-semibold text-gray-800 mt-0.5">{last ? last.status : '—'}</p>
                       <p className="text-[10px] text-gray-400">{last ? new Date(last.fecha).toLocaleDateString('es-PE') : ''}</p>
+                      {last && (last.horaEntrada || last.horaSalida) && (
+                        <p className="text-[10px] text-gray-500 mt-0.5">
+                          {last.horaEntrada ? `Entrada ${new Date(last.horaEntrada).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}` : ''}
+                          {last.horaEntrada && last.horaSalida ? ' · ' : ''}
+                          {last.horaSalida ? `Salida ${new Date(last.horaSalida).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}` : ''}
+                        </p>
+                      )}
                     </div>
                     <div className="bg-gray-50 rounded-xl p-2.5">
                       <p className="text-[10px] text-gray-500 uppercase tracking-wide">Incidencias</p>

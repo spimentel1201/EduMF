@@ -9,7 +9,8 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "test": "jest",
-    "reset:students": "ts-node src/scripts/resetStudents.ts"
+    "reset:students": "ts-node src/scripts/resetStudents.ts",
+    "import:guardians": "ts-node src/scripts/importGuardians.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -24,6 +25,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
     "qrcode": "^1.5.3",
+    "web-push": "^4.0.0",
     "winston": "^3.11.0",
     "xlsx": "^0.18.5"
   },

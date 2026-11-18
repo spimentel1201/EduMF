@@ -7,6 +7,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: any;
+      guardian?: any;
     }
   }
 }
@@ -54,6 +55,34 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 /**
  * Middleware para restringir el acceso según el rol
  */
+/**
+ * Middleware para proteger rutas del portal de tutores.
+ */
+export const protectGuardian = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    if (!token) {
+      return next(ApiError.unauthorized('No hay token, autorización denegada'));
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret') as any;
+    if (decoded.role !== 'guardian') {
+      return next(ApiError.unauthorized('Token inválido'));
+    }
+    const Guardian = (await import('../models/Guardian')).default;
+    const guardian = await Guardian.findById(decoded.id).select('-password');
+    if (!guardian || guardian.status !== 'active') {
+      return next(ApiError.unauthorized('Tutor inactivo o no encontrado'));
+    }
+    req.guardian = guardian;
+    next();
+  } catch (error) {
+    return next(ApiError.unauthorized('Token inválido'));
+  }
+};
+
 export const authorize = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {

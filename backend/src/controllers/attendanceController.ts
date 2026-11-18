@@ -9,6 +9,7 @@ import { startOfDay, endOfDay } from 'date-fns';
 import Staff from '../models/Staff';
 import Section from '../models/Section';
 import Schedule from '../models/CourseSchedule';
+import { obtenerOCrearRegistroAsistencia } from '../services/attendanceDayService';
 
 export const validateAttendance = [
   body('courseScheduleId').notEmpty().withMessage('El horario del curso es requerido'),
@@ -301,10 +302,20 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
       return res.status(400).json({ message: 'Fecha, ID de sección y asistencias de estudiantes son requeridos.' });
     }
 
-    const courseSchedules = await CourseSchedule.find({ sectionId });
-    if (courseSchedules.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron horarios de curso para la sección proporcionada.' });
+    if (!mongoose.isValidObjectId(sectionId)) {
+      return next(ApiError.badRequest('ID de sección inválido.'));
     }
+
+    // D1: una sección sin horarios ya no bloquea el marcado. Se usa el
+    // registro diario por sección y, si existe, el docente de la sección.
+    const section = await Section.findById(sectionId).select('teacherId');
+    if (!section) {
+      return next(ApiError.notFound('Sección no encontrada.'));
+    }
+
+    const courseSchedules = await CourseSchedule.find({ sectionId });
+    // Todas las matrículas del lote pertenecen a la misma sección.
+    const courseSchedule = courseSchedules[0];
 
     const takenBy = req.user.id;
     const results = [];
@@ -314,12 +325,33 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
       // Si viene solo YYYY-MM-DD, le agregamos mediodía local para evitar desfases de zona horaria
       parsedDate = `${date}T12:00:00`;
     }
+    const currentAttendanceDate = new Date(parsedDate);
+
+    if (Number.isNaN(currentAttendanceDate.getTime())) {
+      return next(ApiError.badRequest('Fecha inválida.'));
+    }
+
+    // Un solo registro canónico por sección/día, exista o no horario.
+    const attendanceRecord = await obtenerOCrearRegistroAsistencia({
+      sectionId,
+      fecha: currentAttendanceDate,
+      courseScheduleId: courseSchedule?._id,
+      teacherId: courseSchedule?.teacherId || section.teacherId || takenBy,
+    });
+
+    // Operaciones atómicas: el `$set` y el `$push` son excluyentes, así que
+    // dos lotes simultáneos no pierden detalles del otro.
+    const operaciones: any[] = [];
 
     for (const studentAttendance of studentAttendances) {
       const { studentId, status } = studentAttendance;
-      const studentObjectId = new mongoose.Types.ObjectId(studentId);
-      const currentAttendanceDate = new Date(parsedDate);
 
+      if (!mongoose.isValidObjectId(studentId)) {
+        results.push({ studentId, status, success: false, message: 'Identificador de estudiante inválido.' });
+        continue;
+      }
+
+      const studentObjectId = new mongoose.Types.ObjectId(studentId);
       const enrollment = await Enrollment.findOne({ studentId: studentObjectId, sectionId });
 
       if (!enrollment) {
@@ -327,45 +359,24 @@ export const bulkCreateAttendances = async (req: Request, res: Response, next: N
         continue;
       }
 
-      const courseSchedule = courseSchedules.find(cs => cs.sectionId.toString() === enrollment.sectionId.toString());
-
-      if (!courseSchedule) {
-        results.push({ studentId, status, success: false, message: 'No se encontró horario de curso para la sección del estudiante.' });
-        continue;
-      }
-
-      let attendanceRecord = await Attendance.findOne({
-        courseScheduleId: courseSchedule._id,
-        date: {
-          $gte: new Date(new Date(currentAttendanceDate).setHours(0, 0, 0, 0)),
-          $lt: new Date(new Date(currentAttendanceDate).setHours(23, 59, 59, 999))
-        }
+      operaciones.push({
+        updateOne: {
+          filter: { _id: attendanceRecord._id, 'details.studentId': studentObjectId },
+          update: { $set: { 'details.$.status': status } },
+        },
+      });
+      operaciones.push({
+        updateOne: {
+          filter: { _id: attendanceRecord._id, 'details.studentId': { $ne: studentObjectId } },
+          update: { $push: { details: { studentId: studentObjectId, status } } },
+        },
       });
 
-      if (attendanceRecord) {
-        const detailIndex = attendanceRecord.details.findIndex(d => d.studentId.toString() === studentId);
-        if (detailIndex > -1) {
-          attendanceRecord.details[detailIndex].status = status;
-        } else {
-          attendanceRecord.details.push({ studentId: new mongoose.Types.ObjectId(studentId), status });
-        }
-        await attendanceRecord.save();
-        results.push({ studentId, status, success: true, message: 'Asistencia actualizada.' });
-      } else {
-        // Crear un nuevo registro
-        attendanceRecord = await Attendance.create({
-          courseScheduleId: courseSchedule._id,
-          sectionId: sectionId,
-          teacherId: takenBy,
-          date: currentAttendanceDate,
-          status: 'Tomada',
-          details: [{
-            studentId: new mongoose.Types.ObjectId(studentId),
-            status: status,
-          }],
-        });
-        results.push({ studentId, status, success: true, message: 'Asistencia creada.' });
-      }
+      results.push({ studentId, status, success: true, message: 'Asistencia actualizada.' });
+    }
+
+    if (operaciones.length > 0) {
+      await Attendance.bulkWrite(operaciones, { ordered: true });
     }
 
     res.status(200).json({

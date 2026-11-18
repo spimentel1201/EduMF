@@ -24,6 +24,10 @@ import treasuryRoutes from './routes/treasuryRoutes';
 import institutionSettingsRoutes from './routes/institutionSettingsRoutes';
 import inventoryRoutes from './routes/inventoryRoutes';
 import dniEscolarRoutes from './routes/dniEscolarRoutes';
+import guardianRoutes from './routes/guardianRoutes';
+import pushSubscriptionRoutes from './routes/pushSubscriptionRoutes';
+import { ejecutarCierreTurno } from './services/attendanceClosureService';
+import { asegurarIndiceDiario } from './services/attendanceDayService';
 
 // Cargar variables de entorno
 config();
@@ -83,6 +87,8 @@ const startServer = async () => {
     app.use('/api/institution-settings', institutionSettingsRoutes);
     app.use('/api/inventory', inventoryRoutes);
     app.use('/api/dni-escolar', dniEscolarRoutes);
+app.use('/api/guardians', guardianRoutes);
+app.use('/api/push-subscriptions', pushSubscriptionRoutes);
 
     // Middleware de manejo de errores
     app.use(errorHandler);
@@ -90,6 +96,14 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`Servidor ejecutándose en el puerto ${PORT}`);
     });
+
+    // Índice único del registro diario.
+    void asegurarIndiceDiario();
+
+    // Job de cierre de turno (cada minuto).
+    setInterval(() => {
+      void ejecutarCierreTurno();
+    }, 60 * 1000);
   } catch (error) {
     console.error('Error al iniciar el servidor:', error);
     process.exit(1);

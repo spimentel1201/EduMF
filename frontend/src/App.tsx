@@ -49,6 +49,13 @@ import DniEscolarFormPage from '@/pages/DniEscolarFormPage';
 import DniEscolarGeneratePage from '@/pages/DniEscolarGeneratePage';
 import DniEscolarPhotosPage from '@/pages/DniEscolarPhotosPage';
 import DniEscolarPrintPage from '@/pages/DniEscolarPrintPage';
+import GuardianPortalPage from '@/pages/GuardianPortalPage';
+import PortalHomePage from '@/pages/portal/PortalHomePage';
+import PortalAttendancePage from '@/pages/portal/PortalAttendancePage';
+import PortalIncidentsPage from '@/pages/portal/PortalIncidentsPage';
+import PortalPaymentsPage from '@/pages/portal/PortalPaymentsPage';
+import PortalProfilePage from '@/pages/portal/PortalProfilePage';
+import GuardiansPage from '@/pages/GuardiansPage';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +68,13 @@ function App() {
           <SonnerToaster position="top-right" richColors closeButton />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/portal" element={<GuardianPortalPage />}>
+              <Route index element={<PortalHomePage />} />
+              <Route path="asistencia" element={<PortalAttendancePage />} />
+              <Route path="incidencias" element={<PortalIncidentsPage />} />
+              <Route path="pagos" element={<PortalPaymentsPage />} />
+              <Route path="perfil" element={<PortalProfilePage />} />
+            </Route>
             <Route path="/inventario/publico/:codigoInterno" element={<PublicInventoryItemPage />} />
             <Route
               path="/"
@@ -103,6 +117,7 @@ function App() {
               <Route path="payments/defaulters" element={<RoleRoute module="payments"><DefaultersReportPage /></RoleRoute>} />
               <Route path="payments/by-grade" element={<RoleRoute module="payments"><DebtsByGradePage /></RoleRoute>} />
               <Route path="settings" element={<RoleRoute module="settings"><InstitutionSettingsPage /></RoleRoute>} />
+              <Route path="guardians" element={<RoleRoute module="guardians"><GuardiansPage /></RoleRoute>} />
               <Route path="inventory" element={<RoleRoute module="inventory"><InventoryPage /></RoleRoute>} />
               <Route path="inventory/new" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />
               <Route path="inventory/:id/edit" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />

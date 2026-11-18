@@ -101,6 +101,8 @@ export default function GuardianPortalPage() {
       const vapidRes = await guardianApi.get('/push-subscriptions/vapid-public-key');
       const publicKey = vapidRes.data.data.publicKey;
       const reg = await navigator.serviceWorker.register('/sw.js');
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) await existing.unsubscribe();
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),

@@ -262,3 +262,15 @@ Para soporte técnico o preguntas sobre el sistema, contacta al equipo de desarr
 ---
 
 **Desarrollado con ❤️ para instituciones educativas**
+
+## 🌐 URLs de acceso
+
+### Desarrollo local
+- **Panel administrativo / auxiliar / docente:** `http://localhost:3000/` (login en `/login`)
+- **Portal de padres (PWA):** `http://localhost:3000/portal`
+- **Panel de tutores (admin):** `http://localhost:3000/guardians`
+
+### Producción
+- **Panel administrativo / auxiliar / docente:** `https://edu-mf.vercel.app/` (login en `/login`)
+- **Portal de padres (PWA):** `https://edu-mf.vercel.app/portal`
+- **Panel de tutores (admin):** `https://edu-mf.vercel.app/guardians`

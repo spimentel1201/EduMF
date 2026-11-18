@@ -111,4 +111,4 @@ export default function GuardianPortalPage() {
   );
 }
 
-export { urlBase64ToUint8Array };
+// urlBase64ToUint8Array is defined locally and not exported to keep Fast Refresh working.

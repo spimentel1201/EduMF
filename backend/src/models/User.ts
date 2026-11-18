@@ -2,11 +2,26 @@ import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+/** Datos del apoderado que viajan en el reporte SIAGIE. */
+export interface IApoderado {
+  nombres?: string;
+  parentesco?: string;
+  tipoDocumento?: string;
+  numeroDocumento?: string;
+  telefono?: string;
+  correo?: string;
+}
+
 export interface IUser extends Document {
   firstName: string;
   lastName: string;
   dni: string;
-  gender?: 'male' | 'female' | 'other';
+  /** Código de estudiante del SIAGIE (cuando el alumno no tiene DNI). */
+  codigoEstudiante?: string;
+  /** Documento usado como identidad: DNI de 8 dígitos o código SIAGIE. */
+  tipoDocumento?: 'DNI' | 'CODIGO';
+  apoderado?: IApoderado;
+  gender?: 'M' | 'F' | 'O';
   birthdate?: Date;
   email?: string;
   password?: string;
@@ -35,6 +50,23 @@ const UserSchema: Schema = new Schema(
       required: [true, 'El DNI es requerido'],
       unique: true,
       trim: true
+    },
+    codigoEstudiante: {
+      type: String,
+      trim: true,
+    },
+    tipoDocumento: {
+      type: String,
+      enum: ['DNI', 'CODIGO'],
+      default: 'DNI',
+    },
+    apoderado: {
+      nombres: { type: String, trim: true },
+      parentesco: { type: String, trim: true },
+      tipoDocumento: { type: String, trim: true },
+      numeroDocumento: { type: String, trim: true },
+      telefono: { type: String, trim: true },
+      correo: { type: String, trim: true },
     },
     gender: {
       type: String,
@@ -75,6 +107,9 @@ const UserSchema: Schema = new Schema(
     timestamps: true,
   }
 );
+
+// Un código de estudiante SIAGIE no debe repetirse entre alumnos
+UserSchema.index({ codigoEstudiante: 1 }, { unique: true, sparse: true });
 
 UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password') || !this.password) {

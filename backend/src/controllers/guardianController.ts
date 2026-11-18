@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import Guardian from '../models/Guardian';
 import User from '../models/User';
 import Attendance from '../models/Attendance';
+import Incident from '../models/Incident';
+import { TreasuryService } from '../services/TreasuryService';
 import { ApiError } from '../middleware/errorHandler';
 import { importGuardians } from '../services/guardianImportService';
 
@@ -134,6 +136,39 @@ export const getGuardianChildrenAttendance = async (req: Request, res: Response,
     }
 
     res.status(200).json({ success: true, data: porAlumno });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getGuardianChildrenIncidents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const guardian = await Guardian.findById(req.guardian.id);
+    if (!guardian) return next(ApiError.notFound('Tutor no encontrado.'));
+    const studentIds = guardian.students || [];
+    const incidents = await Incident.find({
+      $or: [{ victimId: { $in: studentIds } }, { aggressorId: { $in: studentIds } }],
+    })
+      .sort({ incidentDate: -1 })
+      .populate('victimId', 'firstName lastName')
+      .populate('aggressorId', 'firstName lastName')
+      .lean();
+    res.status(200).json({ success: true, data: incidents });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getGuardianChildrenDebts = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const guardian = await Guardian.findById(req.guardian.id);
+    if (!guardian) return next(ApiError.notFound('Tutor no encontrado.'));
+    const result = [];
+    for (const studentId of guardian.students || []) {
+      const data = await TreasuryService.getStudentDebtHistory(String(studentId));
+      result.push(data);
+    }
+    res.status(200).json({ success: true, data: result });
   } catch (error) {
     next(error);
   }

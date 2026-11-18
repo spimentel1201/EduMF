@@ -21,6 +21,8 @@ router.post('/login', loginValidation, guardianController.loginGuardian);
 // Portal del tutor
 router.get('/me', protectGuardian, guardianController.getGuardianMe);
 router.get('/children/attendance', protectGuardian, guardianController.getGuardianChildrenAttendance);
+router.get('/children/incidents', protectGuardian, guardianController.getGuardianChildrenIncidents);
+router.get('/children/debts', protectGuardian, guardianController.getGuardianChildrenDebts);
 router.put('/update-password', protectGuardian, updatePasswordValidation, guardianController.updateGuardianPassword);
 
 // Admin

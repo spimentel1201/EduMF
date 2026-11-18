@@ -2,15 +2,22 @@ import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import User from '../models/User';
 import Enrollment from '../models/Enrollment';
-import Attendance from '../models/Attendance';
 import CourseSchedule from '../models/CourseSchedule';
 import SchoolYear from '../models/SchoolYear';
+import Section from '../models/Section';
+import AttendanceScan from '../models/AttendanceScan';
+import Guardian from '../models/Guardian';
+import { enviarPushATutor } from '../services/pushService';
 import { ApiError } from '../middleware/errorHandler';
 import {
   obtenerHorarioAsistencia,
   clasificarEntrada,
   esSalidaAnticipada,
 } from '../services/attendanceScheduleService';
+import {
+  actualizarDetalleAsistencia,
+  obtenerOCrearRegistroAsistencia,
+} from '../services/attendanceDayService';
 
 /**
  * @desc    Obtener el horario de asistencia configurado (ingreso, salida y tolerancia)
@@ -100,62 +107,78 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
       });
     }
 
-    if (!courseSchedule) {
-      return next(ApiError.badRequest('La sección del estudiante no tiene horarios registrados. Configura el horario de la sección para habilitar el escaneo QR.'));
+    // El docente de la sección solo se consulta si el horario no lo aporta.
+    let teacherId = courseSchedule?.teacherId;
+    if (!teacherId) {
+      const section = await Section.findById(enrollment.sectionId).select('teacherId');
+      teacherId = section?.teacherId;
     }
 
-    // 6. Buscar o crear registro de asistencia del día
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    let attendanceRecord = await Attendance.findOne({
+    // 6. Obtener el registro canónico de la sección para hoy.
+    //    D1: si la sección no tiene horarios, se usa un registro diario por
+    //    sección (sin courseScheduleId). El escaneo ya no falla por eso.
+    const attendanceRecord = await obtenerOCrearRegistroAsistencia({
       sectionId: enrollment.sectionId,
-      courseScheduleId: courseSchedule._id,
-      date: { $gte: startOfDay, $lte: endOfDay },
+      fecha: now,
+      courseScheduleId: courseSchedule?._id,
+      teacherId,
     });
 
-    if (attendanceRecord) {
-      // Actualizar o agregar detalle del estudiante
-      const detailIndex = attendanceRecord.details.findIndex(
-        (d) => d.studentId.toString() === (student._id as mongoose.Types.ObjectId).toString()
-      );
-      if (detailIndex > -1) {
-        if (modo === 'salida') {
-          // Registro de salida: guarda la hora sin tocar el estado de entrada
-          attendanceRecord.details[detailIndex].horaSalida = now;
-        } else if (!attendanceRecord.details[detailIndex].horaEntrada) {
-          // Entrada (re-escaneo): actualiza el estado pero conserva la
-          // PRIMERA hora de entrada registrada en el día
-          attendanceRecord.details[detailIndex].horaEntrada = now;
-          attendanceRecord.details[detailIndex].status = attendanceStatus;
-        } else {
-          attendanceRecord.details[detailIndex].status = attendanceStatus;
-        }
-      } else {
-        attendanceRecord.details.push({
-          studentId: student._id as mongoose.Types.ObjectId,
-          status: attendanceStatus,
-          ...(modo === 'entrada' ? { horaEntrada: now } : { horaSalida: now }),
-        });
-      }
-      await attendanceRecord.save();
-    } else {
-      // Crear nuevo registro de asistencia
-      attendanceRecord = await Attendance.create({
-        date: now,
-        sectionId: enrollment.sectionId,
-        courseScheduleId: courseSchedule._id,
-        teacherId: courseSchedule.teacherId || courseSchedule.sectionId, // fallback
-        status: 'Tomada',
-        details: [{
-          studentId: student._id,
-          status: attendanceStatus,
-          ...(modo === 'entrada' ? { horaEntrada: now } : { horaSalida: now }),
-        }],
+    // 7. Actualizar o agregar el detalle del estudiante con operaciones
+    //    atómicas: dos escaneos simultáneos ya no se pisan.
+    await actualizarDetalleAsistencia({
+      attendanceId: attendanceRecord._id,
+      studentId: student._id as mongoose.Types.ObjectId,
+      status: attendanceStatus,
+      modo,
+      fecha: now,
+    });
+
+    // 7b. Registro idempotente del escaneo (cola offline).
+    const clientScanId = String(req.body?.clientScanId || `${student._id}-${modo}-${now.getTime()}`);
+    try {
+      await AttendanceScan.create({
+        clientScanId,
+        studentId: student._id,
+        tipo: modo,
+        scannedAt: now,
+        attendanceId: attendanceRecord._id,
+        source: req.body?.source === 'offline' ? 'offline' : 'online',
       });
+    } catch (error: any) {
+      // Duplicado: ignorar.
+      if (error?.code !== 11000) {
+        console.error('[qr] No se pudo registrar el escaneo:', error?.message ?? error);
+      }
     }
+
+    // 7c. Notificar a los tutores (fire and forget).
+    void (async () => {
+      try {
+        const tutores = await Guardian.find({ students: student._id, status: 'active' }).select('_id');
+        const dia = now.toISOString().slice(0, 10);
+        const tipoNotificacion = modo === 'salida'
+          ? 'salida'
+          : attendanceStatus === 'Tardanza'
+            ? 'tardanza'
+            : 'entrada';
+        const titulo = modo === 'salida'
+          ? 'Salida registrada'
+          : attendanceStatus === 'Tardanza'
+            ? 'Tardanza registrada'
+            : 'Entrada registrada';
+        const cuerpo = `${student.firstName} ${student.lastName} - ${now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
+        for (const tutor of tutores) {
+          await enviarPushATutor(
+            tutor._id,
+            { title: titulo, body: cuerpo, url: '/portal', type: tipoNotificacion },
+            `${student._id}-${modo}-${tipoNotificacion}-${dia}`
+          );
+        }
+      } catch (error) {
+        console.error('[qr] Error notificando tutores:', error);
+      }
+    })();
 
     res.status(200).json({
       success: true,

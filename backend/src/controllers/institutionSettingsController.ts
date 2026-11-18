@@ -1,7 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
-import InstitutionConfig from '../models/InstitutionConfig';
+import InstitutionConfig, {
+  AVISO_PRIVACIDAD_POR_DEFECTO,
+  CONFIG_POR_DEFECTO,
+  conValoresPorDefecto,
+} from '../models/InstitutionConfig';
 import { ApiError } from '../middleware/errorHandler';
+
+const HORA_REGEX = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+/** Convierte un valor de formulario/JSON a booleano sin caer en Boolean("false"). */
+function aBooleano(valor: unknown): boolean {
+  return valor === true || valor === 'true' || valor === 1 || valor === '1';
+}
 
 // @desc    Obtener configuración institucional (admin)
 // @route   GET /api/institution-settings
@@ -25,6 +36,12 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
           horaIngreso: '08:00',
           horaSalida: '13:00',
           toleranciaMinutos: 10,
+          horasCierreTurno: ['12:30', '17:30'],
+          avisarFaltaSinRegistro: true,
+          umbralTardanzas: 3,
+          umbralFaltas: 3,
+          avisoPrivacidad: AVISO_PRIVACIDAD_POR_DEFECTO,
+          portalHabilitado: true,
         },
       });
     }
@@ -77,9 +94,11 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     const {
       name, address, phone, email, logoBase64, bgImageBase64, bgOpacity,
       horaIngreso, horaSalida, toleranciaMinutos,
+      horasCierreTurno, avisarFaltaSinRegistro, umbralTardanzas, umbralFaltas,
+      avisoPrivacidad, portalHabilitado,
     } = req.body;
 
-    const updateData: Record<string, string | number> = { name: name.trim() };
+    const updateData: Record<string, unknown> = { name: name.trim() };
     if (address      !== undefined) updateData.address      = address;
     if (phone        !== undefined) updateData.phone        = phone;
     if (email        !== undefined) updateData.email        = email;
@@ -89,6 +108,29 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     if (horaIngreso  !== undefined) updateData.horaIngreso  = String(horaIngreso).trim();
     if (horaSalida   !== undefined) updateData.horaSalida   = String(horaSalida).trim();
     if (toleranciaMinutos !== undefined) updateData.toleranciaMinutos = Number(toleranciaMinutos);
+
+    if (horasCierreTurno !== undefined) {
+      const horas = (Array.isArray(horasCierreTurno) ? horasCierreTurno : [horasCierreTurno])
+        .map((hora: unknown) => String(hora).trim())
+        .filter(Boolean);
+      const invalida = horas.find((hora) => !HORA_REGEX.test(hora));
+      if (invalida) {
+        return next(ApiError.badRequest(`Hora de cierre inválida: ${invalida}. Use HH:MM`));
+      }
+      updateData.horasCierreTurno = horas;
+    }
+
+    if (avisarFaltaSinRegistro !== undefined) {
+      updateData.avisarFaltaSinRegistro = aBooleano(avisarFaltaSinRegistro);
+    }
+    if (umbralTardanzas !== undefined) updateData.umbralTardanzas = Number(umbralTardanzas);
+    if (umbralFaltas   !== undefined) updateData.umbralFaltas   = Number(umbralFaltas);
+    if (avisoPrivacidad !== undefined) {
+      updateData.avisoPrivacidad = String(avisoPrivacidad).trim();
+    }
+    if (portalHabilitado !== undefined) {
+      updateData.portalHabilitado = aBooleano(portalHabilitado);
+    }
 
     const config = await InstitutionConfig.findOneAndUpdate(
       {},

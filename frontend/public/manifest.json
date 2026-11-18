@@ -1,0 +1,11 @@
+{
+  "name": "SIGES - Portal de Padres",
+  "short_name": "SIGES",
+  "start_url": "/portal",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#538f65",
+  "icons": [
+    { "src": "/login-illustration.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

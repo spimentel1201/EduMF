@@ -49,6 +49,7 @@ import DniEscolarFormPage from '@/pages/DniEscolarFormPage';
 import DniEscolarGeneratePage from '@/pages/DniEscolarGeneratePage';
 import DniEscolarPhotosPage from '@/pages/DniEscolarPhotosPage';
 import DniEscolarPrintPage from '@/pages/DniEscolarPrintPage';
+import GuardianPortalPage from '@/pages/GuardianPortalPage';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ function App() {
           <SonnerToaster position="top-right" richColors closeButton />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/portal" element={<GuardianPortalPage />} />
             <Route path="/inventario/publico/:codigoInterno" element={<PublicInventoryItemPage />} />
             <Route
               path="/"

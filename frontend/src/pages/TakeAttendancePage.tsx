@@ -12,6 +12,7 @@ import {
   ArrowDownCircleIcon,
 } from '@heroicons/react/24/outline';
 import QrReader from 'react-qr-reader-es6';
+import { useQuery } from '@tanstack/react-query';
 import { attendanceService } from '@/services/attendanceService';
 
 const ALLOWED_ROLES = ['Auxiliar', 'admin', 'Dirección'];
@@ -25,6 +26,7 @@ interface AttendanceNotification {
   type: 'success' | 'error';
   modo?: ModoRegistro;
   message?: string;
+  salidaAnticipada?: boolean;
 }
 
 /** Verde institucional del tema del sistema (generador de QR, DNI escolar). */
@@ -40,6 +42,13 @@ export default function TakeAttendancePage() {
   const [processing, setProcessing] = useState(false);
   const lastScannedRef = useRef<string | null>(null);
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Horario configurado por la institución (lo aplica el backend al validar el QR)
+  const { data: horario } = useQuery({
+    queryKey: ['attendanceSchedule'],
+    queryFn: attendanceService.getSchedule,
+    staleTime: 60_000,
+  });
 
   // Live clock
   useEffect(() => {
@@ -77,6 +86,7 @@ export default function TakeAttendancePage() {
         time: new Date(result.time).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         type: 'success',
         modo,
+        salidaAnticipada: result.salidaAnticipada,
       });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'No se pudo registrar la asistencia';
@@ -135,6 +145,18 @@ export default function TakeAttendancePage() {
           <p className="text-center text-xs text-gray-400 -mt-2">
             Registrando <strong className="capitalize" style={{ color: modo === 'entrada' ? GREEN : '#b45309' }}>{modo}</strong> — cambia el modo antes del escaneo
           </p>
+
+          {horario && (
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-xl border border-gray-100 bg-gray-50/70 px-3 py-2 max-w-md mx-auto">
+              <span className="text-[11px] font-semibold text-gray-600">
+                Ingreso <strong className="tabular-nums">{horario.horaIngreso}</strong>
+                <span className="text-gray-400"> (+{horario.toleranciaMinutos} min)</span>
+              </span>
+              <span className="text-[11px] font-semibold text-gray-600">
+                Salida <strong className="tabular-nums">{horario.horaSalida}</strong>
+              </span>
+            </div>
+          )}
 
           <div className="rounded-xl overflow-hidden border-2 relative max-w-md mx-auto" style={{ borderColor: `${GREEN}66` }}>
             <QrReader
@@ -207,6 +229,11 @@ export default function TakeAttendancePage() {
                     {notification.status === 'Salida' ? `Salida · ${notification.time}` : notification.status}
                   </div>
                   <p className="text-center text-xs text-gray-400 mt-2">{notification.time}</p>
+                  {notification.salidaAnticipada && (
+                    <p className="text-center text-xs font-semibold text-amber-600 mt-2">
+                      ⚠ Salida anticipada (antes de las {horario?.horaSalida ?? 'la hora de salida'})
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
@@ -239,8 +266,18 @@ export default function TakeAttendancePage() {
                 </li>
               </ul>
               <p className="text-xs text-gray-400 mt-3">
-                Entrada antes de las 08:10 → <strong>Presente</strong><br />
-                Entrada después de las 08:10 → <strong>Tardanza</strong>
+                {horario ? (
+                  <>
+                    Entrada hasta las <strong>{horario.horaIngreso}</strong> + <strong>{horario.toleranciaMinutos} min</strong> → <strong>Presente</strong><br />
+                    Después de ese límite → <strong>Tardanza</strong><br />
+                    Salida antes de las <strong>{horario.horaSalida}</strong> → <strong>Salida anticipada</strong>
+                  </>
+                ) : (
+                  <>
+                    La entrada se marca como <strong>Presente</strong> o <strong>Tardanza</strong> según el
+                    horario configurado en Configuración Institucional.
+                  </>
+                )}
               </p>
             </div>
           )}

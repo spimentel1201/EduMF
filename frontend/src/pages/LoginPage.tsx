@@ -27,6 +27,14 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+/** Suma minutos a una hora "HH:MM" (para mostrar el límite de Presente). */
+function sumarMinutos(hora: string, minutos: number): string {
+  const [h, m] = hora.split(':').map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return hora;
+  const total = (h * 60 + m + (Number(minutos) || 0) + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 interface AttendanceNotification {
   studentName: string;
   status: 'Presente' | 'Tardanza' | 'Salida';
@@ -49,6 +57,9 @@ export default function LoginPage() {
   const { data: institutionSettings } = usePublicInstitutionSettings();
   const bgImage   = institutionSettings?.bgImageBase64 || null;
   const bgOpacity = institutionSettings?.bgOpacity     ?? 30;
+  const horaIngreso = institutionSettings?.horaIngreso ?? '08:00';
+  const toleranciaMinutos = institutionSettings?.toleranciaMinutos ?? 10;
+  const limiteIngreso = sumarMinutos(horaIngreso, toleranciaMinutos);
 
   const { login, isLoading } = useAuth();
   const { t } = useTranslation();
@@ -238,8 +249,8 @@ export default function LoginPage() {
                   </li>
                 </ul>
                 <p className="text-xs text-gray-400 mt-3">
-                  Antes de las 08:10 → <strong>Presente</strong><br />
-                  Después de las 08:10 → <strong>Tardanza</strong>
+                  Antes de las {limiteIngreso} → <strong>Presente</strong><br />
+                  Después de las {limiteIngreso} → <strong>Tardanza</strong>
                 </p>
               </div>
             )}
@@ -402,8 +413,8 @@ export default function LoginPage() {
 
                 <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-500 space-y-1">
                   <p>• El QR debe contener el <strong>DNI</strong> del estudiante</p>
-                  <p>• Antes de las 08:10 se registra como <strong className="text-green-600">Presente</strong></p>
-                  <p>• Después de las 08:10 se registra como <strong className="text-yellow-600">Tardanza</strong></p>
+                  <p>• Antes de las {limiteIngreso} se registra como <strong className="text-green-600">Presente</strong></p>
+                  <p>• Después de las {limiteIngreso} se registra como <strong className="text-yellow-600">Tardanza</strong></p>
                 </div>
 
                 <div className="relative py-2">

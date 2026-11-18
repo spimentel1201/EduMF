@@ -10,6 +10,9 @@ import {
   PhotoIcon,
   XMarkIcon,
   Cog8ToothIcon,
+  ClockIcon,
+  ArrowRightCircleIcon,
+  ArrowDownCircleIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useInstitutionSettings, useUpdateInstitutionSettings } from '@/hooks/useInstitutionSettings';
@@ -24,7 +27,28 @@ const schema = z.object({
   logoBase64: z.string(),
   bgImage:    z.string().optional(),
   bgOpacity:  z.number().min(0).max(100).optional(),
+  horaIngreso: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato HH:MM'),
+  horaSalida:  z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato HH:MM'),
+  toleranciaMinutos: z.coerce
+    .number({ invalid_type_error: 'Ingresa un número de minutos' })
+    .int('Debe ser un número entero')
+    .min(0, 'Mínimo 0 minutos')
+    .max(120, 'Máximo 120 minutos'),
 });
+
+const HORARIO_POR_DEFECTO = {
+  horaIngreso: '08:00',
+  horaSalida: '13:00',
+  toleranciaMinutos: 10,
+};
+
+/** Suma minutos a una hora "HH:MM" (para mostrar el límite de Presente). */
+function sumarMinutos(hora: string, minutos: number): string {
+  const [h, m] = hora.split(':').map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return hora;
+  const total = (h * 60 + m + (Number(minutos) || 0) + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
 
 type FormData = z.infer<typeof schema>;
 
@@ -306,6 +330,9 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 const inputCls =
   'w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-colors';
 
+const timeInputCls =
+  'w-full pl-10 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 transition-colors';
+
 const InputWithIcon = forwardRef<
   HTMLInputElement,
   { icon: React.ElementType } & React.InputHTMLAttributes<HTMLInputElement>
@@ -339,12 +366,16 @@ export default function InstitutionSettingsPage() {
       logoBase64: '',
       bgImage: '',
       bgOpacity: 30,
+      ...HORARIO_POR_DEFECTO,
     },
   });
 
   const logoBase64 = watch('logoBase64');
   const bgImage = watch('bgImage');
   const bgOpacity = watch('bgOpacity') ?? 30;
+  const horaIngreso = watch('horaIngreso');
+  const horaSalida = watch('horaSalida');
+  const toleranciaMinutos = watch('toleranciaMinutos');
 
   // Populate form when data loads
   useEffect(() => {
@@ -357,6 +388,9 @@ export default function InstitutionSettingsPage() {
         logoBase64: settings.logoBase64    ?? '',
         bgImage:    settings.bgImageBase64 ?? '',
         bgOpacity:  settings.bgOpacity     ?? 30,
+        horaIngreso: settings.horaIngreso ?? HORARIO_POR_DEFECTO.horaIngreso,
+        horaSalida:  settings.horaSalida  ?? HORARIO_POR_DEFECTO.horaSalida,
+        toleranciaMinutos: settings.toleranciaMinutos ?? HORARIO_POR_DEFECTO.toleranciaMinutos,
       });
     }
   }, [settings, reset]);
@@ -370,6 +404,9 @@ export default function InstitutionSettingsPage() {
       logoBase64:    data.logoBase64    ?? '',
       bgImageBase64: data.bgImage       ?? '',
       bgOpacity:     data.bgOpacity     ?? 30,
+      horaIngreso:   data.horaIngreso,
+      horaSalida:    data.horaSalida,
+      toleranciaMinutos: Number(data.toleranciaMinutos),
     };
 
     updateMutation.mutate(payload, {
@@ -397,7 +434,7 @@ export default function InstitutionSettingsPage() {
           Configuración Institucional
         </h1>
         <p className="text-sm mt-0.5" style={{ color: '#718096' }}>
-          Datos de identidad de la institución. Aparecerán en reportes PDF, plantillas Excel y documentos exportados.
+          Datos de identidad de la institución y horario de asistencia. El nombre y logo aparecen en reportes PDF, plantillas Excel y documentos exportados.
         </p>
       </div>
 
@@ -473,6 +510,62 @@ export default function InstitutionSettingsPage() {
           </div>
         </div>
 
+        {/* ── Horario de asistencia (QR) ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <ClockIcon className="w-5 h-5 text-green-600" />
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Horario de Asistencia</h2>
+          </div>
+          <p className="text-xs text-gray-500 mb-5">
+            El escáner QR compara la hora del escaneo con este horario para decidir si el estudiante llega
+            <strong> Presente</strong> o con <strong>Tardanza</strong>.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Field label="Hora de ingreso *" error={errors.horaIngreso?.message}>
+              <div className="relative">
+                <ArrowRightCircleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input type="time" className={timeInputCls} {...register('horaIngreso')} />
+              </div>
+            </Field>
+            <Field label="Tolerancia (minutos) *" error={errors.toleranciaMinutos?.message}>
+              <div className="relative">
+                <ClockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="number"
+                  min={0}
+                  max={120}
+                  step={1}
+                  className={timeInputCls}
+                  {...register('toleranciaMinutos')}
+                />
+              </div>
+            </Field>
+            <Field label="Hora de salida *" error={errors.horaSalida?.message}>
+              <div className="relative">
+                <ArrowDownCircleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input type="time" className={timeInputCls} {...register('horaSalida')} />
+              </div>
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+            <div className="rounded-xl border border-green-100 bg-green-50/60 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-green-700">Entrada</p>
+              <p className="text-xs text-green-800 mt-1">
+                Hasta las <strong>{sumarMinutos(horaIngreso, toleranciaMinutos)}</strong> ({horaIngreso} + {Number(toleranciaMinutos) || 0} min)
+                → <strong>Presente</strong>. Después → <strong>Tardanza</strong>.
+              </p>
+            </div>
+            <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-700">Salida</p>
+              <p className="text-xs text-amber-800 mt-1">
+                Antes de las <strong>{horaSalida}</strong> el escaneo se registra como <strong>salida anticipada</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* ── Actions ── */}
         <div className="flex items-center justify-end gap-3">
           <button
@@ -485,6 +578,9 @@ export default function InstitutionSettingsPage() {
               logoBase64: settings.logoBase64    ?? '',
               bgImage:    settings.bgImageBase64 ?? '',
               bgOpacity:  settings.bgOpacity     ?? 30,
+              horaIngreso: settings.horaIngreso ?? HORARIO_POR_DEFECTO.horaIngreso,
+              horaSalida:  settings.horaSalida  ?? HORARIO_POR_DEFECTO.horaSalida,
+              toleranciaMinutos: settings.toleranciaMinutos ?? HORARIO_POR_DEFECTO.toleranciaMinutos,
             })}
             disabled={!isDirty}
             className="px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm transition-colors disabled:opacity-40"

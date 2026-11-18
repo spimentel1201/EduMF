@@ -9,6 +9,12 @@ export interface AttendanceRecord {
   notes?: string;
 }
 
+export interface AttendanceSchedule {
+  horaIngreso: string;
+  horaSalida: string;
+  toleranciaMinutos: number;
+}
+
 export const attendanceService = {
   getByDate: async (date: string, sectionId?: string) => {
     const params = new URLSearchParams();
@@ -108,8 +114,16 @@ export const attendanceService = {
     dni: string;
     status: 'Presente' | 'Tardanza' | 'Salida';
     time: string;
+    horario: AttendanceSchedule;
+    salidaAnticipada: boolean;
+    mensaje?: string;
   }> => {
     const response = await api.post('/attendances/qr-scan', { dni, tipo });
+    return response.data.data;
+  },
+
+  getSchedule: async (): Promise<AttendanceSchedule & { horaServidor: string }> => {
+    const response = await api.get('/attendances/schedule');
     return response.data.data;
   },
 };

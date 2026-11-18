@@ -22,6 +22,9 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
           logoBase64: '',
           bgImageBase64: '',
           bgOpacity: 30,
+          horaIngreso: '08:00',
+          horaSalida: '13:00',
+          toleranciaMinutos: 10,
         },
       });
     }
@@ -37,7 +40,10 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
 // @access  Public
 export const getPublicSettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const config = await InstitutionConfig.findOne({}, 'name address logoBase64 bgImageBase64 bgOpacity');
+    const config = await InstitutionConfig.findOne(
+      {},
+      'name address logoBase64 bgImageBase64 bgOpacity horaIngreso horaSalida toleranciaMinutos'
+    );
     res.status(200).json({
       success: true,
       data: {
@@ -46,6 +52,9 @@ export const getPublicSettings = async (req: Request, res: Response, next: NextF
         logoBase64:    config?.logoBase64    ?? '',
         bgImageBase64: config?.bgImageBase64 ?? '',
         bgOpacity:     config?.bgOpacity     ?? 30,
+        horaIngreso:   config?.horaIngreso   ?? '08:00',
+        horaSalida:    config?.horaSalida    ?? '13:00',
+        toleranciaMinutos: config?.toleranciaMinutos ?? 10,
       },
     });
   } catch (error) {
@@ -65,7 +74,10 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
       return next(ApiError.badRequest(String(errors.array()[0].msg)));
     }
 
-    const { name, address, phone, email, logoBase64, bgImageBase64, bgOpacity } = req.body;
+    const {
+      name, address, phone, email, logoBase64, bgImageBase64, bgOpacity,
+      horaIngreso, horaSalida, toleranciaMinutos,
+    } = req.body;
 
     const updateData: Record<string, string | number> = { name: name.trim() };
     if (address      !== undefined) updateData.address      = address;
@@ -74,6 +86,9 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     if (logoBase64   !== undefined) updateData.logoBase64   = logoBase64;
     if (bgImageBase64 !== undefined) updateData.bgImageBase64 = bgImageBase64;
     if (bgOpacity    !== undefined) updateData.bgOpacity    = Number(bgOpacity);
+    if (horaIngreso  !== undefined) updateData.horaIngreso  = String(horaIngreso).trim();
+    if (horaSalida   !== undefined) updateData.horaSalida   = String(horaSalida).trim();
+    if (toleranciaMinutos !== undefined) updateData.toleranciaMinutos = Number(toleranciaMinutos);
 
     const config = await InstitutionConfig.findOneAndUpdate(
       {},

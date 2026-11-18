@@ -5,7 +5,29 @@ import Enrollment from '../models/Enrollment';
 import Attendance from '../models/Attendance';
 import CourseSchedule from '../models/CourseSchedule';
 import SchoolYear from '../models/SchoolYear';
-import ApiError from '../middleware/ApiError';
+import { ApiError } from '../middleware/errorHandler';
+import {
+  obtenerHorarioAsistencia,
+  clasificarEntrada,
+  esSalidaAnticipada,
+} from '../services/attendanceScheduleService';
+
+/**
+ * @desc    Obtener el horario de asistencia configurado (ingreso, salida y tolerancia)
+ * @route   GET /api/attendances/schedule
+ * @access  Private
+ */
+export const getAttendanceSchedule = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const horario = await obtenerHorarioAsistencia();
+    res.status(200).json({
+      success: true,
+      data: { ...horario, horaServidor: new Date().toISOString() },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @desc    Registrar asistencia por escaneo de QR
@@ -17,8 +39,9 @@ import ApiError from '../middleware/ApiError';
  * Lógica:
  * 1. Buscar usuario por DNI
  * 2. Buscar matrícula activa en el año escolar activo
- * 3. Entrada: estado según hora (antes de 08:10 → Presente, después → Tardanza)
- *    Salida: guarda la hora en el detalle del día (crea el detalle si falta)
+ * 3. Entrada: Presente si llega hasta la hora de ingreso + tolerancia
+ *    configurada en Configuración Institucional; si llega después → Tardanza
+ *    Salida: guarda la hora y avisa si es antes de la hora de salida configurada
  * 4. Buscar o crear el registro de asistencia del día para esa sección
  * 5. Agregar/actualizar el detalle del estudiante
  */
@@ -28,19 +51,19 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
     const modo = tipo === 'salida' ? 'salida' : 'entrada';
 
     if (!dni || typeof dni !== 'string' || dni.trim() === '') {
-      return next(new ApiError('El DNI es requerido', 400));
+      return next(ApiError.badRequest('El DNI es requerido'));
     }
 
     // 1. Buscar usuario por DNI
     const student = await User.findOne({ dni: dni.trim(), role: 'student', status: 'active' });
     if (!student) {
-      return next(new ApiError('No se encontró un estudiante activo con ese DNI', 404));
+      return next(ApiError.notFound('No se encontró un estudiante activo con ese DNI'));
     }
 
     // 2. Buscar año escolar activo
     const activeSchoolYear = await SchoolYear.findOne({ status: 'Activo' });
     if (!activeSchoolYear) {
-      return next(new ApiError('No hay un año escolar activo en el sistema', 400));
+      return next(ApiError.badRequest('No hay un año escolar activo en el sistema'));
     }
 
     // 3. Buscar matrícula activa del estudiante en el año escolar activo
@@ -50,24 +73,22 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
       status: 'active',
     });
     if (!enrollment) {
-      return next(new ApiError(`${student.firstName} ${student.lastName} no tiene matrícula activa este año`, 400));
+      return next(ApiError.badRequest(`${student.firstName} ${student.lastName} no tiene matrícula activa este año`));
     }
 
-    // 4. Determinar estado según hora actual
+    // 4. Determinar estado según el horario configurado por la institución
     const now = new Date();
-    const hours   = now.getHours();
-    const minutes = now.getMinutes();
-    // Tardanza si llega después de las 08:00
-    const isLate = hours > 8 || (hours === 8);
-    const attendanceStatus: 'Presente' | 'Tardanza' = isLate ? 'Tardanza' : 'Presente';
+    const horario = await obtenerHorarioAsistencia();
+    const attendanceStatus: 'Presente' | 'Tardanza' = clasificarEntrada(now, horario);
+    const salidaAnticipada = modo === 'salida' && esSalidaAnticipada(now, horario);
 
-    // 5. Buscar horario de curso para la sección (cualquiera del día)
-    const dayOfWeek = now.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
-    const dayNames  = ['0', '1', '2', '3', '4', '5', '6'];
+    // 5. Buscar el horario de hoy para la sección (dayOfWeek usa nombres en español)
+    const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaHoy = DIAS_SEMANA[now.getDay()];
 
     let courseSchedule = await CourseSchedule.findOne({
       sectionId: enrollment.sectionId,
-      dayOfWeek: dayNames[dayOfWeek],
+      dayOfWeek: diaHoy,
       status: 'Activo',
     });
 
@@ -80,7 +101,7 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
     }
 
     if (!courseSchedule) {
-      return next(new ApiError('No se encontró un horario activo para la sección del estudiante', 400));
+      return next(ApiError.badRequest('La sección del estudiante no tiene horarios registrados. Configura el horario de la sección para habilitar el escaneo QR.'));
     }
 
     // 6. Buscar o crear registro de asistencia del día
@@ -145,6 +166,11 @@ export const registerQRAttendance = async (req: Request, res: Response, next: Ne
         tipo: modo,
         time: now.toISOString(),
         sectionId: enrollment.sectionId,
+        horario,
+        salidaAnticipada,
+        mensaje: modo === 'salida' && salidaAnticipada
+          ? `Salida anticipada: la hora de salida configurada es ${horario.horaSalida}.`
+          : undefined,
       },
     });
   } catch (error) {

@@ -46,7 +46,16 @@ export const userService = {
     return response.data.data.map((user: any) => ({
       ...user,
       name: `${user.firstName} ${user.lastName}`,
-      status: user.status === 'active' ? 'Activo' : 'Inactivo',
+      status: user.status === 'inactive' ? 'inactive' : 'active',
     }));
+  },
+
+  updateStatus: async (id: string, status: 'active' | 'inactive') => {
+    try {
+      const response = await api.patch(`/users/${id}/status`, { status });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data ?? { msg: 'No se pudo actualizar el estado del usuario.' };
+    }
   },
 };

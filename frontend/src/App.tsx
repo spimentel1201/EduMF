@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AttendanceRecordsPage from './pages/AttendanceRecordsPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
+import { Toaster as SonnerToaster } from 'sonner';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { canAccess, getDefaultRoute } from '@/utils/roleAccess';
 import LoginPage from '@/pages/LoginPage';
@@ -57,6 +58,7 @@ function App() {
       <Router>
         <AuthProvider>
           <Toaster position="top-right" />
+          <SonnerToaster position="top-right" richColors closeButton />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/inventario/publico/:codigoInterno" element={<PublicInventoryItemPage />} />

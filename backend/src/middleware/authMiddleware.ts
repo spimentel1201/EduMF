@@ -38,6 +38,11 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       return next(ApiError.unauthorized('Usuario no encontrado'));
     }
 
+    // Un usuario dado de baja no debe poder seguir usando su token
+    if (user.status !== 'active') {
+      return next(ApiError.unauthorized('Usuario inactivo'));
+    }
+
     // Agregar el usuario a la solicitud
     req.user = user;
     next();

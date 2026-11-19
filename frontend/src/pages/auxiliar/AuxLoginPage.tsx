@@ -26,8 +26,8 @@ export default function AuxLoginPage() {
           <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg mb-3">
             <UserCircleIcon className="w-9 h-9 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">PWA Auxiliar</h1>
-          <p className="text-sm text-gray-500 mt-1">Acceso para auxiliares y directivos</p>
+          <h1 className="text-2xl font-bold text-gray-800">SIGES - Sistema de Gestión Escolar</h1>
+          <p className="text-sm text-gray-500 mt-1">PWA Auxiliar · Acceso para auxiliares y directivos</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 space-y-4">

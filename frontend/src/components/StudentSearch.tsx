@@ -5,10 +5,11 @@ interface StudentSearchProps {
   label: string;
   value: string;
   onChange: (id: string) => void;
+  onSelect?: (user: any) => void;
   placeholder?: string;
 }
 
-export default function StudentSearch({ label, value, onChange, placeholder = 'Buscar por DNI o nombre...' }: StudentSearchProps) {
+export default function StudentSearch({ label, value, onChange, onSelect, placeholder = 'Buscar por DNI o nombre...' }: StudentSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,6 +70,7 @@ export default function StudentSearch({ label, value, onChange, placeholder = 'B
                   type="button"
                   onClick={() => {
                     onChange(u.id);
+                    onSelect?.(u);
                     setQuery('');
                     setResults([]);
                     setSelectedLabel(`${u.firstName} ${u.lastName} (${u.dni})`);
@@ -76,7 +78,7 @@ export default function StudentSearch({ label, value, onChange, placeholder = 'B
                   className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-50 last:border-b-0"
                 >
                   <p className="text-sm font-medium text-gray-800">{u.firstName} {u.lastName}</p>
-                  <p className="text-xs text-gray-500">DNI: {u.dni} · {u.role}</p>
+                  <p className="text-xs text-gray-500">DNI: {u.dni} · {u.role === 'student' ? 'Estudiante' : u.role}</p>
                 </button>
               ))}
             </div>

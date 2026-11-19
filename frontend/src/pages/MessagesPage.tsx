@@ -15,8 +15,10 @@ export default function MessagesPage() {
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [audience, setAudience] = useState<'all' | 'section' | 'students'>('all');
   const [sectionId, setSectionId] = useState('');
-  const [studentIds, setStudentIds] = useState<string[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<{ id: string; name: string }[]>([]);
   const [selectedStudent, setSelectedStudent] = useState('');
+
+  const studentIds = selectedStudents.map((s) => s.id);
 
   const { data: sections = [] } = useQuery({
     queryKey: ['sections'],
@@ -46,7 +48,7 @@ export default function MessagesPage() {
       setImageUrl(undefined);
       setAudience('all');
       setSectionId('');
-      setStudentIds([]);
+      setSelectedStudents([]);
       setSelectedStudent('');
       queryClient.invalidateQueries({ queryKey: ['messages-sent'] });
     },
@@ -55,13 +57,15 @@ export default function MessagesPage() {
     },
   });
 
-  const addStudent = (id: string) => {
-    if (!studentIds.includes(id)) setStudentIds([...studentIds, id]);
+  const addStudent = (id: string, user?: any) => {
+    if (!studentIds.includes(id)) {
+      setSelectedStudents((prev) => [...prev, { id, name: user ? `${user.firstName} ${user.lastName}` : id }]);
+    }
     setSelectedStudent('');
   };
 
   const removeStudent = (id: string) => {
-    setStudentIds(studentIds.filter((s) => s !== id));
+    setSelectedStudents((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
@@ -124,13 +128,14 @@ export default function MessagesPage() {
               label="Agregar estudiante"
               value={selectedStudent}
               onChange={(id) => { if (id) addStudent(id); }}
+              onSelect={(u) => addStudent(u.id, u)}
             />
-            {studentIds.length > 0 && (
+            {selectedStudents.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {studentIds.map((id) => (
-                  <span key={id} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                    {id}
-                    <button type="button" onClick={() => removeStudent(id)} className="text-rose-600">×</button>
+                {selectedStudents.map((s) => (
+                  <span key={s.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    {s.name}
+                    <button type="button" onClick={() => removeStudent(s.id)} className="text-rose-600">×</button>
                   </span>
                 ))}
               </div>

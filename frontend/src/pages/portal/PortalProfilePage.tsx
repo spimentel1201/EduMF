@@ -18,6 +18,7 @@ export default function PortalProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [pushStatus, setPushStatus] = useState('');
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -25,6 +26,19 @@ export default function PortalProfilePage() {
       try {
         const res = await guardianApi.get('/guardians/me');
         setGuardian(res.data.data.guardian);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+        const sub = await reg?.pushManager.getSubscription();
+        setPushEnabled(!!sub);
       } catch (e) {
         console.error(e);
       }
@@ -72,6 +86,7 @@ export default function PortalProfilePage() {
         keys: json.keys,
         deviceLabel: 'PWA',
       });
+      setPushEnabled(true);
       setPushStatus('Notificaciones activadas correctamente.');
     } catch (e: any) {
       setPushStatus(e?.response?.data?.message || e?.message || 'Error al suscribirse.');
@@ -138,10 +153,36 @@ export default function PortalProfilePage() {
           </div>
           <button
             onClick={handlePushSubscribe}
-            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 font-medium transition"
+            disabled={pushEnabled}
+            className={`w-full rounded-xl py-2.5 font-medium transition ${
+              pushEnabled
+                ? 'bg-emerald-100 text-emerald-700 cursor-not-allowed'
+                : 'bg-indigo-500 hover:bg-indigo-600 text-white'
+            }`}
           >
-            Activar notificaciones
+            {pushEnabled ? 'Notificaciones activadas' : 'Activar notificaciones'}
           </button>
+          {pushEnabled && (
+            <button
+              onClick={async () => {
+                try {
+                  const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+                  const sub = await reg?.pushManager.getSubscription();
+                  if (sub) {
+                    await guardianApi.post('/push-subscriptions/unsubscribe', { endpoint: sub.endpoint });
+                    await sub.unsubscribe();
+                  }
+                  setPushEnabled(false);
+                  setPushStatus('Notificaciones desactivadas.');
+                } catch (e: any) {
+                  setPushStatus(e?.response?.data?.message || e?.message || 'Error al desactivar.');
+                }
+              }}
+              className="w-full border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:bg-gray-50 transition text-sm"
+            >
+              Desactivar notificaciones
+            </button>
+          )}
           {pushStatus && <p className="text-sm text-gray-600">{pushStatus}</p>}
         </div>
 

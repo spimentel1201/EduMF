@@ -47,7 +47,7 @@ export default function EditIncidentPage() {
 
     const { data: users = [] } = useQuery({
         queryKey: ['users'],
-        queryFn: userService.getAll,
+        queryFn: () => userService.getAll(),
     });
 
     const { data: incident, isLoading, error: fetchError } = useQuery({

@@ -10,6 +10,7 @@ export interface IIncident extends Document {
     description: string;
     location: string;
     actionsTaken: string;
+    evidenceBase64?: string;
     status: string;
     registeredBy: mongoose.Types.ObjectId;
     closedAt?: Date;
@@ -57,6 +58,10 @@ const IncidentSchema: Schema = new Schema(
             trim: true,
         },
         actionsTaken: {
+            type: String,
+            trim: true,
+        },
+        evidenceBase64: {
             type: String,
             trim: true,
         },

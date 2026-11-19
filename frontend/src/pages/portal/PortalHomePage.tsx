@@ -16,22 +16,25 @@ export default function PortalHomePage() {
   const [attendance, setAttendance] = useState<Record<string, any[]>>({});
   const [incidents, setIncidents] = useState<any[]>([]);
   const [debts, setDebts] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const [meRes, attRes, incRes, debtRes] = await Promise.all([
+        const [meRes, attRes, incRes, debtRes, msgRes] = await Promise.all([
           guardianApi.get('/guardians/me'),
           guardianApi.get('/guardians/children/attendance'),
           guardianApi.get('/guardians/children/incidents'),
           guardianApi.get('/guardians/children/debts'),
+          guardianApi.get('/guardian-messages'),
         ]);
         setGuardian(meRes.data.data.guardian);
         setStudents(meRes.data.data.students || []);
         setAttendance(attRes.data.data || {});
         setIncidents(incRes.data.data || []);
         setDebts(debtRes.data.data || []);
+        setMessages(msgRes.data.data || []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -53,6 +56,7 @@ export default function PortalHomePage() {
 
   const openIncidents = incidents.filter((i) => i.status !== 'Cerrado' && i.status !== 'Resuelto').length;
   const totalDebt = debts.reduce((acc, d) => acc + (parseFloat(d?.totalDebt) || 0), 0);
+  const unreadMessages = messages.filter((m) => !m.readBy?.length).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#538f65]/10 via-gray-50 to-gray-50">
@@ -156,7 +160,7 @@ export default function PortalHomePage() {
               <BellIcon className="w-6 h-6 text-sky-600" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-gray-800">Comunicados</p>
+              <p className="font-semibold text-gray-800">Comunicados {unreadMessages > 0 ? `(${unreadMessages})` : ''}</p>
               <p className="text-xs text-gray-500">Mensajes y avisos</p>
             </div>
             <ArrowRightIcon className="w-4 h-4 text-gray-400" />

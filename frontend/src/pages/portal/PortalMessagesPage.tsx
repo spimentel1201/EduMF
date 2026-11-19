@@ -11,7 +11,13 @@ export default function PortalMessagesPage() {
     setLoading(true);
     try {
       const res = await guardianApi.get('/guardian-messages');
-      setMessages(res.data.data || []);
+      const msgs = res.data.data || [];
+      setMessages(msgs);
+      // Auto-marcar como leído al visualizar la lista
+      const unread = msgs.filter((m: any) => !m.readBy?.length);
+      for (const m of unread) {
+        guardianApi.patch(`/guardian-messages/${m.id}/read`).catch(() => {});
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -60,7 +66,7 @@ export default function PortalMessagesPage() {
             <div className="p-4 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="font-semibold text-gray-800">{m.title}</h2>
-                <span className="text-xs text-gray-400">{new Date(m.createdAt).toLocaleDateString('es-PE')}</span>
+                <span className="text-xs text-gray-400">{new Date(m.createdAt).toLocaleDateString('es-PE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
               </div>
               <div
                 className="text-sm text-gray-700 prose prose-sm max-w-none"

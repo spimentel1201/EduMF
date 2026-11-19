@@ -159,7 +159,7 @@ export default function MessagesPage() {
         {sent.map((m: any) => (
           <div key={m.id} className="border-t border-gray-100 pt-3 first:border-t-0 first:pt-0">
             <p className="font-medium text-gray-800">{m.title}</p>
-            <p className="text-xs text-gray-500">{new Date(m.createdAt).toLocaleString('es-PE')} · {m.audience}</p>
+            <p className="text-xs text-gray-500">{new Date(m.createdAt).toLocaleDateString('es-PE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })} · {m.audience}</p>
           </div>
         ))}
         {sent.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Sin comunicados enviados.</p>}

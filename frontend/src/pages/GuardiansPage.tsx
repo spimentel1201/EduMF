@@ -140,7 +140,7 @@ export default function GuardiansPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${g.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>
-                        {g.status}
+                        {g.status === 'active' ? 'Activo' : 'Inactivo'}
                       </span>
                       {g.hasCustomPassword ? (
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-700 flex items-center gap-1">

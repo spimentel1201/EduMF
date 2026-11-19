@@ -51,6 +51,7 @@ import DniEscolarPhotosPage from '@/pages/DniEscolarPhotosPage';
 import DniEscolarPrintPage from '@/pages/DniEscolarPrintPage';
 import GuardianPortalPage from '@/pages/GuardianPortalPage';
 import AuxLayout from '@/pages/auxiliar/AuxLayout';
+import AuxLoginPage from '@/pages/auxiliar/AuxLoginPage';
 import AuxHomePage from '@/pages/auxiliar/AuxHomePage';
 import AuxScanPage from '@/pages/auxiliar/AuxScanPage';
 import AuxAttendancePage from '@/pages/auxiliar/AuxAttendancePage';
@@ -81,6 +82,7 @@ function App() {
               <Route path="pagos" element={<PortalPaymentsPage />} />
               <Route path="perfil" element={<PortalProfilePage />} />
             </Route>
+            <Route path="/aux/login" element={<AuxLoginPage />} />
             <Route path="/aux" element={<AuxLayout />}>
               <Route index element={<AuxHomePage />} />
               <Route path="escanear" element={<AuxScanPage />} />

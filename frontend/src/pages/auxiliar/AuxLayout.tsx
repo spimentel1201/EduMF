@@ -16,7 +16,7 @@ export default function AuxLayout() {
   }
 
   if (!isAuthenticated || !user || !ALLOWED.includes(user.role)) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/aux/login" replace />;
   }
 
   return (

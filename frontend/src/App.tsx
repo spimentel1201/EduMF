@@ -62,7 +62,9 @@ import PortalAttendancePage from '@/pages/portal/PortalAttendancePage';
 import PortalIncidentsPage from '@/pages/portal/PortalIncidentsPage';
 import PortalPaymentsPage from '@/pages/portal/PortalPaymentsPage';
 import PortalProfilePage from '@/pages/portal/PortalProfilePage';
+import PortalMessagesPage from '@/pages/portal/PortalMessagesPage';
 import GuardiansPage from '@/pages/GuardiansPage';
+import MessagesPage from '@/pages/MessagesPage';
 
 const queryClient = new QueryClient();
 
@@ -81,6 +83,7 @@ function App() {
               <Route path="incidencias" element={<PortalIncidentsPage />} />
               <Route path="pagos" element={<PortalPaymentsPage />} />
               <Route path="perfil" element={<PortalProfilePage />} />
+              <Route path="comunicados" element={<PortalMessagesPage />} />
             </Route>
             <Route path="/aux/login" element={<AuxLoginPage />} />
             <Route path="/aux" element={<AuxLayout />}>
@@ -132,6 +135,7 @@ function App() {
               <Route path="payments/defaulters" element={<RoleRoute module="payments"><DefaultersReportPage /></RoleRoute>} />
               <Route path="payments/by-grade" element={<RoleRoute module="payments"><DebtsByGradePage /></RoleRoute>} />
               <Route path="settings" element={<RoleRoute module="settings"><InstitutionSettingsPage /></RoleRoute>} />
+              <Route path="messages" element={<RoleRoute module="messages"><MessagesPage /></RoleRoute>} />
               <Route path="guardians" element={<RoleRoute module="guardians"><GuardiansPage /></RoleRoute>} />
               <Route path="inventory" element={<RoleRoute module="inventory"><InventoryPage /></RoleRoute>} />
               <Route path="inventory/new" element={<RoleRoute module="inventoryWrite"><InventoryItemFormPage /></RoleRoute>} />

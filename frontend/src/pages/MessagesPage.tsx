@@ -127,8 +127,8 @@ export default function MessagesPage() {
             <StudentSearch
               label="Agregar estudiante"
               value={selectedStudent}
-              onChange={(id) => { if (id) addStudent(id); }}
-              onSelect={(u) => addStudent(u.id, u)}
+              onChange={(id) => setSelectedStudent(id)}
+              onSelect={(u) => { addStudent(u.id, u); setSelectedStudent(''); }}
             />
             {selectedStudents.length > 0 && (
               <div className="flex flex-wrap gap-2">

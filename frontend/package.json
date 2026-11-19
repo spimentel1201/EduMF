@@ -30,6 +30,7 @@
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^15.7.3",
     "react-qr-reader-es6": "^2.2.1-2",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^6.15.0",
     "react-toastify": "^11.0.5",
     "recharts": "^3.5.1",

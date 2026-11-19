@@ -8,6 +8,7 @@ export type StaffRole =
   | 'Psicólogo(a)'
   | 'Docente'
   | 'Auxiliar'
+  | 'Secretaría'
   | 'Mantenimiento'
   | 'admin'
   | 'teacher'
@@ -33,6 +34,7 @@ export const ROLE_ACCESS: Record<string, StaffRole[]> = {
   dni:         ['Dirección', 'CIST', 'admin', 'Auxiliar', 'Docente', 'teacher'],
   dniWrite:    ['Dirección', 'CIST', 'admin', 'Auxiliar'],
   guardians:   ['Dirección', 'CIST', 'admin'],
+  messages:    ['Dirección', 'CIST', 'admin', 'Auxiliar', 'Secretaría' as any],
 };
 
 /**

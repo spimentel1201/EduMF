@@ -147,6 +147,20 @@ export default function PortalHomePage() {
             </div>
             <ArrowRightIcon className="w-4 h-4 text-gray-400" />
           </Link>
+
+          <Link
+            to="/portal/comunicados"
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 active:scale-[0.98] transition"
+          >
+            <div className="w-11 h-11 rounded-xl bg-sky-100 flex items-center justify-center">
+              <BellIcon className="w-6 h-6 text-sky-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-800">Comunicados</p>
+              <p className="text-xs text-gray-500">Mensajes y avisos</p>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 text-gray-400" />
+          </Link>
         </div>
 
         {/* Children cards */}

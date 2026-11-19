@@ -26,6 +26,8 @@ import inventoryRoutes from './routes/inventoryRoutes';
 import dniEscolarRoutes from './routes/dniEscolarRoutes';
 import guardianRoutes from './routes/guardianRoutes';
 import pushSubscriptionRoutes from './routes/pushSubscriptionRoutes';
+import messageRoutes from './routes/messageRoutes';
+import guardianMessageRoutes from './routes/guardianMessageRoutes';
 import { ejecutarCierreTurno } from './services/attendanceClosureService';
 import { asegurarIndiceDiario } from './services/attendanceDayService';
 
@@ -87,6 +89,8 @@ const startServer = async () => {
     app.use('/api/dni-escolar', dniEscolarRoutes);
 app.use('/api/guardians', guardianRoutes);
 app.use('/api/push-subscriptions', pushSubscriptionRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/guardian-messages', guardianMessageRoutes);
 
     // Middleware de manejo de errores
     app.use(errorHandler);

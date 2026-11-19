@@ -268,9 +268,11 @@ Para soporte técnico o preguntas sobre el sistema, contacta al equipo de desarr
 ### Desarrollo local
 - **Panel administrativo / auxiliar / docente:** `http://localhost:3000/` (login en `/login`)
 - **Portal de padres (PWA):** `http://localhost:3000/portal`
+- **PWA de auxiliar/admin/director:** `http://localhost:3000/aux`
 - **Panel de tutores (admin):** `http://localhost:3000/guardians`
 
 ### Producción
 - **Panel administrativo / auxiliar / docente:** `https://edu-mf.vercel.app/` (login en `/login`)
 - **Portal de padres (PWA):** `https://edu-mf.vercel.app/portal`
+- **PWA de auxiliar/admin/director:** `https://edu-mf.vercel.app/aux`
 - **Panel de tutores (admin):** `https://edu-mf.vercel.app/guardians`

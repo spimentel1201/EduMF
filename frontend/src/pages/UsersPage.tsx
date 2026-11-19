@@ -65,7 +65,7 @@ export default function UsersPage() {
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
-    queryFn: userService.getAll,
+    queryFn: () => userService.getAll(),
   });
 
   const statusMutation = useMutation({

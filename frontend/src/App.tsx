@@ -50,6 +50,13 @@ import DniEscolarGeneratePage from '@/pages/DniEscolarGeneratePage';
 import DniEscolarPhotosPage from '@/pages/DniEscolarPhotosPage';
 import DniEscolarPrintPage from '@/pages/DniEscolarPrintPage';
 import GuardianPortalPage from '@/pages/GuardianPortalPage';
+import AuxLayout from '@/pages/auxiliar/AuxLayout';
+import AuxLoginPage from '@/pages/auxiliar/AuxLoginPage';
+import AuxHomePage from '@/pages/auxiliar/AuxHomePage';
+import AuxScanPage from '@/pages/auxiliar/AuxScanPage';
+import AuxAttendancePage from '@/pages/auxiliar/AuxAttendancePage';
+import AuxIncidentsPage from '@/pages/auxiliar/AuxIncidentsPage';
+import AuxProfilePage from '@/pages/auxiliar/AuxProfilePage';
 import PortalHomePage from '@/pages/portal/PortalHomePage';
 import PortalAttendancePage from '@/pages/portal/PortalAttendancePage';
 import PortalIncidentsPage from '@/pages/portal/PortalIncidentsPage';
@@ -74,6 +81,14 @@ function App() {
               <Route path="incidencias" element={<PortalIncidentsPage />} />
               <Route path="pagos" element={<PortalPaymentsPage />} />
               <Route path="perfil" element={<PortalProfilePage />} />
+            </Route>
+            <Route path="/aux/login" element={<AuxLoginPage />} />
+            <Route path="/aux" element={<AuxLayout />}>
+              <Route index element={<AuxHomePage />} />
+              <Route path="escanear" element={<AuxScanPage />} />
+              <Route path="asistencia" element={<AuxAttendancePage />} />
+              <Route path="incidencias" element={<AuxIncidentsPage />} />
+              <Route path="perfil" element={<AuxProfilePage />} />
             </Route>
             <Route path="/inventario/publico/:codigoInterno" element={<PublicInventoryItemPage />} />
             <Route

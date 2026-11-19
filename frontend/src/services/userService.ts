@@ -41,8 +41,9 @@ export const userService = {
     }
   },
 
-  getAll: async () => {
-    const response = await api.get('/users');
+  getAll: async (search?: string) => {
+    const params = search && search.trim() ? `?search=${encodeURIComponent(search.trim())}` : '';
+    const response = await api.get(`/users${params}`);
     return response.data.data.map((user: any) => ({
       ...user,
       name: `${user.firstName} ${user.lastName}`,

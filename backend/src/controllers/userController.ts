@@ -144,7 +144,7 @@ export const bulkRegisterUsers = async (req: Request, res: Response) => {
  */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { role, status } = req.query;
+    const { role, status, search } = req.query;
     const query: Record<string, any> = {};
 
     if (role) {
@@ -153,6 +153,15 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 
     if (status) {
       query.status = status;
+    }
+
+    if (search && String(search).trim()) {
+      const term = String(search).trim();
+      query.$or = [
+        { firstName: { $regex: term, $options: 'i' } },
+        { lastName: { $regex: term, $options: 'i' } },
+        { dni: { $regex: term, $options: 'i' } },
+      ];
     }
 
     const users = await User.find(query)

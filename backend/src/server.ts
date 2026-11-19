@@ -46,22 +46,20 @@ const startServer = async () => {
       console.log('🌱 Ejecutando seed de datos iniciales...');
       await seedData();
     }
-    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000';
-    const allowAllOrigins = corsOriginsEnv === '*';
-    const allowedOrigins = allowAllOrigins
-      ? []
-      : corsOriginsEnv.split(',').map(o => o.trim()).filter(Boolean);
+    const corsOriginsEnv = process.env.CORS_ORIGINS;
+    const allowAllOrigins = !corsOriginsEnv || corsOriginsEnv === '*';
+    const allowedOrigins = corsOriginsEnv && corsOriginsEnv !== '*'
+      ? corsOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
+      : [];
 
     app.use(cors({
-      origin: allowAllOrigins
-        ? true
-        : (origin, callback) => {
-          if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            callback(new Error('Not allowed by CORS'));
-          }
-        },
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowAllOrigins) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (origin.endsWith('.vercel.app')) return callback(null, true);
+        callback(new Error('Not allowed by CORS'));
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization']

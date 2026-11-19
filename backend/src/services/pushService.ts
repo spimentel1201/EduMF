@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-const webpush = require('web-push');
 import PushSubscription from '../models/PushSubscription';
 import NotificationLog from '../models/NotificationLog';
 
@@ -7,12 +6,27 @@ const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:soporte@tucolegio.edu.pe';
 
-if (vapidPublicKey && vapidPrivateKey) {
-  try {
-    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-  } catch (error) {
-    console.error('[push] No se pudieron configurar las claves VAPID:', error);
+let webpush: any = null;
+let vapidConfigurado = false;
+
+function obtenerWebPush(): any {
+  if (webpush === null) {
+    try {
+      webpush = require('web-push');
+      if (vapidPublicKey && vapidPrivateKey && !vapidConfigurado) {
+        try {
+          webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+          vapidConfigurado = true;
+        } catch (error) {
+          console.error('[push] No se pudieron configurar las claves VAPID:', error);
+        }
+      }
+    } catch (error) {
+      console.error('[push] No se pudo cargar web-push:', error);
+      webpush = false;
+    }
   }
+  return webpush || null;
 }
 
 export interface PushPayload {
@@ -68,12 +82,28 @@ export async function enviarPushATutor(
     return;
   }
 
+  const wp = obtenerWebPush();
+  if (!wp) {
+    await NotificationLog.create({
+      audience: 'guardian',
+      guardianId,
+      type: (payload.type as any) || 'entrada',
+      title: payload.title,
+      body: payload.body,
+      url: payload.url,
+      dedupeKey,
+      status: 'skipped',
+      error: 'web-push no disponible',
+    });
+    return;
+  }
+
   let algunoEnviado = false;
   let ultimoError: string | undefined;
 
   for (const sub of subs) {
     try {
-      await webpush.sendNotification(
+      await wp.sendNotification(
         {
           endpoint: sub.endpoint,
           keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },

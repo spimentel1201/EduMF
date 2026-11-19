@@ -13,6 +13,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { incidentService } from '@/services/incidentService';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import StudentSearch from '@/components/StudentSearch';
+import EvidenceUploader from '@/components/EvidenceUploader';
 import { userService } from '@/services/userService';
 import {
     INCIDENT_TYPES,
@@ -33,6 +35,7 @@ const incidentSchema = z.object({
     description: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
     location: z.string({ required_error: 'El lugar del incidente es requerido' }).min(1, 'El lugar del incidente es requerido'),
     actionsTaken: z.string({ required_error: 'Las medidas tomadas son requeridas' }).min(1, 'Las medidas tomadas son requeridas'),
+    evidenceBase64: z.string().optional(),
     status: z.enum(['Pendiente', 'En Proceso', 'Resuelto', 'Cerrado'] as const).default('Pendiente'),
 });
 
@@ -271,41 +274,17 @@ export default function NewIncidentPage() {
                             )}
                         </div>
 
-                        <div>
-                            <label htmlFor="victimId" className="block text-sm font-bold text-[#4B79A1] mb-2">
-                                Datos del Agredido
-                            </label>
-                            <select
-                                id="victimId"
-                                className="block w-full rounded-xl bg-[#F0F7FF] border-[#DCEAFC] py-3 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors sm:text-sm"
-                                {...register('victimId')}
-                            >
-                                <option value="">Buscar alumno o personal...</option>
-                                {users.map((user: any) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.firstName} {user.lastName} - {user.dni}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <StudentSearch
+                            label="Datos del Agredido"
+                            value={watch('victimId') || ''}
+                            onChange={(id) => setValue('victimId', id)}
+                        />
 
-                        <div>
-                            <label htmlFor="aggressorId" className="block text-sm font-bold text-[#D24545] mb-2">
-                                Datos del Agresor
-                            </label>
-                            <select
-                                id="aggressorId"
-                                className="block w-full rounded-xl bg-[#FFF5F5] border-[#FCE8E8] py-3 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500/40 transition-colors sm:text-sm"
-                                {...register('aggressorId')}
-                            >
-                                <option value="">Buscar alumno o personal...</option>
-                                {users.map((user: any) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.firstName} {user.lastName} - {user.dni}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <StudentSearch
+                            label="Datos del Agresor"
+                            value={watch('aggressorId') || ''}
+                            onChange={(id) => setValue('aggressorId', id)}
+                        />
                     </div>
                 </div>
 
@@ -446,6 +425,14 @@ export default function NewIncidentPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Evidencia */}
+                <div className="mb-6">
+                    <EvidenceUploader
+                        value={watch('evidenceBase64')}
+                        onChange={(base64) => setValue('evidenceBase64', base64)}
+                    />
                 </div>
 
                 {/* Botones de acción */}

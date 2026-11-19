@@ -56,8 +56,8 @@ export default function GuardianPortalPage() {
             <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-[#538f65] to-[#2f5d3f] flex items-center justify-center shadow-lg mb-3">
               <UserCircleIcon className="w-9 h-9 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Portal de Padres</h1>
-            <p className="text-sm text-gray-500 mt-1">SIGES - Acceso para tutores</p>
+            <h1 className="text-2xl font-bold text-gray-800">SIGES - Sistema de Gestión Escolar</h1>
+            <p className="text-sm text-gray-500 mt-1">Portal de Padres · Acceso para tutores</p>
           </div>
 
           <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 space-y-4">

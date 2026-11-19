@@ -87,7 +87,7 @@ export default function PortalPaymentsPage() {
                         <p className="text-xs text-gray-500">{new Date(debt.createdAt || debt.date).toLocaleDateString('es-PE')}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold text-gray-800">S/ {debt.amount}</p>
+                        <p className="text-sm font-semibold text-gray-800">S/ {debt.amount?.$numberDecimal ?? debt.amount}</p>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusStyle[debt.status] || 'bg-gray-100 text-gray-600'}`}>
                           {debt.status}
                         </span>

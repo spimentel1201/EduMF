@@ -218,7 +218,7 @@ export default function AuxIncidentsPage() {
                   <select
                     value={inc.status}
                     onChange={(e) => cambiarEstado(inc.id, e.target.value)}
-                    className="text-xs border border-gray-200 rounded-lg px-2 py-1"
+                    className="text-xs border border-gray-200 rounded-lg px-2 py-1 w-28 max-w-[120px]"
                   >
                     {estados.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>

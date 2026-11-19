@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
-import { attendanceService } from '@/services/attendanceService';
+import { api } from '@/services/api';
 import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
+const statusStyle: Record<string, string> = {
+  Presente: 'bg-emerald-100 text-emerald-700',
+  Tardanza: 'bg-amber-100 text-amber-700',
+  Ausente: 'bg-rose-100 text-rose-700',
+  Justificado: 'bg-blue-100 text-blue-700',
+};
+
 export default function AuxAttendancePage() {
-  const [items, setItems] = useState<any[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const data = await attendanceService.getRecentActivity();
-        setItems(Array.isArray(data) ? data : []);
+        const today = new Date().toISOString().split('T')[0];
+        const res = await api.get('/attendances/attendance-records', { params: { startDate: today, endDate: today } });
+        setRecords(res.data.data || []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -36,23 +44,31 @@ export default function AuxAttendancePage() {
           </div>
           <div>
             <p className="text-xs text-white/80">Asistencia</p>
-            <h1 className="text-lg font-semibold">Actividad reciente</h1>
+            <h1 className="text-lg font-semibold">Registros de hoy</h1>
           </div>
         </div>
+        <p className="text-sm text-white/80 mt-3">{records.length} registro(s)</p>
       </div>
 
       <div className="px-4 -mt-4 space-y-3">
-        {items.map((it, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <p className="font-medium text-gray-800">{it.studentName || it.name || 'Estudiante'}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {it.status || it.type || 'Registro'} · {it.time ? new Date(it.time).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : ''}
-            </p>
+        {records.map((r, idx) => (
+          <div key={idx} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-medium text-gray-800 truncate">{r.studentName || 'Estudiante'}</p>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusStyle[r.status] || 'bg-gray-100 text-gray-600'}`}>
+                {r.status}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500">{r.sectionName || 'Sección'}</p>
+            <div className="flex items-center gap-4 text-xs text-gray-600">
+              <span>Entrada: {r.horaEntrada ? new Date(r.horaEntrada).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+              <span>Salida: {r.horaSalida ? new Date(r.horaSalida).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+            </div>
           </div>
         ))}
-        {items.length === 0 && (
+        {records.length === 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-400 text-sm">
-            Sin actividad reciente.
+            Sin registros de asistencia hoy.
           </div>
         )}
       </div>

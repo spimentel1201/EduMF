@@ -5,7 +5,12 @@ import { toast } from 'react-hot-toast';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 
 export default function AuxProfilePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/aux/login';
+  };
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,7 +78,7 @@ export default function AuxProfilePage() {
         </div>
 
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="w-full border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:bg-gray-50 transition"
         >
           Cerrar sesión

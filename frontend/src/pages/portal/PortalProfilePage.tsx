@@ -80,7 +80,7 @@ export default function PortalProfilePage() {
 
   const handleLogout = () => {
     setGuardianToken(null);
-    navigate('/portal');
+    window.location.href = '/portal';
   };
 
   return (
